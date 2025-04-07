@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import {
   View,
   StyleSheet,
@@ -18,7 +20,12 @@ import PageTitleComponent from "../../../components/PageTitleComponent";
 import CoffeeStorageService from "../../../services/CoffeeStorageService";
 import { CoffeeRecord } from "../../../types/CoffeeTypes";
 import RadarChart from "../../../components/RadarChart/RadarChart";
+// インポートの修正
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
 
+// 型アサーションを使って型エラーを回避
+(pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs || pdfFonts;
 type RouteParams = {
   id: string;
 };
@@ -85,6 +92,100 @@ export default function CoffeeItemScreen() {
         ],
         { cancelable: false }
       );
+    }
+  };
+  const downloadPdf = async () => {
+    if (!coffeeRecord) {
+      Alert.alert("エラー", "コーヒーデータがありません。");
+      return;
+    }
+
+    const documentDefinition = {
+      content: [
+        { text: coffeeRecord.name, style: "header" },
+        { text: `種類: ${coffeeRecord.variety}` },
+        { text: `産地: ${coffeeRecord.productionArea}` },
+        { text: `焙煎度: ${coffeeRecord.roastingDegree}` },
+        { text: `抽出器具: ${coffeeRecord.extractionMethod}` },
+        { text: `抽出メーカー: ${coffeeRecord.extractionMaker}` },
+        { text: `挽き目: ${coffeeRecord.grindSize}` },
+        { text: `注湯温度: ${coffeeRecord.temperature}` },
+        { text: `粉量: ${coffeeRecord.coffeeAmount}` },
+        { text: `水量: ${coffeeRecord.waterAmount}` },
+        { text: `抽出時間: ${coffeeRecord.extractionTime}` },
+        { text: `酸味: ${coffeeRecord.acidity}` },
+        { text: `甘味: ${coffeeRecord.sweetness}` },
+        { text: `苦味: ${coffeeRecord.bitterness}` },
+        { text: `コク: ${coffeeRecord.body}` },
+        { text: `香り: ${coffeeRecord.aroma}` },
+        { text: `後味: ${coffeeRecord.aftertaste}` },
+        { text: `MEMO: ${coffeeRecord.memo}` },
+      ],
+      styles: {
+        header: { fontSize: 18, bold: true, marginBottom: 10 },
+      },
+    };
+
+    try {
+      // ここで型アサーションを使用して型エラーを回避
+      const pdfDoc = (pdfMake as any).createPdfKitDocument(documentDefinition);
+      const chunks: Uint8Array[] = [];
+
+      pdfDoc.on("data", (chunk: Uint8Array) => {
+        chunks.push(chunk);
+      });
+
+      pdfDoc.on("end", async () => {
+        // Node.js のBufferがWeb環境では使えない可能性があるため条件分岐
+        let base64Pdf: string;
+
+        if (Platform.OS === "web") {
+          // Web環境では、Uint8Arrayを直接処理
+          const pdfBlob = new Blob(chunks, { type: "application/pdf" });
+          const reader = new FileReader();
+
+          // FileReaderでBase64に変換するためのPromiseを作成
+          const getBase64 = () =>
+            new Promise<string>((resolve) => {
+              reader.onloadend = () => {
+                const base64data = reader.result as string;
+                // data:application/pdf;base64, プレフィックスを削除
+                resolve(base64data.substr(base64data.indexOf(",") + 1));
+              };
+              reader.readAsDataURL(pdfBlob);
+            });
+
+          base64Pdf = await getBase64();
+        } else {
+          // ネイティブ環境ではBufferを使用
+          const pdfData = Buffer.concat(chunks);
+          base64Pdf = pdfData.toString("base64");
+        }
+
+        if (Platform.OS === "web") {
+          const link = document.createElement("a");
+          link.href = `data:application/pdf;base64,${base64Pdf}`;
+          link.download = `${coffeeRecord.name}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } else {
+          const fileUri =
+            FileSystem.documentDirectory + `${coffeeRecord.name}.pdf`;
+          await FileSystem.writeAsStringAsync(fileUri, base64Pdf, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          await Sharing.shareAsync(fileUri, {
+            mimeType: "application/pdf",
+            dialogTitle: "PDF を共有",
+          });
+        }
+      });
+
+      pdfDoc.end();
+    } catch (error) {
+      console.error("PDF 生成エラー:", error);
+      Alert.alert("エラー", "PDF の生成に失敗しました。");
     }
   };
   useEffect(() => {
@@ -250,6 +351,12 @@ export default function CoffeeItemScreen() {
                 <Text style={styles.buttonText}>削除</Text>
               </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              style={styles.downloadPdfButton}
+              onPress={downloadPdf}
+            >
+              <Text style={styles.buttonText}>PDF をダウンロード</Text>
+            </TouchableOpacity>
           </ScrollView>
         </View>
       </View>
@@ -381,5 +488,13 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     color: "#dc3545",
+  },
+  downloadPdfButton: {
+    backgroundColor: "#28a745",
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 20,
+    width: "90%",
+    alignItems: "center",
   },
 });
