@@ -1,0 +1,21 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/pdfmake": "^0.2.11",
+    "express": "^5.1.0",
+    "html-pdf-node": "^1.0.8",
+    "pdfmake": "^0.2.18",
+    "pg": "^8.14.1",
+    "puppeteer": "^24.6.0"
+  }
+}
