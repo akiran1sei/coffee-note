@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/pdfmake": "^0.2.11",
+    "chart.js-image": "^6.1.3",
     "express": "^5.1.0",
     "html-pdf-node": "^1.0.8",
     "pdfmake": "^0.2.18",
