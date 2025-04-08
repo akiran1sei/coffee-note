@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
+import * as Print from "expo-print"; // 追加
 import {
   View,
   StyleSheet,
@@ -13,19 +14,28 @@ import {
   Text,
   Alert,
 } from "react-native";
-import { Link, useRoute } from "@react-navigation/native";
-import { useRouter } from "expo-router"; // useRouter をインポート
+import { useRoute } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import HeaderComponent from "../../../components/HeaderComponent";
 import PageTitleComponent from "../../../components/PageTitleComponent";
 import CoffeeStorageService from "../../../services/CoffeeStorageService";
 import { CoffeeRecord } from "../../../types/CoffeeTypes";
 import RadarChart from "../../../components/RadarChart/RadarChart";
-// インポートの修正
+// PDF生成用のライブラリをインポート (Webのみで使用)
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 
-// 型アサーションを使って型エラーを回避
-(pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs || pdfFonts;
+// Webの場合のみpdfMakeの設定
+if (Platform.OS === "web") {
+  // @ts-ignore 型定義問題を回避
+  pdfMake.vfs = pdfFonts.pdfMake?.vfs;
+}
+// pdfMakeにフォントを設定（Web環境向け）
+// if (Platform.OS === "web") {
+//   // 明示的な型アサーション
+//   pdfMake.vfs = (pdfFonts as any).pdfMake?.vfs;
+// }
+
 type RouteParams = {
   id: string;
 };
@@ -37,7 +47,8 @@ export default function CoffeeItemScreen() {
 
   const [coffeeRecord, setCoffeeRecord] = useState<CoffeeRecord | null>(null);
   const [loading, setLoading] = useState(true);
-  // 画像URIを環境に応じて適切に処理する関数 - Fixed return type
+
+  // 画像URIを環境に応じて適切に処理する関数
   const getImageSource = (uri?: string | null): ImageSourcePropType => {
     if (!uri) {
       return require("../../../assets/images/no-image.png");
@@ -48,7 +59,7 @@ export default function CoffeeItemScreen() {
       if (uri.startsWith("data:image")) {
         return { uri };
       }
-      // web環境でfileプロトコルは使用できないため、デフォルトの画像を表示する。
+      // web環境でfileプロトコルは使用できないため、デフォルトの画像を表示する
       return require("../../../assets/images/no-image.png");
     } else {
       // モバイル環境の場合
@@ -94,100 +105,386 @@ export default function CoffeeItemScreen() {
       );
     }
   };
+
+  // downloadPdf関数を変更
+  // const downloadPdf = async () => {
+  //   if (!coffeeRecord) {
+  //     Alert.alert("エラー", "コーヒーデータがありません。");
+  //     return;
+  //   }
+
+  //   try {
+  //     if (Platform.OS === "web") {
+  //       // Web環境でのPDF生成
+  //       const docDefinition = {
+  //         content: [
+  //           { text: coffeeRecord.name, style: "header" },
+  //           { text: "\n" },
+  //           {
+  //             table: {
+  //               headerRows: 0,
+  //               widths: ["30%", "70%"],
+  //               body: [
+  //                 ["種類", coffeeRecord.variety || "未記入"],
+  //                 ["産地", coffeeRecord.productionArea || "未記入"],
+  //                 ["焙煎度", coffeeRecord.roastingDegree || "未記入"],
+  //                 ["抽出器具", coffeeRecord.extractionMethod || "未記入"],
+  //                 ["抽出メーカー", coffeeRecord.extractionMaker || "未記入"],
+  //                 ["挽き目", coffeeRecord.grindSize || "未記入"],
+  //                 ["注湯温度", coffeeRecord.temperature || "未記入"],
+  //                 ["粉量", coffeeRecord.coffeeAmount || "未記入"],
+  //                 ["水量", coffeeRecord.waterAmount || "未記入"],
+  //                 ["抽出時間", coffeeRecord.extractionTime || "未記入"],
+  //                 ["酸味", coffeeRecord.acidity || "0"],
+  //                 ["甘味", coffeeRecord.sweetness || "0"],
+  //                 ["苦味", coffeeRecord.bitterness || "0"],
+  //                 ["コク", coffeeRecord.body || "0"],
+  //                 ["香り", coffeeRecord.aroma || "0"],
+  //                 ["後味", coffeeRecord.aftertaste || "0"],
+  //                 ["MEMO", coffeeRecord.memo || "未記入"],
+  //               ],
+  //             },
+  //           },
+  //         ],
+  //         styles: {
+  //           header: {
+  //             fontSize: 18,
+  //             bold: true,
+  //           },
+  //         },
+  //         defaultStyle: {
+  //           font: "Helvetica",
+  //         },
+  //       };
+
+  //       // PDFをダウンロード
+  //       pdfMake.createPdf(docDefinition).download(`${coffeeRecord.name}.pdf`);
+  //     } else {
+  //       // モバイル環境でのPDF生成
+  //       const htmlContent = `
+  //       <!DOCTYPE html>
+  //       <html>
+  //         <head>
+  //           <meta charset="utf-8">
+  //           <title>${coffeeRecord.name}</title>
+  //           <style>
+  //             body { font-family: 'Helvetica', sans-serif; padding: 20px; }
+  //             h1 { text-align: center; color: #333; }
+  //             .container { max-width: 600px; margin: 0 auto; }
+  //             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+  //             th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+  //             th { background-color: #f2f2f2; width: 30%; }
+  //           </style>
+  //         </head>
+  //         <body>
+  //           <div class="container">
+  //             <h1>${coffeeRecord.name}</h1>
+  //             <table>
+  //               <tr><th>種類</th><td>${
+  //                 coffeeRecord.variety || "未記入"
+  //               }</td></tr>
+  //               <tr><th>産地</th><td>${
+  //                 coffeeRecord.productionArea || "未記入"
+  //               }</td></tr>
+  //               <tr><th>焙煎度</th><td>${
+  //                 coffeeRecord.roastingDegree || "未記入"
+  //               }</td></tr>
+  //               <tr><th>抽出器具</th><td>${
+  //                 coffeeRecord.extractionMethod || "未記入"
+  //               }</td></tr>
+  //               <tr><th>抽出メーカー</th><td>${
+  //                 coffeeRecord.extractionMaker || "未記入"
+  //               }</td></tr>
+  //               <tr><th>挽き目</th><td>${
+  //                 coffeeRecord.grindSize || "未記入"
+  //               }</td></tr>
+  //               <tr><th>注湯温度</th><td>${
+  //                 coffeeRecord.temperature || "未記入"
+  //               }</td></tr>
+  //               <tr><th>粉量</th><td>${
+  //                 coffeeRecord.coffeeAmount || "未記入"
+  //               }</td></tr>
+  //               <tr><th>水量</th><td>${
+  //                 coffeeRecord.waterAmount || "未記入"
+  //               }</td></tr>
+  //               <tr><th>抽出時間</th><td>${
+  //                 coffeeRecord.extractionTime || "未記入"
+  //               }</td></tr>
+  //               <tr><th>酸味</th><td>${coffeeRecord.acidity || "0"}</td></tr>
+  //               <tr><th>甘味</th><td>${coffeeRecord.sweetness || "0"}</td></tr>
+  //               <tr><th>苦味</th><td>${coffeeRecord.bitterness || "0"}</td></tr>
+  //               <tr><th>コク</th><td>${coffeeRecord.body || "0"}</td></tr>
+  //               <tr><th>香り</th><td>${coffeeRecord.aroma || "0"}</td></tr>
+  //               <tr><th>後味</th><td>${coffeeRecord.aftertaste || "0"}</td></tr>
+  //               <tr><th colspan="2">MEMO</th></tr>
+  //               <tr><td colspan="2">${coffeeRecord.memo || "未記入"}</td></tr>
+  //             </table>
+  //           </div>
+  //         </body>
+  //       </html>
+  //     `;
+
+  //       // HTMLからPDFを生成
+  //       const { uri } = await Print.printToFileAsync({
+  //         html: htmlContent,
+  //         base64: false,
+  //       });
+
+  //       // PDFを共有
+  //       await Sharing.shareAsync(uri, {
+  //         mimeType: "application/pdf",
+  //         dialogTitle: "コーヒー情報をPDFで共有",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("PDF生成エラー:", error);
+  //     Alert.alert("エラー", "PDFの生成に失敗しました");
+  //   }
+  // };
   const downloadPdf = async () => {
     if (!coffeeRecord) {
       Alert.alert("エラー", "コーヒーデータがありません。");
       return;
     }
 
-    const documentDefinition = {
-      content: [
-        { text: coffeeRecord.name, style: "header" },
-        { text: `種類: ${coffeeRecord.variety}` },
-        { text: `産地: ${coffeeRecord.productionArea}` },
-        { text: `焙煎度: ${coffeeRecord.roastingDegree}` },
-        { text: `抽出器具: ${coffeeRecord.extractionMethod}` },
-        { text: `抽出メーカー: ${coffeeRecord.extractionMaker}` },
-        { text: `挽き目: ${coffeeRecord.grindSize}` },
-        { text: `注湯温度: ${coffeeRecord.temperature}` },
-        { text: `粉量: ${coffeeRecord.coffeeAmount}` },
-        { text: `水量: ${coffeeRecord.waterAmount}` },
-        { text: `抽出時間: ${coffeeRecord.extractionTime}` },
-        { text: `酸味: ${coffeeRecord.acidity}` },
-        { text: `甘味: ${coffeeRecord.sweetness}` },
-        { text: `苦味: ${coffeeRecord.bitterness}` },
-        { text: `コク: ${coffeeRecord.body}` },
-        { text: `香り: ${coffeeRecord.aroma}` },
-        { text: `後味: ${coffeeRecord.aftertaste}` },
-        { text: `MEMO: ${coffeeRecord.memo}` },
-      ],
-      styles: {
-        header: { fontSize: 18, bold: true, marginBottom: 10 },
-      },
-    };
-
     try {
-      // ここで型アサーションを使用して型エラーを回避
-      const pdfDoc = (pdfMake as any).createPdfKitDocument(documentDefinition);
-      const chunks: Uint8Array[] = [];
+      if (Platform.OS === "web") {
+        // Web環境でのPDF生成 (テーブルレイアウト維持)
+        const docDefinition = {
+          content: [
+            { text: coffeeRecord.name, style: "header" },
+            { text: "\n" },
+            {
+              table: {
+                headerRows: 0,
+                widths: ["30%", "70%"],
+                body: [
+                  ["種類", coffeeRecord.variety || "未記入"],
+                  ["産地", coffeeRecord.productionArea || "未記入"],
+                  ["焙煎度", coffeeRecord.roastingDegree || "未記入"],
+                  ["抽出器具", coffeeRecord.extractionMethod || "未記入"],
+                  ["抽出メーカー", coffeeRecord.extractionMaker || "未記入"],
+                  ["挽き目", coffeeRecord.grindSize || "未記入"],
+                  ["注湯温度", coffeeRecord.temperature || "未記入"],
+                  ["粉量", coffeeRecord.coffeeAmount || "未記入"],
+                  ["水量", coffeeRecord.waterAmount || "未記入"],
+                  ["抽出時間", coffeeRecord.extractionTime || "未記入"],
+                  ["酸味", coffeeRecord.acidity || "0"],
+                  ["甘味", coffeeRecord.sweetness || "0"],
+                  ["苦味", coffeeRecord.bitterness || "0"],
+                  ["コク", coffeeRecord.body || "0"],
+                  ["香り", coffeeRecord.aroma || "0"],
+                  ["後味", coffeeRecord.aftertaste || "0"],
+                  ["MEMO", coffeeRecord.memo || "未記入"],
+                ],
+              },
+            },
+          ],
+          styles: {
+            header: { fontSize: 18, bold: true },
+          },
+          defaultStyle: { font: "Helvetica" },
+        };
+        pdfMake.createPdf(docDefinition).download(`${coffeeRecord.name}.pdf`);
+      } else {
+        // モバイル環境でのPDF生成 (リスト形式 + レーダーチャート)
+        const radarData = {
+          acidity: Number(coffeeRecord.acidity) || 0,
+          sweetness: Number(coffeeRecord.sweetness) || 0,
+          bitterness: Number(coffeeRecord.bitterness) || 0,
+          body: Number(coffeeRecord.body) || 0,
+          aroma: Number(coffeeRecord.aroma) || 0,
+          aftertaste: Number(coffeeRecord.aftertaste) || 0,
+        };
 
-      pdfDoc.on("data", (chunk: Uint8Array) => {
-        chunks.push(chunk);
-      });
+        const htmlContent = `
+  <!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="utf-8">
+      <title>${coffeeRecord.name}</title>
+      <style>
+        body { font-family: 'Helvetica', sans-serif; padding: 20px; }
+        h1 { text-align: center; color: #333; margin-bottom: 20px; }
+        .detail-item { margin-bottom: 10px; }
+        .label { font-weight: bold; margin-right: 5px; }
+        .memo-title { font-weight: bold; margin-top: 20px; margin-bottom: 5px; }
+        .radar-container { width: 200px; height: 200px; margin: 20px auto; }
+      </style>
+    </head>
+    <body>
+      <h1>${coffeeRecord.name}</h1>
+      <div class="detail-item"><span class="label">種類:</span> ${
+        coffeeRecord.variety || "未記入"
+      }</div>
+      <div class="detail-item"><span class="label">産地:</span> ${
+        coffeeRecord.productionArea || "未記入"
+      }</div>
+      <div class="detail-item"><span class="label">焙煎度:</span> ${
+        coffeeRecord.roastingDegree || "未記入"
+      }</div>
+      <div class="detail-item"><span class="label">抽出器具:</span> ${
+        coffeeRecord.extractionMethod || "未記入"
+      }</div>
+      <div class="detail-item"><span class="label">抽出メーカー:</span> ${
+        coffeeRecord.extractionMaker || "未記入"
+      }</div>
+      <div class="detail-item"><span class="label">挽き目:</span> ${
+        coffeeRecord.grindSize || "未記入"
+      }</div>
+      <div class="detail-item"><span class="label">注湯温度:</span> ${
+        coffeeRecord.temperature || "未記入"
+      }</div>
+      <div class="detail-item"><span class="label">粉量:</span> ${
+        coffeeRecord.coffeeAmount || "未記入"
+      }</div>
+      <div class="detail-item"><span class="label">水量:</span> ${
+        coffeeRecord.waterAmount || "未記入"
+      }</div>
+      <div class="detail-item"><span class="label">抽出時間:</span> ${
+        coffeeRecord.extractionTime || "未記入"
+      }</div>
+      <div class="detail-item"><span class="label">酸味:</span> ${
+        coffeeRecord.acidity || "0"
+      }</div>
+      <div class="detail-item"><span class="label">甘味:</span> ${
+        coffeeRecord.sweetness || "0"
+      }</div>
+      <div class="detail-item"><span class="label">苦味:</span> ${
+        coffeeRecord.bitterness || "0"
+      }</div>
+      <div class="detail-item"><span class="label">コク:</span> ${
+        coffeeRecord.body || "0"
+      }</div>
+      <div class="detail-item"><span class="label">香り:</span> ${
+        coffeeRecord.aroma || "0"
+      }</div>
+      <div class="detail-item"><span class="label">後味:</span> ${
+        coffeeRecord.aftertaste || "0"
+      }</div>
 
-      pdfDoc.on("end", async () => {
-        // Node.js のBufferがWeb環境では使えない可能性があるため条件分岐
-        let base64Pdf: string;
+      <h2 style="text-align: center; margin-top: 30px;">味わいの評価</h2>
+      <div style="align-items: center; display: flex; justify-content: center;">
+        RadarChartデータ: 酸味=${radarData.acidity}, 甘味=${
+          radarData.sweetness
+        }, 苦味=${radarData.bitterness}, コク=${radarData.body}, 香り=${
+          radarData.aroma
+        }, 後味=${radarData.aftertaste}
+      </div>
 
-        if (Platform.OS === "web") {
-          // Web環境では、Uint8Arrayを直接処理
-          const pdfBlob = new Blob(chunks, { type: "application/pdf" });
-          const reader = new FileReader();
+      <h2 class="memo-title">MEMO</h2>
+      <div>${coffeeRecord.memo || "未記入"}</div>
+    </body>
+  </html>
+`;
 
-          // FileReaderでBase64に変換するためのPromiseを作成
-          const getBase64 = () =>
-            new Promise<string>((resolve) => {
-              reader.onloadend = () => {
-                const base64data = reader.result as string;
-                // data:application/pdf;base64, プレフィックスを削除
-                resolve(base64data.substr(base64data.indexOf(",") + 1));
-              };
-              reader.readAsDataURL(pdfBlob);
-            });
+        const { uri } = await Print.printToFileAsync({
+          html: htmlContent,
+          base64: false,
+        });
 
-          base64Pdf = await getBase64();
-        } else {
-          // ネイティブ環境ではBufferを使用
-          const pdfData = Buffer.concat(chunks);
-          base64Pdf = pdfData.toString("base64");
-        }
-
-        if (Platform.OS === "web") {
-          const link = document.createElement("a");
-          link.href = `data:application/pdf;base64,${base64Pdf}`;
-          link.download = `${coffeeRecord.name}.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        } else {
-          const fileUri =
-            FileSystem.documentDirectory + `${coffeeRecord.name}.pdf`;
-          await FileSystem.writeAsStringAsync(fileUri, base64Pdf, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-          await Sharing.shareAsync(fileUri, {
-            mimeType: "application/pdf",
-            dialogTitle: "PDF を共有",
-          });
-        }
-      });
-
-      pdfDoc.end();
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/pdf",
+          dialogTitle: "コーヒー情報をPDFで共有",
+        });
+      }
     } catch (error) {
-      console.error("PDF 生成エラー:", error);
-      Alert.alert("エラー", "PDF の生成に失敗しました。");
+      console.error("PDF生成エラー:", error);
+      Alert.alert("エラー", "PDFの生成に失敗しました");
     }
   };
+  //↓.txtバージョン
+  // const downloadPdf = async () => {
+  //   if (!coffeeRecord) {
+  //     Alert.alert("エラー", "コーヒーデータがありません。");
+  //     return;
+  //   }
+
+  //   try {
+  //     if (Platform.OS === "web") {
+  //       // Web環境でのPDF生成
+  //       const docDefinition = {
+  //         content: [
+  //           { text: coffeeRecord.name, style: 'header' },
+  //           { text: '\n' },
+  //           {
+  //             table: {
+  //               headerRows: 0,
+  //               widths: ['30%', '70%'],
+  //               body: [
+  //                 ['種類', coffeeRecord.variety || "未記入"],
+  //                 ['産地', coffeeRecord.productionArea || "未記入"],
+  //                 ['焙煎度', coffeeRecord.roastingDegree || "未記入"],
+  //                 ['抽出器具', coffeeRecord.extractionMethod || "未記入"],
+  //                 ['抽出メーカー', coffeeRecord.extractionMaker || "未記入"],
+  //                 ['挽き目', coffeeRecord.grindSize || "未記入"],
+  //                 ['注湯温度', coffeeRecord.temperature || "未記入"],
+  //                 ['粉量', coffeeRecord.coffeeAmount || "未記入"],
+  //                 ['水量', coffeeRecord.waterAmount || "未記入"],
+  //                 ['抽出時間', coffeeRecord.extractionTime || "未記入"],
+  //                 ['酸味', coffeeRecord.acidity || "0"],
+  //                 ['甘味', coffeeRecord.sweetness || "0"],
+  //                 ['苦味', coffeeRecord.bitterness || "0"],
+  //                 ['コク', coffeeRecord.body || "0"],
+  //                 ['香り', coffeeRecord.aroma || "0"],
+  //                 ['後味', coffeeRecord.aftertaste || "0"],
+  //                 ['MEMO', coffeeRecord.memo || "未記入"],
+  //               ]
+  //             }
+  //           }
+  //         ],
+  //         styles: {
+  //           header: {
+  //             fontSize: 18,
+  //             bold: true
+  //           }
+  //         },
+  //         defaultStyle: {
+  //           font: 'Helvetica'
+  //         }
+  //       };
+
+  //       // PDFをダウンロード
+  //       pdfMake.createPdf(docDefinition).download(`${coffeeRecord.name}.pdf`);
+  //     } else {
+  //       // モバイル環境でのテキストファイル作成
+  //       const textContent = `
+  // コーヒー名: ${coffeeRecord.name}
+  // 種類: ${coffeeRecord.variety || "未記入"}
+  // 産地: ${coffeeRecord.productionArea || "未記入"}
+  // 焙煎度: ${coffeeRecord.roastingDegree || "未記入"}
+  // 抽出器具: ${coffeeRecord.extractionMethod || "未記入"}
+  // 抽出メーカー: ${coffeeRecord.extractionMaker || "未記入"}
+  // 挽き目: ${coffeeRecord.grindSize || "未記入"}
+  // 注湯温度: ${coffeeRecord.temperature || "未記入"}
+  // 粉量: ${coffeeRecord.coffeeAmount || "未記入"}
+  // 水量: ${coffeeRecord.waterAmount || "未記入"}
+  // 抽出時間: ${coffeeRecord.extractionTime || "未記入"}
+  // 酸味: ${coffeeRecord.acidity || "0"}
+  // 甘味: ${coffeeRecord.sweetness || "0"}
+  // 苦味: ${coffeeRecord.bitterness || "0"}
+  // コク: ${coffeeRecord.body || "0"}
+  // 香り: ${coffeeRecord.aroma || "0"}
+  // 後味: ${coffeeRecord.aftertaste || "0"}
+  // MEMO: ${coffeeRecord.memo || "未記入"}
+  //       `;
+
+  //       // 一時ファイルに保存
+  //       const fileUri = `${FileSystem.cacheDirectory}${coffeeRecord.name}.txt`;
+  //       await FileSystem.writeAsStringAsync(fileUri, textContent);
+
+  //       // 共有
+  //       await Sharing.shareAsync(fileUri, {
+  //         mimeType: "text/plain",
+  //         dialogTitle: "コーヒー情報を共有",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("ファイル生成エラー:", error);
+  //     Alert.alert("エラー", "ファイルの生成に失敗しました");
+  //   }
+  // };
+
   useEffect(() => {
     const fetchCoffeeRecord = async () => {
       try {
@@ -234,7 +531,7 @@ export default function CoffeeItemScreen() {
                 <Image
                   source={getImageSource(coffeeRecord.imageUri)}
                   style={styles.recordImagePreview}
-                  defaultSource={require("../../../assets/images/no-image.png")} // Optional fallback
+                  defaultSource={require("../../../assets/images/no-image.png")}
                 />
               </View>
 
@@ -383,15 +680,15 @@ const styles = StyleSheet.create({
   },
   mainContents: {
     width: "100%",
-    maxWidth: 600, // 少し広めに
+    maxWidth: 600,
     marginHorizontal: "auto",
-    top: 160, // ヘッダーとタイトルに合わせて調整
+    top: 160,
     bottom: 0,
   },
   scrollContainer: {
     alignItems: "center",
     paddingVertical: 20,
-    paddingBottom: 60, // 下部のボタンのために余白
+    paddingBottom: 60,
     width: "100%",
   },
   itemContainer: {
@@ -461,7 +758,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   deleteButton: {
-    backgroundColor: "#dc3545", // Bootstrap danger color
+    backgroundColor: "#dc3545",
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 20,
@@ -469,7 +766,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   updateButton: {
-    backgroundColor: "#007bff", // Bootstrap primary color
+    backgroundColor: "#007bff",
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 20,
