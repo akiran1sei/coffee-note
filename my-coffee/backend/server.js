@@ -1,22 +1,16 @@
 const express = require("express");
-// const { ChartJSImage } = require("chart.js-image"); // クラス名を修正
 const fs = require("node:fs/promises");
 const path = require("path");
+const ChartJSImage = require("chart.js-image");
+
+// Correct pdfMake imports
 const pdfMake = require("pdfmake/build/pdfmake");
 const pdfFonts = require("pdfmake/build/vfs_fonts");
-const ChartJSImage = require("chart.js-image"); // デフォルトエクスポートの場合
+pdfMake.vfs = pdfFonts.pdfMake?.vfs;
 
 const app = express();
 const port = 3000;
-const chartJSNodeCanvas = new ChartJSImage({ width: 200, height: 200 }); // インスタンス作成も修正
-
-// pdfMake のフォント設定 (必要に応じて)
-if (pdfFonts && pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
-  pdfMake.vfs = pdfFonts.pdfMake.vfs;
-} else {
-  console.error("Error: pdfFonts.pdfMake.vfs is undefined.");
-  // 必要に応じてエラー処理を追加
-}
+const chartJSNodeCanvas = new ChartJSImage({ width: 200, height: 200 });
 
 // 一時的な画像保存ディレクトリ
 const imageDir = path.join(__dirname, "temp-images");
@@ -73,19 +67,26 @@ app.post("/api/generate-pdf", async (req, res) => {
     };
 
     // チャート画像をBase64エンコード
-    const chartDataUrl = await chartJSNodeCanvas.toDataURL(chartConfig); // メソッド名を修正
+    const chartDataUrl = await chartJSNodeCanvas.toDataURL(chartConfig);
     const base64Image = chartDataUrl.split(",")[1];
     const imageName = `radar-chart-${Date.now()}.png`;
     const imagePath = path.join(imageDir, imageName);
     await fs.writeFile(imagePath, base64Image, "base64");
-    const imageUrl = `/temp-images/${imageName}`;
 
-    // PDFドキュメントの定義 (画像埋め込み用に修正)
+    // 重要: imageUrlをフルパスに変更
+    const imageFilePath = path.resolve(imagePath);
+
+    // PDFドキュメントの定義 (画像埋め込みを修正)
     const documentDefinition = {
       content: [
         { text: coffeeRecord.name, style: "header" },
         { text: "\n" },
-        { image: imageUrl, width: 200, alignment: "center" }, // 画像を埋め込む
+        {
+          // 画像を直接base64で埋め込む方法に変更
+          image: `data:image/png;base64,${base64Image}`,
+          width: 200,
+          alignment: "center",
+        },
         { text: "\n" },
         {
           table: {
@@ -130,11 +131,18 @@ app.post("/api/generate-pdf", async (req, res) => {
         `attachment; filename="${coffeeRecord.name}.pdf"`
       );
       res.send(result);
+
+      // 画像ファイルのクリーンアップ (オプション)
+      fs.unlink(imagePath).catch((err) =>
+        console.error("Temporary file deletion error:", err)
+      );
     });
     pdfDoc.end();
   } catch (error) {
     console.error("PDF 生成エラー:", error);
-    res.status(500).json({ error: "PDF の生成に失敗しました。" });
+    res
+      .status(500)
+      .json({ error: "PDF の生成に失敗しました。" + error.message });
   }
 });
 
