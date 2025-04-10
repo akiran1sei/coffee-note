@@ -7,8 +7,13 @@ interface TextAreaProps {
 }
 
 const TextAreaComponent: React.FC<TextAreaProps> = ({ onChange, value }) => {
-  const handleInputChange = (text: string) => {
-    onChange(text); // 親コンポーネントに値を渡す
+  const [text, setText] = useState(value);
+  const maxLength = 100;
+  const handleInputChange = (newText: string) => {
+    if (newText.length <= maxLength) {
+      setText(newText);
+      onChange(newText); // 親コンポーネントに値を渡す
+    }
   };
 
   return (
@@ -23,6 +28,10 @@ const TextAreaComponent: React.FC<TextAreaProps> = ({ onChange, value }) => {
         multiline={true}
         numberOfLines={4}
       />
+
+      <Text style={styles.counter}>
+        {text.length} / {maxLength} 字
+      </Text>
     </View>
   );
 };
@@ -53,6 +62,13 @@ const styles = StyleSheet.create({
     marginTop: -1,
     height: 100,
     textAlignVertical: "top",
+  },
+  counter: {
+    width: "100%",
+    textAlign: "right",
+    color: "#888",
+    fontSize: 12,
+    marginTop: 5,
   },
 });
 
