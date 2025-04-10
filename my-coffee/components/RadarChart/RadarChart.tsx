@@ -67,7 +67,7 @@ const RadarChart: React.FC<RadarChartProps> = ({ data }) => {
         <VictoryLine
           data={chartData}
           style={{
-            data: { stroke: "#007AFF", strokeWidth: 3 }, // 色と太さを調整
+            data: { stroke: "#D2B48C", strokeWidth: 3 }, // 色と太さを調整
           }}
         />
         {/* オプションで VictoryArea を追加 */}

@@ -49,6 +49,12 @@ export default function CoffeeItemScreen() {
   const [coffeeRecord, setCoffeeRecord] = useState<CoffeeRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const labels = ["酸味", "甘味", "苦味", "コク", "香り", "後味"];
+  const angles = [0, 60, 120, 180, 240, 300].map(
+    (angle) => (angle * Math.PI) / 180
+  );
+  const radius = 40;
+
   // 画像URIを環境に応じて適切に処理する関数
   const getImageSource = (uri?: string | null): ImageSourcePropType => {
     if (!uri) {
@@ -106,6 +112,7 @@ export default function CoffeeItemScreen() {
       );
     }
   };
+
   const downloadPdf = async () => {
     if (!coffeeRecord) {
       Alert.alert("エラー", "コーヒーデータがありません。");
@@ -192,37 +199,54 @@ export default function CoffeeItemScreen() {
         };
 
         // レーダーチャートをSVGとして直接HTMLに埋め込む（サイズ縮小版）
+
         const svgChart = `
-      <svg width="150" height="150" viewBox="0 0 100 100">
-        <!-- シンプルな多角形で表現 -->
-        <polygon 
-          points="
-            50,${50 - radarData.acidity * 8} 
-            ${50 + radarData.sweetness * 7},${50 - radarData.sweetness * 4}
-            ${50 + radarData.bitterness * 7},${50 + radarData.bitterness * 4}
-            ${50 + radarData.body * 4},${50 + radarData.body * 7}
-            ${50 - radarData.aroma * 4},${50 + radarData.aroma * 7}
-            ${50 - radarData.aftertaste * 7},${50 - radarData.aftertaste * 4}
-          "
-          fill="rgba(54, 162, 235, 0.2)" 
-          stroke="rgba(54, 162, 235, 1)" 
-          stroke-width="1"
-        />
-        <!-- 背景の軸線 -->
-        <line x1="50" y1="10" x2="50" y2="90" stroke="#ddd" />
-        <line x1="10" y1="50" x2="90" y2="50" stroke="#ddd" />
-        <line x1="30" y1="30" x2="70" y2="70" stroke="#ddd" />
-        <line x1="30" y1="70" x2="70" y2="30" stroke="#ddd" />
-        
-        <!-- ラベル -->
-        <text x="50" y="5" text-anchor="middle" font-size="5">酸味</text>
-        <text x="95" y="45" text-anchor="end" font-size="5">甘味</text>
-        <text x="75" y="85" text-anchor="middle" font-size="5">苦味</text>
-        <text x="25" y="85" text-anchor="middle" font-size="5">コク</text>
-        <text x="5" y="45" text-anchor="start" font-size="5">香り</text>
-        <text x="25" y="15" text-anchor="middle" font-size="5">後味</text>
-      </svg>
-      `;
+<svg width="150" height="150" viewBox="0 0 100 100">
+ <line x1="50" y1="50" x2="70" y2="15" stroke="#ccc" /> <!-- 酸味への線 -->
+<line x1="50" y1="50" x2="90" y2="50" stroke="#ccc" /> <!-- 後味への線 -->
+<line x1="50" y1="50" x2="70" y2="85" stroke="#ccc" /> <!-- 苦味への線 -->
+<line x1="50" y1="50" x2="30" y2="85" stroke="#ccc" /> <!-- 香りへの線 -->
+<line x1="50" y1="50" x2="10" y2="50" stroke="#ccc" /> <!-- コクへの線 -->
+<line x1="50" y1="50" x2="30" y2="15" stroke="#ccc" /> <!-- 甘味への線 -->
+      <polygon
+        points="
+          ${50 + (radarData.acidity / 5) * 40 * Math.cos((Math.PI * 0) / 3)},${
+          50 + (radarData.acidity / 5) * 40 * Math.sin((Math.PI * 0) / 3)
+        }
+          ${
+            50 + (radarData.sweetness / 5) * 40 * Math.cos((Math.PI * 1) / 3)
+          },${50 + (radarData.sweetness / 5) * 40 * Math.sin((Math.PI * 1) / 3)}
+          ${
+            50 + (radarData.bitterness / 5) * 40 * Math.cos((Math.PI * 2) / 3)
+          },${
+          50 + (radarData.bitterness / 5) * 40 * Math.sin((Math.PI * 2) / 3)
+        }
+          ${50 + (radarData.body / 5) * 40 * Math.cos((Math.PI * 3) / 3)},${
+          50 + (radarData.body / 5) * 40 * Math.sin((Math.PI * 3) / 3)
+        }
+          ${50 + (radarData.aroma / 5) * 40 * Math.cos((Math.PI * 4) / 3)},${
+          50 + (radarData.aroma / 5) * 40 * Math.sin((Math.PI * 4) / 3)
+        }
+          ${
+            50 + (radarData.aftertaste / 5) * 40 * Math.cos((Math.PI * 5) / 3)
+          },${
+          50 + (radarData.aftertaste / 5) * 40 * Math.sin((Math.PI * 5) / 3)
+        }
+        "
+        fill="rgba(210, 180, 140, 0.5)"
+        stroke="rgba(210, 180, 140, 1)"
+        stroke-width="1"
+      />
+
+
+           <text x="80" y="15" text-anchor="middle" font-size="5">酸味</text>
+      <text x="25" y="15" text-anchor="end" font-size="5">甘味</text>
+      <text x="80" y="85" text-anchor="middle" font-size="5">苦味</text>
+      <text x="5" y="45" text-anchor="middle" font-size="5">コク</text>
+      <text x="15" y="85" text-anchor="start" font-size="5">香り</text>
+      <text x="95" y="45" text-anchor="middle" font-size="5">後味</text>
+    </svg>
+        `;
 
         const htmlContent = `
   <!DOCTYPE html>
@@ -348,7 +372,7 @@ export default function CoffeeItemScreen() {
       .chart-container {
         width: 120px; /* チャートの幅を少し小さく */
         height: 120px; /* チャートの高さを少し小さく */
-        background-color: #e0e0e0;
+        background-color: #fff;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -356,6 +380,7 @@ export default function CoffeeItemScreen() {
         font-size: 8pt; /* フォントサイズを少し小さく */
         border-radius: 50%;
         border: 1px solid #bbb;
+        box-shadow:1px 1px 1px #33333333;
       }
 
       .detail-item {
@@ -483,7 +508,6 @@ export default function CoffeeItemScreen() {
 
     <div class="memo-section">
       <h2>MEMO</h2>
-      // 100字が限界
       <div class="memo-content">
   ${coffeeRecord.memo || "未記入"}    
       </div>
