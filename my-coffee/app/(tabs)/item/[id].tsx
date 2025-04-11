@@ -22,19 +22,11 @@ import PageTitleComponent from "../../../components/PageTitleComponent";
 import CoffeeStorageService from "../../../services/CoffeeStorageService";
 import { CoffeeRecord } from "../../../types/CoffeeTypes";
 import RadarChart from "../../../components/RadarChart/RadarChart";
-// PDF生成用のライブラリをインポート (Webのみで使用)
-import pdfMake from "pdfmake/build/pdfmake";
-import pdfFonts from "pdfmake/build/vfs_fonts";
 
-// Webの場合のみpdfMakeの設定
-if (Platform.OS === "web") {
-  // @ts-ignore 型定義問題を回避
-  pdfMake.vfs = pdfFonts.pdfMake?.vfs;
-}
-// pdfMakeにフォントを設定（Web環境向け）
+// // Webの場合のみpdfMakeの設定
 // if (Platform.OS === "web") {
-//   // 明示的な型アサーション
-//   pdfMake.vfs = (pdfFonts as any).pdfMake?.vfs;
+//   // @ts-ignore 型定義問題を回避
+//   pdfMake.vfs = pdfFonts.pdfMake?.vfs;
 // }
 
 type RouteParams = {
@@ -121,134 +113,80 @@ export default function CoffeeItemScreen() {
 
     try {
       setIsGeneratingPdf(true);
-      if (Platform.OS === "web") {
-        // Web環境でのPDF生成 (テーブルレイアウト維持)
-        const docDefinition = {
-          content: [
+      // Web環境とモバイル環境で同じコードを使用
+      // 画像がある場合、Base64に変換してからHTMLに埋め込む
+      let imageHtml = "";
+      if (coffeeRecord.imageUri) {
+        try {
+          // ローカルファイルのパスからBase64に変換
+          const base64 = await FileSystem.readAsStringAsync(
+            coffeeRecord.imageUri,
             {
-              text: coffeeRecord.name,
-              style: "header",
-              alignment: "center" as "center",
-            },
-            { text: "\n" },
-            {
-              table: {
-                headerRows: 0,
-                widths: ["30%", "70%"],
-                body: [
-                  ["種類", coffeeRecord.variety || "未記入"],
-                  ["産地", coffeeRecord.productionArea || "未記入"],
-                  ["焙煎度", coffeeRecord.roastingDegree || "未記入"],
-                  ["抽出器具", coffeeRecord.extractionMethod || "未記入"],
-                  ["抽出メーカー", coffeeRecord.extractionMaker || "未記入"],
-                  ["挽き目", coffeeRecord.grindSize || "未記入"],
-                  ["注湯温度", coffeeRecord.temperature || "未記入"],
-                  ["粉量", coffeeRecord.coffeeAmount || "未記入"],
-                  ["水量", coffeeRecord.waterAmount || "未記入"],
-                  ["抽出時間", coffeeRecord.extractionTime || "未記入"],
-                  ["酸味", coffeeRecord.acidity || "0"],
-                  ["甘味", coffeeRecord.sweetness || "0"],
-                  ["苦味", coffeeRecord.bitterness || "0"],
-                  ["コク", coffeeRecord.body || "0"],
-                  ["香り", coffeeRecord.aroma || "0"],
-                  ["後味", coffeeRecord.aftertaste || "0"],
-                  ["MEMO", coffeeRecord.memo || "未記入"],
-                ],
-              },
-            },
-          ],
-          styles: {
-            header: {
-              fontSize: 18,
-              bold: true,
-              margin: [0, 0, 0, 8] as [number, number, number, number],
-            },
-          },
-          defaultStyle: { font: "Helvetica", fontSize: 10 },
-          pageSize: { width: 595.28, height: 841.89 }, // A4サイズのポイント単位
-          pageMargins: [10, 20, 10, 30] as [number, number, number, number], // 例: [左, 上, 右, 下]
-        };
-        pdfMake.createPdf(docDefinition).download(`${coffeeRecord.name}.pdf`);
-      } else {
-        // モバイル環境のコードは前回と同じ
-        // 画像がある場合、Base64に変換してからHTMLに埋め込む
-        let imageHtml = "";
-        if (coffeeRecord.imageUri) {
-          try {
-            // ローカルファイルのパスからBase64に変換
-            const base64 = await FileSystem.readAsStringAsync(
-              coffeeRecord.imageUri,
-              {
-                encoding: FileSystem.EncodingType.Base64,
-              }
-            );
-            imageHtml = `<img src="data:image/jpeg;base64,${base64}" style="width: 100px; height: 100px; border-radius: 50px; object-fit: cover; float: right; margin: 0 0 10px 10px;" />`;
-          } catch (err) {
-            console.error("画像の読み込みエラー:", err);
-            // エラー時は画像なしで続行
-          }
+              encoding: FileSystem.EncodingType.Base64,
+            }
+          );
+          imageHtml = `<img src="data:image/jpeg;base64,${base64}" style="width: 100px; height: 100px; border-radius: 50px; object-fit: cover; float: right; margin: 0 0 10px 10px;" />`;
+        } catch (err) {
+          console.error("画像の読み込みエラー:", err);
+          // エラー時は画像なしで続行
         }
+      }
 
-        const radarData = {
-          acidity: Number(coffeeRecord.acidity) || 0,
-          sweetness: Number(coffeeRecord.sweetness) || 0,
-          bitterness: Number(coffeeRecord.bitterness) || 0,
-          body: Number(coffeeRecord.body) || 0,
-          aroma: Number(coffeeRecord.aroma) || 0,
-          aftertaste: Number(coffeeRecord.aftertaste) || 0,
-        };
+      const radarData = {
+        acidity: Number(coffeeRecord.acidity) || 0,
+        sweetness: Number(coffeeRecord.sweetness) || 0,
+        bitterness: Number(coffeeRecord.bitterness) || 0,
+        body: Number(coffeeRecord.body) || 0,
+        aroma: Number(coffeeRecord.aroma) || 0,
+        aftertaste: Number(coffeeRecord.aftertaste) || 0,
+      };
 
-        // レーダーチャートをSVGとして直接HTMLに埋め込む（サイズ縮小版）
+      // レーダーチャートをSVGとして直接HTMLに埋め込む（サイズ縮小版）
 
-        const svgChart = `
+      const svgChart = `
 <svg width="150" height="150" viewBox="0 0 100 100">
- <line x1="50" y1="50" x2="70" y2="15" stroke="#ccc" /> <!-- 酸味への線 -->
-<line x1="50" y1="50" x2="90" y2="50" stroke="#ccc" /> <!-- 後味への線 -->
-<line x1="50" y1="50" x2="70" y2="85" stroke="#ccc" /> <!-- 苦味への線 -->
-<line x1="50" y1="50" x2="30" y2="85" stroke="#ccc" /> <!-- 香りへの線 -->
-<line x1="50" y1="50" x2="10" y2="50" stroke="#ccc" /> <!-- コクへの線 -->
-<line x1="50" y1="50" x2="30" y2="15" stroke="#ccc" /> <!-- 甘味への線 -->
-      <polygon
-        points="
-          ${50 + (radarData.acidity / 5) * 40 * Math.cos((Math.PI * 0) / 3)},${
-          50 + (radarData.acidity / 5) * 40 * Math.sin((Math.PI * 0) / 3)
-        }
-          ${
-            50 + (radarData.sweetness / 5) * 40 * Math.cos((Math.PI * 1) / 3)
-          },${50 + (radarData.sweetness / 5) * 40 * Math.sin((Math.PI * 1) / 3)}
-          ${
-            50 + (radarData.bitterness / 5) * 40 * Math.cos((Math.PI * 2) / 3)
-          },${
-          50 + (radarData.bitterness / 5) * 40 * Math.sin((Math.PI * 2) / 3)
-        }
-          ${50 + (radarData.body / 5) * 40 * Math.cos((Math.PI * 3) / 3)},${
-          50 + (radarData.body / 5) * 40 * Math.sin((Math.PI * 3) / 3)
-        }
-          ${50 + (radarData.aroma / 5) * 40 * Math.cos((Math.PI * 4) / 3)},${
-          50 + (radarData.aroma / 5) * 40 * Math.sin((Math.PI * 4) / 3)
-        }
-          ${
-            50 + (radarData.aftertaste / 5) * 40 * Math.cos((Math.PI * 5) / 3)
-          },${
-          50 + (radarData.aftertaste / 5) * 40 * Math.sin((Math.PI * 5) / 3)
-        }
-        "
-        fill="rgba(210, 180, 140, 0.5)"
-        stroke="rgba(210, 180, 140, 1)"
-        stroke-width="1"
-      />
+ <line x1="50" y1="50" x2="70" y2="15" stroke="#ccc" /> <line x1="50" y1="50" x2="90" y2="50" stroke="#ccc" /> <line x1="50" y1="50" x2="70" y2="85" stroke="#ccc" /> <line x1="50" y1="50" x2="30" y2="85" stroke="#ccc" /> <line x1="50" y1="50" x2="10" y2="50" stroke="#ccc" /> <line x1="50" y1="50" x2="30" y2="15" stroke="#ccc" /> <polygon
+          points="
+            ${
+              50 + (radarData.acidity / 5) * 40 * Math.cos((Math.PI * 0) / 3)
+            },${50 + (radarData.acidity / 5) * 40 * Math.sin((Math.PI * 0) / 3)}
+            ${
+              50 + (radarData.sweetness / 5) * 40 * Math.cos((Math.PI * 1) / 3)
+            },${
+        50 + (radarData.sweetness / 5) * 40 * Math.sin((Math.PI * 1) / 3)
+      }
+            ${
+              50 + (radarData.bitterness / 5) * 40 * Math.cos((Math.PI * 2) / 3)
+            },${
+        50 + (radarData.bitterness / 5) * 40 * Math.sin((Math.PI * 2) / 3)
+      }
+            ${50 + (radarData.body / 5) * 40 * Math.cos((Math.PI * 3) / 3)},${
+        50 + (radarData.body / 5) * 40 * Math.sin((Math.PI * 3) / 3)
+      }
+            ${50 + (radarData.aroma / 5) * 40 * Math.cos((Math.PI * 4) / 3)},${
+        50 + (radarData.aroma / 5) * 40 * Math.sin((Math.PI * 4) / 3)
+      }
+            ${
+              50 + (radarData.aftertaste / 5) * 40 * Math.cos((Math.PI * 5) / 3)
+            },${
+        50 + (radarData.aftertaste / 5) * 40 * Math.sin((Math.PI * 5) / 3)
+      }
+          "
+          fill="rgba(210, 180, 140, 0.5)"
+          stroke="rgba(210, 180, 140, 1)"
+          stroke-width="1"
+        />
 
-
-           <text x="80" y="15" text-anchor="middle" font-size="5">酸味</text>
-      <text x="25" y="15" text-anchor="end" font-size="5">甘味</text>
-      <text x="80" y="85" text-anchor="middle" font-size="5">苦味</text>
-      <text x="5" y="45" text-anchor="middle" font-size="5">コク</text>
-      <text x="15" y="85" text-anchor="start" font-size="5">香り</text>
-      <text x="95" y="45" text-anchor="middle" font-size="5">後味</text>
+          <text x="80" y="15" text-anchor="middle" font-size="5">酸味</text>
+     <text x="25" y="15" text-anchor="end" font-size="5">甘味</text>
+     <text x="80" y="85" text-anchor="middle" font-size="5">苦味</text>
+     <text x="5" y="45" text-anchor="middle" font-size="5">コク</text>
+     <text x="15" y="85" text-anchor="start" font-size="5">香り</text>
+     <text x="95" y="45" text-anchor="middle" font-size="5">後味</text>
     </svg>
-        `;
+          `;
 
-        const htmlContent = `
+      const htmlContent = `
   <!DOCTYPE html>
   <html>
   <head>
@@ -318,12 +256,12 @@ export default function CoffeeItemScreen() {
       .bean-img {
         width: 120px; /* 画像の幅を少し小さく */
         height: 120px; /* 画像の高さを少し小さく */
-       
+
         display: flex;
         justify-content: center;
         align-items: center;
         font-size: 8pt; /* フォントサイズを少し小さく */
-       
+
       }
 
       .image-container {
@@ -509,23 +447,22 @@ export default function CoffeeItemScreen() {
     <div class="memo-section">
       <h2>MEMO</h2>
       <div class="memo-content">
-  ${coffeeRecord.memo || "未記入"}    
+  ${coffeeRecord.memo || "未記入"}
       </div>
     </div>
   </body>
   </html>
 `;
 
-        const { uri } = await Print.printToFileAsync({
-          html: htmlContent,
-          base64: false,
-        });
+      const { uri } = await Print.printToFileAsync({
+        html: htmlContent,
+        base64: false,
+      });
 
-        await Sharing.shareAsync(uri, {
-          mimeType: "application/pdf",
-          dialogTitle: "コーヒー情報をPDFで共有",
-        });
-      }
+      await Sharing.shareAsync(uri, {
+        mimeType: "application/pdf",
+        dialogTitle: "コーヒー情報をPDFで共有",
+      });
     } catch (error) {
       console.error("PDF生成エラー:", error);
       Alert.alert("エラー", "PDFの生成に失敗しました");
