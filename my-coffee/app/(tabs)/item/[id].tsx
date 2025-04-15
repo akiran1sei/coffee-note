@@ -113,22 +113,31 @@ export default function CoffeeItemScreen() {
 
     try {
       setIsGeneratingPdf(true);
-      // Web環境とモバイル環境で同じコードを使用
-      // 画像がある場合、Base64に変換してからHTMLに埋め込む
+
+      // 画像処理を環境に応じて分岐
       let imageHtml = "";
       if (coffeeRecord.imageUri) {
         try {
-          // ローカルファイルのパスからBase64に変換
-          const base64 = await FileSystem.readAsStringAsync(
-            coffeeRecord.imageUri,
-            {
-              encoding: FileSystem.EncodingType.Base64,
-            }
-          );
-          imageHtml = `<img src="data:image/jpeg;base64,${base64}" style="width: 100px; height: 100px; border-radius: 50px; object-fit: cover; float: right; margin: 0 0 10px 10px;" />`;
+          // Web環境とモバイル環境で異なる処理
+          if (Platform.OS === "web") {
+            // Web環境では画像処理をスキップするか、別の方法を検討
+            console.log("Web環境では画像変換をスキップします");
+            // Web環境ではプレースホルダー画像を使用
+            imageHtml = `<div style="width: 100px; height: 100px; border-radius: 50px; background-color: #e0e0e0; display: flex; justify-content: center; align-items: center;">No Image</div>`;
+          } else {
+            // モバイル環境ではBase64に変換
+            const base64 = await FileSystem.readAsStringAsync(
+              coffeeRecord.imageUri,
+              {
+                encoding: FileSystem.EncodingType.Base64,
+              }
+            );
+            imageHtml = `<img src="data:image/jpeg;base64,${base64}" style="width: 100px; height: 100px; border-radius: 50px; object-fit: cover; float: right; margin: 0 0 10px 10px;" />`;
+          }
         } catch (err) {
           console.error("画像の読み込みエラー:", err);
           // エラー時は画像なしで続行
+          imageHtml = `<div style="width: 100px; height: 100px; border-radius: 50px; background-color: #e0e0e0; display: flex; justify-content: center; align-items: center;">No Image</div>`;
         }
       }
 
@@ -144,47 +153,49 @@ export default function CoffeeItemScreen() {
       // レーダーチャートをSVGとして直接HTMLに埋め込む（サイズ縮小版）
 
       const svgChart = `
-<svg width="150" height="150" viewBox="0 0 100 100">
- <line x1="50" y1="50" x2="70" y2="15" stroke="#ccc" /> <line x1="50" y1="50" x2="90" y2="50" stroke="#ccc" /> <line x1="50" y1="50" x2="70" y2="85" stroke="#ccc" /> <line x1="50" y1="50" x2="30" y2="85" stroke="#ccc" /> <line x1="50" y1="50" x2="10" y2="50" stroke="#ccc" /> <line x1="50" y1="50" x2="30" y2="15" stroke="#ccc" /> <polygon
-          points="
-            ${
-              50 + (radarData.acidity / 5) * 40 * Math.cos((Math.PI * 0) / 3)
-            },${50 + (radarData.acidity / 5) * 40 * Math.sin((Math.PI * 0) / 3)}
-            ${
-              50 + (radarData.sweetness / 5) * 40 * Math.cos((Math.PI * 1) / 3)
-            },${
-        50 + (radarData.sweetness / 5) * 40 * Math.sin((Math.PI * 1) / 3)
+    <svg width="150" height="150" viewBox="0 0 100 100">
+      <line x1="50" y1="50" x2="70" y2="15" stroke="#ccc" /> 
+      <line x1="50" y1="50" x2="90" y2="50" stroke="#ccc" /> 
+      <line x1="50" y1="50" x2="70" y2="85" stroke="#ccc" /> 
+      <line x1="50" y1="50" x2="30" y2="85" stroke="#ccc" /> 
+      <line x1="50" y1="50" x2="10" y2="50" stroke="#ccc" /> 
+      <line x1="50" y1="50" x2="30" y2="15" stroke="#ccc" /> 
+      <polygon
+        points="
+          ${50 + (radarData.acidity / 5) * 40 * Math.cos((Math.PI * 0) / 3)},${
+        50 + (radarData.acidity / 5) * 40 * Math.sin((Math.PI * 0) / 3)
       }
-            ${
-              50 + (radarData.bitterness / 5) * 40 * Math.cos((Math.PI * 2) / 3)
-            },${
+          ${
+            50 + (radarData.sweetness / 5) * 40 * Math.cos((Math.PI * 1) / 3)
+          },${50 + (radarData.sweetness / 5) * 40 * Math.sin((Math.PI * 1) / 3)}
+          ${
+            50 + (radarData.bitterness / 5) * 40 * Math.cos((Math.PI * 2) / 3)
+          },${
         50 + (radarData.bitterness / 5) * 40 * Math.sin((Math.PI * 2) / 3)
       }
-            ${50 + (radarData.body / 5) * 40 * Math.cos((Math.PI * 3) / 3)},${
+          ${50 + (radarData.body / 5) * 40 * Math.cos((Math.PI * 3) / 3)},${
         50 + (radarData.body / 5) * 40 * Math.sin((Math.PI * 3) / 3)
       }
-            ${50 + (radarData.aroma / 5) * 40 * Math.cos((Math.PI * 4) / 3)},${
+          ${50 + (radarData.aroma / 5) * 40 * Math.cos((Math.PI * 4) / 3)},${
         50 + (radarData.aroma / 5) * 40 * Math.sin((Math.PI * 4) / 3)
       }
-            ${
-              50 + (radarData.aftertaste / 5) * 40 * Math.cos((Math.PI * 5) / 3)
-            },${
+          ${
+            50 + (radarData.aftertaste / 5) * 40 * Math.cos((Math.PI * 5) / 3)
+          },${
         50 + (radarData.aftertaste / 5) * 40 * Math.sin((Math.PI * 5) / 3)
       }
-          "
-          fill="rgba(210, 180, 140, 0.5)"
-          stroke="rgba(210, 180, 140, 1)"
-          stroke-width="1"
-        />
-
-          <text x="80" y="15" text-anchor="middle" font-size="5">酸味</text>
-     <text x="25" y="15" text-anchor="end" font-size="5">甘味</text>
-     <text x="80" y="85" text-anchor="middle" font-size="5">苦味</text>
-     <text x="5" y="45" text-anchor="middle" font-size="5">コク</text>
-     <text x="15" y="85" text-anchor="start" font-size="5">香り</text>
-     <text x="95" y="45" text-anchor="middle" font-size="5">後味</text>
-    </svg>
-          `;
+        "
+        fill="rgba(210, 180, 140, 0.5)"
+        stroke="rgba(210, 180, 140, 1)"
+        stroke-width="1"
+      />
+        <text x="80" y="15" text-anchor="middle" font-size="5">酸味</text>
+        <text x="25" y="15" text-anchor="end" font-size="5">甘味</text>
+        <text x="80" y="85" text-anchor="middle" font-size="5">苦味</text>
+        <text x="5" y="45" text-anchor="middle" font-size="5">コク</text>
+        <text x="15" y="85" text-anchor="start" font-size="5">香り</text>
+        <text x="95" y="45" text-anchor="middle" font-size="5">後味</text>
+    </svg>`;
 
       const htmlContent = `
   <!DOCTYPE html>
@@ -193,21 +204,21 @@ export default function CoffeeItemScreen() {
     <meta charset="utf-8">
     <title>${coffeeRecord.name}</title>
     <style>
-      @page {
-        size: A4 portrait;
-        margin: 10mm;
-      }
-      body {
-        width: 100%;
-        max-width: 595px;
-        height: auto; /* 高さを自動調整 */
-        font-family: "Helvetica", sans-serif;
-        font-size: 15pt; /* フォントサイズを少し小さく */
-        line-height: 1.3; /* 行間を少し狭く */
-        color: #333;
-        margin: 10mm; /* bodyのmarginを@pageのmarginに合わせる */
-        padding: 0; /* bodyのpaddingを削除 */
-      }
+    @page {
+          size: A4 portrait;
+          margin: 10mm;
+        }
+        body {
+          width: 100%;
+          max-width: 595px;
+          height: auto;
+          font-family: "Helvetica", sans-serif;
+          font-size: 15pt;
+          line-height: 1.3;
+          color: #333;
+          margin: 10mm;
+          padding: 0;
+        }
 
       h1 {
         font-size: 20pt; /* h1を少し小さく */
@@ -453,19 +464,40 @@ export default function CoffeeItemScreen() {
   </body>
   </html>
 `;
+      console.log("PDF生成を開始します");
 
+      // Print APIを使用してPDFを生成
       const { uri } = await Print.printToFileAsync({
         html: htmlContent,
         base64: false,
       });
 
-      await Sharing.shareAsync(uri, {
-        mimeType: "application/pdf",
-        dialogTitle: "コーヒー情報をPDFで共有",
-      });
+      console.log("PDF生成完了:", uri);
+
+      // 環境に応じて処理を分岐
+      if (Platform.OS === "web") {
+        // Web環境ではダウンロードリンクを作成
+        const link = document.createElement("a");
+        link.href = uri;
+        link.download = `${coffeeRecord.name}.pdf`;
+        link.click();
+      } else {
+        // モバイル環境ではシェア機能を使用
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/pdf",
+          dialogTitle: "コーヒー情報をPDFで共有",
+        });
+      }
+
+      console.log("PDF共有/ダウンロード完了");
     } catch (error) {
       console.error("PDF生成エラー:", error);
-      Alert.alert("エラー", "PDFの生成に失敗しました");
+
+      // エラーメッセージの取得を安全に行う
+      const errorMessage =
+        error instanceof Error ? error.message : "不明なエラーが発生しました";
+
+      Alert.alert("エラー", `PDFの生成に失敗しました: ${errorMessage}`);
     } finally {
       setIsGeneratingPdf(false);
     }
