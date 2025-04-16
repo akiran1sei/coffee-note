@@ -138,7 +138,12 @@ export default function ListScreen() {
         />
 
         <TouchableOpacity
-          onPress={() => router.push({ pathname: `./item/${record.id}` })}
+          onPress={() => {
+            const isWeb = Platform.OS === "web";
+            const pathname = isWeb ? "/item/web/[id]" : "/item/[id]";
+
+            router.push({ pathname: pathname, params: { id: record.id } });
+          }}
           style={styles.recordItemTouchable}
         >
           <View style={styles.recordItem}>

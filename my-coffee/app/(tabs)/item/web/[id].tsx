@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import * as Print from "expo-print";
+import * as Print from "expo-print"; // 追加
 import {
   View,
   StyleSheet,
@@ -10,17 +10,24 @@ import {
   Image,
   ImageSourcePropType,
   TouchableOpacity,
+  Platform,
   Text,
   Alert,
   ActivityIndicator,
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import HeaderComponent from "../../../components/HeaderComponent";
-import PageTitleComponent from "../../../components/PageTitleComponent";
-import CoffeeStorageService from "../../../services/CoffeeStorageService";
-import { CoffeeRecord } from "../../../types/CoffeeTypes";
-import RadarChart from "../../../components/RadarChart/RadarChart";
+import HeaderComponent from "../../../../components/HeaderComponent";
+import PageTitleComponent from "../../../../components/PageTitleComponent";
+import CoffeeStorageService from "../../../../services/CoffeeStorageService";
+import { CoffeeRecord } from "../../../../types/CoffeeTypes";
+import RadarChart from "../../../../components/RadarChart/RadarChart";
+
+// // Webの場合のみpdfMakeの設定
+// if (Platform.OS === "web") {
+//   // @ts-ignore 型定義問題を回避
+//   pdfMake.vfs = pdfFonts.pdfMake?.vfs;
+// }
 
 type RouteParams = {
   id: string;
@@ -40,40 +47,62 @@ export default function CoffeeItemScreen() {
   );
   const radius = 40;
 
-  // 画像URIを処理する関数
+  // 画像URIを環境に応じて適切に処理する関数
   const getImageSource = (uri?: string | null): ImageSourcePropType => {
     if (!uri) {
-      return require("../../../assets/images/no-image.png");
+      return require("../../../../assets/images/no-image.png");
     }
-    // モバイル環境の場合
-    return { uri: uri.startsWith("file://") ? uri : `file://${uri}` };
+
+    if (Platform.OS === "web") {
+      // Base64形式かどうかをチェック
+      if (uri.startsWith("data:image")) {
+        return { uri };
+      }
+      // web環境でfileプロトコルは使用できないため、デフォルトの画像を表示する
+      return require("../../../../assets/images/no-image.png");
+    } else {
+      // モバイル環境の場合
+      return { uri: uri.startsWith("file://") ? uri : `file://${uri}` };
+    }
   };
 
   const handleDeleteRecord = async (id: string) => {
-    // モバイル環境の場合、Alert.alert を使用
-    Alert.alert(
-      "削除確認",
-      "このレコードを削除しますか？",
-      [
-        {
-          text: "キャンセル",
-          style: "cancel",
-        },
-        {
-          text: "削除",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await CoffeeStorageService.deleteCoffeeRecord(id);
-              router.push("/list");
-            } catch (error) {
-              console.error("レコードの削除に失敗しました:", error);
-            }
+    if (Platform.OS === "web") {
+      // Web環境の場合、window.confirm を使用
+      if (window.confirm("このレコードを削除しますか？")) {
+        try {
+          await CoffeeStorageService.deleteCoffeeRecord(id);
+          router.push("/list");
+        } catch (error) {
+          console.error("レコードの削除に失敗しました:", error);
+        }
+      }
+    } else {
+      // モバイル環境の場合、Alert.alert を使用
+      Alert.alert(
+        "削除確認",
+        "このレコードを削除しますか？",
+        [
+          {
+            text: "キャンセル",
+            style: "cancel",
           },
-        },
-      ],
-      { cancelable: false }
-    );
+          {
+            text: "削除",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await CoffeeStorageService.deleteCoffeeRecord(id);
+                router.push("/list");
+              } catch (error) {
+                console.error("レコードの削除に失敗しました:", error);
+              }
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    }
   };
 
   const downloadPdf = async () => {
@@ -85,18 +114,26 @@ export default function CoffeeItemScreen() {
     try {
       setIsGeneratingPdf(true);
 
-      // 画像処理
+      // 画像処理を環境に応じて分岐
       let imageHtml = "";
       if (coffeeRecord.imageUri) {
         try {
-          // モバイル環境ではBase64に変換
-          const base64 = await FileSystem.readAsStringAsync(
-            coffeeRecord.imageUri,
-            {
-              encoding: FileSystem.EncodingType.Base64,
-            }
-          );
-          imageHtml = `<img src="data:image/jpeg;base64,${base64}" style="width: 100px; height: 100px; border-radius: 50px; object-fit: cover; float: right; margin: 0 0 10px 10px;" />`;
+          // Web環境とモバイル環境で異なる処理
+          if (Platform.OS === "web") {
+            // Web環境では画像処理をスキップするか、別の方法を検討
+            console.log("Web環境では画像変換をスキップします");
+            // Web環境ではプレースホルダー画像を使用
+            imageHtml = `<div style="width: 100px; height: 100px; border-radius: 50px; background-color: #e0e0e0; display: flex; justify-content: center; align-items: center;">No Image</div>`;
+          } else {
+            // モバイル環境ではBase64に変換
+            const base64 = await FileSystem.readAsStringAsync(
+              coffeeRecord.imageUri,
+              {
+                encoding: FileSystem.EncodingType.Base64,
+              }
+            );
+            imageHtml = `<img src="data:image/jpeg;base64,${base64}" style="width: 100px; height: 100px; border-radius: 50px; object-fit: cover; float: right; margin: 0 0 10px 10px;" />`;
+          }
         } catch (err) {
           console.error("画像の読み込みエラー:", err);
           // エラー時は画像なしで続行
@@ -113,7 +150,8 @@ export default function CoffeeItemScreen() {
         aftertaste: Number(coffeeRecord.aftertaste) || 0,
       };
 
-      // レーダーチャートをSVGとして直接HTMLに埋め込む
+      // レーダーチャートをSVGとして直接HTMLに埋め込む（サイズ縮小版）
+
       const svgChart = `
     <svg width="150" height="150" viewBox="0 0 100 100">
       <line x1="50" y1="50" x2="70" y2="15" stroke="#ccc" /> 
@@ -183,18 +221,18 @@ export default function CoffeeItemScreen() {
         }
 
       h1 {
-        font-size: 20pt;
+        font-size: 20pt; /* h1を少し小さく */
         color: #333;
-        margin-bottom: 10px;
+        margin-bottom: 10px; /* marginを少し小さく */
         border-bottom: 1px solid #ccc;
-        padding-bottom: 5px;
+        padding-bottom: 5px; /* paddingを少し小さく */
       }
 
       h2 {
-        font-size: 18pt;
+        font-size: 18pt; /* h2を少し小さく */
         color: #555;
-        margin-top: 15px;
-        margin-bottom: 8px;
+        margin-top: 15px; /* marginを少し小さく */
+        margin-bottom: 8px; /* marginを少し小さく */
       }
 
       .bean-extraction-container {
@@ -203,13 +241,13 @@ export default function CoffeeItemScreen() {
         margin: 0 auto;
         display: flex;
         flex-direction: column;
-        margin-bottom: 15px;
+        margin-bottom: 15px; /* marginを少し小さく */
       }
 
       .bean-info {
         display: flex;
         align-items: center;
-        margin-bottom: 15px;
+        margin-bottom: 15px; /* marginを少し小さく */
         flex-direction: column;
         flex-wrap: nowrap;
         justify-content: center;
@@ -227,12 +265,14 @@ export default function CoffeeItemScreen() {
       .bean-txt {}
 
       .bean-img {
-        width: 120px;
-        height: 120px;
+        width: 120px; /* 画像の幅を少し小さく */
+        height: 120px; /* 画像の高さを少し小さく */
+
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 8pt;
+        font-size: 8pt; /* フォントサイズを少し小さく */
+
       }
 
       .image-container {
@@ -245,7 +285,7 @@ export default function CoffeeItemScreen() {
         flex: 1;
         display: flex;
         align-items: center;
-        margin-bottom: 15px;
+        margin-bottom: 15px; /* marginを少し小さく */
         flex-direction: column;
         flex-wrap: nowrap;
         justify-content: center;
@@ -260,7 +300,7 @@ export default function CoffeeItemScreen() {
       .flavor-chart-container {
         display: flex;
         align-items: center;
-        margin-bottom: 15px;
+        margin-bottom: 15px; /* marginを少し小さく */
         flex-direction: column;
         flex-wrap: nowrap;
         justify-content: center;
@@ -272,39 +312,39 @@ export default function CoffeeItemScreen() {
         flex-wrap: nowrap;
         justify-content: space-between;
         align-items: center;
-        gap: 10px;
+        gap: 10px; /* gapを少し小さく */
       }
       .flavor-rating {
         flex: 1;
       }
 
       .chart-container {
-        width: 120px;
-        height: 120px;
+        width: 120px; /* チャートの幅を少し小さく */
+        height: 120px; /* チャートの高さを少し小さく */
         background-color: #fff;
         display: flex;
         justify-content: center;
         align-items: center;
         color: #777;
-        font-size: 8pt; 
+        font-size: 8pt; /* フォントサイズを少し小さく */
         border-radius: 50%;
         border: 1px solid #bbb;
         box-shadow:1px 1px 1px #33333333;
       }
 
       .detail-item {
-        margin-bottom: 6px;
-        font-size: 15pt;
+        margin-bottom: 6px; /* marginを少し小さく */
+        font-size: 15pt; /* detail-itemのフォントサイズを少し小さく */
       }
 
       .detail-label {
         font-weight: bold;
         color: #555;
-        margin-right: 8px;
+        margin-right: 8px; /* marginを少し小さく */
       }
 
       .rating-item {
-        font-size: 15pt;
+        font-size: 15pt; /* rating-itemのフォントサイズを少し小さく */
       }
 
       .rating-label {
@@ -318,14 +358,14 @@ export default function CoffeeItemScreen() {
         flex-wrap: nowrap;
         justify-content: center;
         align-items: center;
-        border-top: 1px solid #ccc;
-        padding-top: 10px;
+        border-top: 1px solid #ccc; /* borderを少し細く */
+        padding-top: 10px; /* paddingを少し小さく */
       }
 
       .memo-content {
-        font-size: 13pt;
+        font-size: 13pt; /* memo-contentのフォントサイズを少し小さく */
         white-space: pre-wrap;
-        padding: 8px;
+        padding: 8px; /* paddingを少し小さく */
         background-color: #f9f9f9;
         border: 1px solid #eee;
         border-radius: 4px;
@@ -434,13 +474,22 @@ export default function CoffeeItemScreen() {
 
       console.log("PDF生成完了:", uri);
 
-      // モバイル環境ではシェア機能を使用
-      await Sharing.shareAsync(uri, {
-        mimeType: "application/pdf",
-        dialogTitle: "コーヒー情報をPDFで共有",
-      });
+      // 環境に応じて処理を分岐
+      if (Platform.OS === "web") {
+        // Web環境ではダウンロードリンクを作成
+        const link = document.createElement("a");
+        link.href = uri;
+        link.download = `${coffeeRecord.name}.pdf`;
+        link.click();
+      } else {
+        // モバイル環境ではシェア機能を使用
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/pdf",
+          dialogTitle: "コーヒー情報をPDFで共有",
+        });
+      }
 
-      console.log("PDF共有完了");
+      console.log("PDF共有/ダウンロード完了");
     } catch (error) {
       console.error("PDF生成エラー:", error);
 
@@ -453,7 +502,6 @@ export default function CoffeeItemScreen() {
       setIsGeneratingPdf(false);
     }
   };
-
   useEffect(() => {
     const fetchCoffeeRecord = async () => {
       try {
@@ -507,7 +555,7 @@ export default function CoffeeItemScreen() {
                 <Image
                   source={getImageSource(coffeeRecord.imageUri)}
                   style={styles.recordImagePreview}
-                  defaultSource={require("../../../assets/images/no-image.png")}
+                  defaultSource={require("../../../../assets/images/no-image.png")}
                 />
               </View>
 
@@ -754,6 +802,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
+
   errorText: {
     fontSize: 18,
     color: "#dc3545",
