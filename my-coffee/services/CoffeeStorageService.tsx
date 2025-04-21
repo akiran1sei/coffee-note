@@ -199,6 +199,22 @@ class CoffeeStorageService {
       return false;
     }
   }
+  async searchCoffeeRecords(keyword: string): Promise<CoffeeRecord[]> {
+    try {
+      const allRecords = await this.getAllCoffeeRecords();
+      if (!keyword) {
+        return allRecords; // キーワードが空の場合はすべてのレコードを返す
+      }
+      const lowerCaseKeyword = keyword.toLowerCase();
+      return allRecords.filter((record) =>
+        record.name.toLowerCase().includes(lowerCaseKeyword)
+      );
+    } catch (error) {
+      console.error("コーヒーレコードの検索中にエラーが発生しました:", error);
+      return [];
+    }
+  }
 }
+// 新しい検索関数
 
 export default new CoffeeStorageService();

@@ -18,10 +18,14 @@ import CoffeeStorageService from "../../services/CoffeeStorageService";
 import { CoffeeRecord } from "../../types/CoffeeTypes";
 import RadarChart from "../../components/RadarChart/RadarChart";
 import Checkbox from "expo-checkbox";
+import SearchComponent from "../../components/button/Search";
 
 export default function ListScreen() {
   const router = useRouter();
-  const [coffeeRecords, setCoffeeRecords] = useState<CoffeeRecord[]>([]);
+  const [allCoffeeRecords, setAllCoffeeRecords] = useState<CoffeeRecord[]>([]); // 元の全データ
+  const [displayedCoffeeRecords, setDisplayedCoffeeRecords] = useState<
+    CoffeeRecord[]
+  >([]); // 表示するデータ
   const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -32,10 +36,17 @@ export default function ListScreen() {
   const fetchData = async () => {
     try {
       const records = await CoffeeStorageService.getAllCoffeeRecords();
-      setCoffeeRecords(records);
+      setAllCoffeeRecords(records);
+      setDisplayedCoffeeRecords(records); // 最初はすべてのデータを表示
     } catch (error) {
       console.error("データの取得に失敗しました:", error);
     }
+  };
+
+  // SearchComponent から検索結果を受け取るハンドラー
+  const handleSearch = (results: CoffeeRecord[]) => {
+    console.log("検索結果:", results);
+    setDisplayedCoffeeRecords(results); // 検索結果で表示するデータを更新
   };
 
   const handleRefresh = async () => {
@@ -226,7 +237,7 @@ export default function ListScreen() {
       </View>
     );
   };
-
+  // SearchComponent に渡しているデータ
   // 情報の行を表示するサブコンポーネント
   const InfoRow = ({
     label,
@@ -264,6 +275,12 @@ export default function ListScreen() {
         <PageTitleComponent TextData={"Coffee List"} />
 
         <View style={[styles.absoluteBox, styles.mainContents]}>
+          <View style={styles.subMenuBox}>
+            <SearchComponent
+              initialData={allCoffeeRecords}
+              onSearch={handleSearch}
+            />
+          </View>
           <ScrollView
             style={{ flex: 1 }}
             refreshControl={
@@ -279,7 +296,8 @@ export default function ListScreen() {
               contentContainerStyle={styles.innerScrollContainer}
             >
               <View style={styles.recordContainer}>
-                {coffeeRecords.map(renderCoffeeRecord)}
+                {displayedCoffeeRecords.map(renderCoffeeRecord)}{" "}
+                {/* 表示するデータを使用 */}
               </View>
             </ScrollView>
           </ScrollView>
@@ -304,6 +322,7 @@ export default function ListScreen() {
 }
 
 const styles = StyleSheet.create({
+  text: {},
   container: {
     flex: 1,
     backgroundColor: "#F5F5F5",
@@ -319,6 +338,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: "#FFFFFF",
+  },
+  subMenuBox: {
+    marginVertical: 10,
+    flexDirection: "column",
+    justifyContent: "space-around",
+    alignItems: "center",
+    height: "100%",
+    maxHeight: 100,
   },
   mainContents: {
     flex: 1,
