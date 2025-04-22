@@ -20,4 +20,5 @@ export interface CoffeeRecord {
   aftertaste: number; // 後味（1-10）
   memo: string; // メモ
   imageUri: string; // 画像のパス
+  createdAt: Date; // 追加
 }

@@ -107,7 +107,7 @@ export default function CreateScreen() {
   const [imageData, setImageData] = useState("");
   const [formData, setFormData] = useState({ ...initialFormData });
   const [rangeValues, setRangeValues] = useState({ ...initialRangeValues });
-  console.log(formData);
+
   // Web環境でフォーム送信後の状態をリセット
   useEffect(() => {
     if (formSubmitted && isWeb) {
@@ -131,9 +131,8 @@ export default function CreateScreen() {
   };
 
   const handleSelectChange = (label: string, value: string) => {
-    setFormData({ ...formData, [label]: value });
+    setFormData((prevFormData) => ({ ...prevFormData, [label]: value }));
   };
-
   const handleRangeChange = (label: string, value: number) => {
     setFormData({ ...formData, [label]: value });
     setRangeValues({ ...rangeValues, [label]: value });

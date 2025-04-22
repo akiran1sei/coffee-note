@@ -1,17 +1,127 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import { Picker } from "@react-native-picker/picker"; // Picker をインポート
+
 interface SelectProps {
   dataTitle: string;
   onChange: (value: string) => void;
   value: string;
 }
+
+const initialManufacturerData = {
+  // 抽出方法とメーカーの対応データ
+  paperdrip: [
+    { label: "ハリオ (Hario)", value: "hario" },
+    { label: "カリタ (Kalita)", value: "kalita" },
+    { label: "メリタ (Melitta)", value: "melitta" },
+    { label: "キントー (KINTO)", value: "kinto" },
+    { label: "オリガミ (ORIGAMI)", value: "origami" },
+    { label: "カフェック (CAFEC)", value: "cafec" },
+  ],
+  neldrip: [
+    { label: "ハリオ (Hario)", value: "hario" },
+    { label: "カリタ (Kalita)", value: "kalita" },
+    { label: "コーノ (KONO)", value: "kono" },
+  ],
+  metalfilterdrip: [
+    { label: "コレス (cores)", value: "cores" },
+    { label: "キントー (KINTO)", value: "kinto" },
+    { label: "エイブル ブリューイング (Able Brewing)", value: "ablebrewing" },
+    { label: "フリリング (Frieling)", value: "frieling" },
+  ],
+  frenchpress: [
+    { label: "ボダム (Bodum)", value: "bodum" },
+    { label: "ハリオ (Hario)", value: "hario" },
+    { label: "キントー (KINTO)", value: "kinto" },
+    { label: "フリリング (Frieling)", value: "frieling" },
+  ],
+  aeropress: [{ label: "エアロプレス (Aeropress)", value: "aeropress" }],
+  coffeemakerdrip: [
+    { label: "デロンギ (DeLonghi)", value: "delonghi" },
+    { label: "メリタ (Melitta)", value: "melitta" },
+    { label: "カリタ (Kalita)", value: "kalita" },
+    { label: "象印 (ZOJIRUSHI)", value: "zojirushi" },
+    { label: "タイガー (TIGER)", value: "tiger" },
+    { label: "バルミューダ (BALMUDA)", value: "balmuda" },
+  ],
+  syphon: [
+    { label: "ハリオ (Hario)", value: "hario" },
+    { label: "コーノ (KONO)", value: "kono" },
+    { label: "ヤマグラス (Yama Glass)", value: "yamaglass" },
+    { label: "ボダム (Bodum)", value: "bodum" },
+  ],
+  espresso: [
+    { label: "デロンギ (DeLonghi)", value: "delonghi" },
+    { label: "ガジア (Gaggia)", value: "gaggia" },
+    { label: "ランチリオ (Rancilio)", value: "rancilio" },
+    { label: "ブレビル (Breville)", value: "breville" },
+    { label: "ラ・パヴォーニ (La Pavoni)", value: "lapavoni" },
+  ],
+  mokapotextraction: [
+    { label: "ビアレッティ (Bialetti)", value: "bialetti" },
+    { label: "イリー (illy)", value: "illy" },
+  ],
+  icedrip: [
+    { label: "ハリオ (Hario)", value: "hario" },
+    { label: "カリタ (Kalita)", value: "kalita" },
+    { label: "ボダム (Bodum)", value: "bodum" },
+    { label: "オクソー (OXO)", value: "oxo" },
+    { label: "ヤマグラス (Yama Glass)", value: "yamaglass" },
+  ],
+  // other: [{ label: "その他", value: "other" }],
+};
+
 const SelectComponent: React.FC<SelectProps> = ({
   dataTitle,
   onChange,
   value,
 }) => {
-  // const [selectedMethod, setSelectedMethod] = useState("");
+  const [manufacturerData, setLocalManufacturerData] = useState(
+    initialManufacturerData
+  );
+  const [selectedExtractionMethod, setSelectedExtractionMethod] =
+    useState<string>(value || ""); // 初期値を空文字にする
+  const [manufacturerOptions, setManufacturerOptions] = useState<
+    { label: string; value: string }[]
+  >([]);
+
+  useEffect(() => {
+    if (dataTitle === "抽出方法") {
+      setSelectedExtractionMethod(value || "");
+    }
+  }, [dataTitle, value]);
+
+  useEffect(() => {
+    if (dataTitle === "抽出メーカー") {
+      if (
+        selectedExtractionMethod === "paperdrip" ||
+        selectedExtractionMethod === "neldrip" ||
+        selectedExtractionMethod === "metalfilterdrip" ||
+        selectedExtractionMethod === "frenchpress" ||
+        selectedExtractionMethod === "aeropress" ||
+        selectedExtractionMethod === "coffeemakerdrip" ||
+        selectedExtractionMethod === "syphon" ||
+        selectedExtractionMethod === "espresso" ||
+        selectedExtractionMethod === "mokapotextraction" ||
+        selectedExtractionMethod === "icedrip"
+      ) {
+        console.log(
+          "selectedExtractionMethod",
+          selectedExtractionMethod === "paperdrip"
+        );
+        const options =
+          manufacturerData[
+            selectedExtractionMethod as keyof typeof manufacturerData
+          ] || [];
+        setManufacturerOptions(options);
+        console.log("manufacturerOptions１", manufacturerOptions);
+      } else {
+        setManufacturerOptions([]);
+        console.log("manufacturerOptions２", manufacturerOptions);
+      }
+    }
+  }, [selectedExtractionMethod, manufacturerData, dataTitle]);
+
   const methods = () => {
     if (dataTitle === "焙煎度") {
       return [
@@ -38,17 +148,7 @@ const SelectComponent: React.FC<SelectProps> = ({
         { label: "水出し", value: "icedrip" },
       ];
     } else if (dataTitle === "抽出メーカー") {
-      return [
-        { label: "ハリオ (Hario)", value: "hario" },
-        { label: "カリタ (Kalita)", value: "kalita" },
-        { label: "ケメックス (Chemex)", value: "chemex" },
-        { label: "エアロプレス (Aeropress)", value: "aeropress" },
-        { label: "ビアレッティ (Bialetti)", value: "bialetti" },
-        { label: "ボダム (Bodum)", value: "bodum" },
-        { label: "メリタ (Melitta)", value: "melitta" },
-        { label: "ORIGAMI", value: "origami" },
-        { label: "その他", value: "other" },
-      ];
+      return manufacturerOptions;
     } else if (dataTitle === "挽き目") {
       return [
         { label: "極細挽き", value: "extrafine" },
@@ -69,6 +169,9 @@ const SelectComponent: React.FC<SelectProps> = ({
         selectedValue={value}
         onValueChange={(itemValue) => {
           onChange(itemValue); // 選択された値を親コンポーネントに渡す
+          if (dataTitle === "抽出方法") {
+            setSelectedExtractionMethod(itemValue);
+          }
         }}
         style={styles.select}
       >

@@ -19,6 +19,7 @@ import { CoffeeRecord } from "../../types/CoffeeTypes";
 import RadarChart from "../../components/RadarChart/RadarChart";
 import Checkbox from "expo-checkbox";
 import SearchComponent from "../../components/button/Search";
+import SortComponent from "@/components/button/Sort";
 
 export default function ListScreen() {
   const router = useRouter();
@@ -28,9 +29,10 @@ export default function ListScreen() {
   >([]); // 表示するデータ
   const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-
+  const [coffeeRecords, setCoffeeRecords] = useState<CoffeeRecord[]>([]);
   useEffect(() => {
     fetchData();
+    loadCoffeeRecords();
   }, []);
 
   const fetchData = async () => {
@@ -237,8 +239,15 @@ export default function ListScreen() {
       </View>
     );
   };
-  // SearchComponent に渡しているデータ
-  // 情報の行を表示するサブコンポーネント
+  // handleSort 関数
+  const handleSort = (sortedRecords: CoffeeRecord[]) => {
+    // 表示用のデータを更新
+    setDisplayedCoffeeRecords(sortedRecords);
+  };
+  const loadCoffeeRecords = async () => {
+    const records = await CoffeeStorageService.getAllCoffeeRecords();
+    setCoffeeRecords(records);
+  };
   const InfoRow = ({
     label,
     value,
@@ -279,6 +288,10 @@ export default function ListScreen() {
             <SearchComponent
               initialData={allCoffeeRecords}
               onSearch={handleSearch}
+            />
+            <SortComponent
+              onSort={handleSort}
+              records={displayedCoffeeRecords}
             />
           </View>
           <ScrollView

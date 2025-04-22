@@ -41,11 +41,12 @@ class CoffeeStorageService {
   }
   // 新しいコーヒーレコードを保存
   async saveCoffeeRecord(
-    record: Omit<CoffeeRecord, "id">,
+    record: Omit<CoffeeRecord, "id" | "createdAt">, // OmitにcreatedAtを追加
     imageUri: string
   ): Promise<string> {
     try {
       const id = uuidv4();
+      const createdAt = new Date(); // 作成日時を取得
 
       let processedImageUri = null;
       if (imageUri) {
@@ -63,6 +64,7 @@ class CoffeeStorageService {
         id,
         ...record,
         imageUri: finalImageUri,
+        createdAt: createdAt, // 作成日時を追加
       };
       // 既存のレコードを取得
       let existingRecords: CoffeeRecord[] = [];
@@ -214,7 +216,127 @@ class CoffeeStorageService {
       return [];
     }
   }
+
+  // 名前を除外したコーヒーレコードのソート関数
+  async sortCoffeeRecordsWithoutName(
+    criteria:
+      | "acidity"
+      | "bitterness"
+      | "sweetness"
+      | "body"
+      | "aroma"
+      | "aftertaste"
+      | "createdAt",
+    order: "asc" | "desc" = "asc"
+  ): Promise<CoffeeRecord[]> {
+    try {
+      const allRecords = await this.getAllCoffeeRecords();
+
+      return allRecords.sort((a, b) => {
+        let comparison = 0;
+
+        switch (criteria) {
+          case "acidity":
+            comparison = (a.acidity || 0) - (b.acidity || 0);
+            break;
+          case "bitterness":
+            comparison = (a.bitterness || 0) - (b.bitterness || 0);
+            break;
+          case "sweetness":
+            comparison = (a.sweetness || 0) - (b.sweetness || 0);
+            break;
+          case "body":
+            comparison = (a.body || 0) - (b.body || 0);
+            break;
+          case "aroma":
+            comparison = (a.aroma || 0) - (b.aroma || 0);
+            break;
+          case "aftertaste":
+            comparison = (a.aftertaste || 0) - (b.aftertaste || 0);
+            break;
+          case "createdAt":
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            comparison = dateA - dateB;
+            break;
+          default:
+            break;
+        }
+
+        return order === "asc" ? comparison : -comparison;
+      });
+    } catch (error) {
+      console.error("コーヒーレコードのソート中にエラーが発生しました:", error);
+      return [];
+    }
+  }
+
+  // 名前を除外した検索とソートを組み合わせた関数
+  async searchAndSortCoffeeRecordsWithoutName(
+    keyword?: string,
+    sortCriteria?:
+      | "acidity"
+      | "bitterness"
+      | "sweetness"
+      | "body"
+      | "aroma"
+      | "aftertaste"
+      | "createdAt",
+    sortOrder: "asc" | "desc" = "asc"
+  ): Promise<CoffeeRecord[]> {
+    try {
+      let records;
+      if (keyword) {
+        records = await this.searchCoffeeRecords(keyword);
+      } else {
+        records = await this.getAllCoffeeRecords();
+      }
+
+      if (sortCriteria) {
+        return records.sort((a, b) => {
+          let comparison = 0;
+
+          switch (sortCriteria) {
+            case "acidity":
+              comparison = (a.acidity || 0) - (b.acidity || 0);
+              break;
+            case "bitterness":
+              comparison = (a.bitterness || 0) - (b.bitterness || 0);
+              break;
+            case "sweetness":
+              comparison = (a.sweetness || 0) - (b.sweetness || 0);
+              break;
+            case "body":
+              comparison = (a.body || 0) - (b.body || 0);
+              break;
+            case "aroma":
+              comparison = (a.aroma || 0) - (b.aroma || 0);
+              break;
+            case "aftertaste":
+              comparison = (a.aftertaste || 0) - (b.aftertaste || 0);
+              break;
+            case "createdAt":
+              const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+              const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+              comparison = dateA - dateB;
+              break;
+            default:
+              break;
+          }
+
+          return sortOrder === "asc" ? comparison : -comparison;
+        });
+      }
+
+      return records;
+    } catch (error) {
+      console.error(
+        "コーヒーレコードの検索とソート中にエラーが発生しました:",
+        error
+      );
+      return [];
+    }
+  }
 }
-// 新しい検索関数
 
 export default new CoffeeStorageService();
