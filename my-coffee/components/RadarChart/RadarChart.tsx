@@ -38,15 +38,15 @@ const RadarChart: React.FC<RadarChartProps> = ({ data }) => {
         polar
         domain={{ y: [0, 5] }}
         theme={VictoryTheme.material}
-        width={300}
-        height={300}
+        width={350}
+        height={350}
         padding={{ top: 40, bottom: 40, left: 40, right: 40 }} // パディングを追加
       >
         <VictoryPolarAxis
           dependentAxis
           style={{
             axis: { stroke: "none" },
-            tickLabels: { fontSize: 12, fill: "#333" },
+            tickLabels: { fontSize: 16, fill: "#5D4037" },
             axisLabel: {
               fontSize: 14,
               fontWeight: "bold",
@@ -61,7 +61,7 @@ const RadarChart: React.FC<RadarChartProps> = ({ data }) => {
         <VictoryPolarAxis
           style={{
             axis: { stroke: "#ccc", strokeWidth: 1 },
-            tickLabels: { fontSize: 10, fill: "#666" },
+            tickLabels: { fontSize: 16, fill: "#666" },
           }}
         />
         <VictoryLine
@@ -71,12 +71,12 @@ const RadarChart: React.FC<RadarChartProps> = ({ data }) => {
           }}
         />
         {/* オプションで VictoryArea を追加 */}
-        {/* <VictoryArea
-                    data={chartData}
-                    style={{
-                        data: { fill: "#007AFF", opacity: 0.3 },
-                    }}
-                /> */}
+        <VictoryArea
+          data={chartData}
+          style={{
+            data: { fill: "#007AFF", opacity: 0.3 },
+          }}
+        />
       </VictoryChart>
     </View>
   );
@@ -89,7 +89,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 30, // 垂直方向のパディングを追加
   },
 });
 
