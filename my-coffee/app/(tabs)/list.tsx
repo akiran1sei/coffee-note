@@ -296,7 +296,7 @@ export default function ListScreen() {
               contentContainerStyle={styles.innerScrollContainer}
             >
               <View style={styles.recordContainer}>
-                {displayedCoffeeRecords.map(renderCoffeeRecord)}{" "}
+                {displayedCoffeeRecords.map(renderCoffeeRecord)}
                 {/* 表示するデータを使用 */}
               </View>
             </ScrollView>
