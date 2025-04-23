@@ -11,7 +11,8 @@ import {
 } from "react-native";
 import HeaderComponent from "../../components/HeaderComponent";
 import PageTitleComponent from "../../components/PageTitleComponent";
-import SelectComponent from "../../components/SelectComponent";
+import CoffeeProcessingSelect from "../../components/CoffeeProcessingSelect";
+import HierarchicalCoffeeSelect from "../../components/CoffeeExtractionSelect";
 import InputComponent from "../../components/InputComponent";
 import RangeComponent from "../../components/RangeComponent";
 import NumberComponent from "../../components/NumberComponent";
@@ -107,7 +108,8 @@ export default function CreateScreen() {
   const [imageData, setImageData] = useState("");
   const [formData, setFormData] = useState({ ...initialFormData });
   const [rangeValues, setRangeValues] = useState({ ...initialRangeValues });
-
+  const [extractionMethod, setExtractionMethod] = useState("");
+  const [manufacturer, setManufacturer] = useState("");
   // Web環境でフォーム送信後の状態をリセット
   useEffect(() => {
     if (formSubmitted && isWeb) {
@@ -399,7 +401,7 @@ export default function CreateScreen() {
               }
               value={formData.productionArea}
             />
-            <SelectComponent
+            <CoffeeProcessingSelect
               key={`roastingDegree-${resetKey}`} // 追加
               dataTitle={SelectLabel.roastingDegree}
               onChange={(value: string) =>
@@ -407,23 +409,19 @@ export default function CreateScreen() {
               }
               value={formData.roastingDegree}
             />
-            <SelectComponent
-              key={`extractionMethod-${resetKey}`} // 追加
-              dataTitle={SelectLabel.extractionMethod}
-              onChange={(value: string) =>
+            <HierarchicalCoffeeSelect
+              primaryTitle="抽出方法"
+              secondaryTitle="抽出メーカー"
+              onPrimaryChange={(value) =>
                 handleSelectChange("extractionMethod", value)
               }
-              value={formData.extractionMethod}
-            />
-            <SelectComponent
-              key={`extractionMaker-${resetKey}`} // 追加
-              dataTitle={SelectLabel.extractionMaker}
-              onChange={(value: string) =>
+              onSecondaryChange={(value) =>
                 handleSelectChange("extractionMaker", value)
               }
-              value={formData.extractionMaker}
+              primaryValue={formData.extractionMethod}
+              secondaryValue={formData.extractionMaker}
             />
-            <SelectComponent
+            <CoffeeProcessingSelect
               key={`grindSize-${resetKey}`} // 追加
               dataTitle={SelectLabel.grindSize}
               onChange={(value: string) =>

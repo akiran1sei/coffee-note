@@ -17,7 +17,9 @@ import HeaderComponent from "../../../components/HeaderComponent";
 import PageTitleComponent from "../../../components/PageTitleComponent";
 import CoffeeStorageService from "../../../services/CoffeeStorageService";
 import { CoffeeRecord } from "../../../types/CoffeeTypes";
-import SelectComponent from "../../../components/SelectComponent";
+
+import CoffeeProcessingSelect from "../../../components/CoffeeProcessingSelect";
+import HierarchicalCoffeeSelect from "../../../components/CoffeeExtractionSelect";
 import InputComponent from "../../../components/InputComponent";
 import RangeComponent from "../../../components/RangeComponent";
 import NumberComponent from "../../../components/NumberComponent";
@@ -29,7 +31,7 @@ import RadarChart from "../../../components/RadarChart/RadarChart";
 type RouteParams = {
   id: string;
 };
-
+type FormField = keyof CoffeeRecord;
 export default function CoffeeItemScreen() {
   const route = useRoute();
   const router = useRouter();
@@ -64,7 +66,8 @@ export default function CoffeeItemScreen() {
   const [formData, setFormData] = useState<Partial<CoffeeRecord>>({});
   const [rangeValues, setRangeValues] = useState<Partial<CoffeeRecord>>({});
   const [updating, setUpdating] = useState(false);
-
+  const [extractionMethod, setExtractionMethod] = useState("");
+  const [manufacturer, setManufacturer] = useState("");
   const handleInputChange = (label: string, value: string | number) => {
     setFormData({ ...formData, [label]: value });
   };
@@ -74,10 +77,22 @@ export default function CoffeeItemScreen() {
     setFormData({ ...formData, imageUri: value });
   };
 
-  const handleSelectChange = (label: string, value: string) => {
-    setFormData({ ...formData, [label]: value });
+  const handleSelectChange = (field: FormField, value: string) => {
+    // 抽出方法が変更された場合は、抽出メーカーもリセットする
+    if (field === "extractionMethod") {
+      setFormData((prevData) => ({
+        ...prevData,
+        [field]: value,
+        extractionMaker: "", // 抽出メーカーをリセット
+      }));
+    } else {
+      // 他のフィールドの場合は通常の更新
+      setFormData((prevData) => ({
+        ...prevData,
+        [field]: value,
+      }));
+    }
   };
-
   const handleRangeChange = (label: string, value: number) => {
     setFormData({ ...formData, [label]: value });
     setRangeValues({
@@ -377,7 +392,7 @@ export default function CoffeeItemScreen() {
                     : ""
                 }
               />
-              <SelectComponent
+              <CoffeeProcessingSelect
                 dataTitle={SelectLabel.roastingDegree}
                 onChange={(value: string) =>
                   handleSelectChange("roastingDegree", value)
@@ -388,37 +403,28 @@ export default function CoffeeItemScreen() {
                     : ""
                 }
               />
-              <SelectComponent
-                dataTitle={SelectLabel.extractionMethod}
-                onChange={(value: string) =>
+
+              <HierarchicalCoffeeSelect
+                primaryTitle={SelectLabel.extractionMethod}
+                secondaryTitle={SelectLabel.extractionMaker}
+                onPrimaryChange={(value) =>
                   handleSelectChange("extractionMethod", value)
                 }
-                value={
+                onSecondaryChange={(value) =>
+                  handleSelectChange("extractionMaker", value)
+                }
+                primaryValue={
                   formData.extractionMethod !== undefined
                     ? formData.extractionMethod
                     : ""
                 }
-              />
-              <SelectComponent
-                dataTitle={SelectLabel.extractionMaker}
-                onChange={(value: string) =>
-                  handleSelectChange("extractionMaker", value)
-                }
-                value={
+                secondaryValue={
                   formData.extractionMaker !== undefined
                     ? formData.extractionMaker
                     : ""
                 }
               />
-              <SelectComponent
-                dataTitle={SelectLabel.grindSize}
-                onChange={(value: string) =>
-                  handleSelectChange("grindSize", value)
-                }
-                value={
-                  formData.grindSize !== undefined ? formData.grindSize : ""
-                }
-              />
+
               <NumberComponent
                 dataTitle={NumberLabel.temperature}
                 onChange={(value: number) =>
