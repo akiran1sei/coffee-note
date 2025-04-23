@@ -108,8 +108,6 @@ export default function CreateScreen() {
   const [imageData, setImageData] = useState("");
   const [formData, setFormData] = useState({ ...initialFormData });
   const [rangeValues, setRangeValues] = useState({ ...initialRangeValues });
-  const [extractionMethod, setExtractionMethod] = useState("");
-  const [manufacturer, setManufacturer] = useState("");
   // Web環境でフォーム送信後の状態をリセット
   useEffect(() => {
     if (formSubmitted && isWeb) {

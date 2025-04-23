@@ -66,8 +66,6 @@ export default function CoffeeItemScreen() {
   const [formData, setFormData] = useState<Partial<CoffeeRecord>>({});
   const [rangeValues, setRangeValues] = useState<Partial<CoffeeRecord>>({});
   const [updating, setUpdating] = useState(false);
-  const [extractionMethod, setExtractionMethod] = useState("");
-  const [manufacturer, setManufacturer] = useState("");
   const handleInputChange = (label: string, value: string | number) => {
     setFormData({ ...formData, [label]: value });
   };
@@ -403,7 +401,15 @@ export default function CoffeeItemScreen() {
                     : ""
                 }
               />
-
+              <CoffeeProcessingSelect
+                dataTitle={SelectLabel.grindSize}
+                onChange={(value: string) =>
+                  handleSelectChange("grindSize", value)
+                }
+                value={
+                  formData.grindSize !== undefined ? formData.grindSize : ""
+                }
+              />
               <HierarchicalCoffeeSelect
                 primaryTitle={SelectLabel.extractionMethod}
                 secondaryTitle={SelectLabel.extractionMaker}

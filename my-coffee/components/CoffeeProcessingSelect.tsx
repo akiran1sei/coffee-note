@@ -16,23 +16,23 @@ const CoffeeProcessingSelect: React.FC<SelectProps> = ({
   const methods = () => {
     if (dataTitle === "焙煎度") {
       return [
-        { label: "ライトロースト (浅煎り)", value: "lightroast" },
-        { label: "シナモンロースト (浅煎り)", value: "cinnamonroast" },
-        { label: "ミディアムロースト (中浅煎り)", value: "mediumroast" },
-        { label: "ハイロースト (中煎り)", value: "highroast" },
-        { label: "シティロースト (中深煎り)", value: "cityroast" },
-        { label: "フルシティロースト (深煎り)", value: "fullcityroast" },
-        { label: "フレンチロースト (深煎り)", value: "frenchroast" },
-        { label: "イタリアンロースト (深煎り)", value: "italianroast" },
+        { label: "ライトロースト (浅煎り)", value: "浅煎り" },
+        { label: "シナモンロースト (浅煎り)", value: "浅煎り" },
+        { label: "ミディアムロースト (中浅煎り)", value: "中浅煎り" },
+        { label: "ハイロースト (中煎り)", value: "中煎り" },
+        { label: "シティロースト (中深煎り)", value: "中深煎り" },
+        { label: "フルシティロースト (深煎り)", value: "深煎り" },
+        { label: "フレンチロースト (深煎り)", value: "深煎り" },
+        { label: "イタリアンロースト (深煎り)", value: "深煎り" },
       ];
     } else if (dataTitle === "挽き目") {
       return [
-        { label: "極細挽き", value: "extrafine" },
-        { label: "細挽き", value: "fine" },
-        { label: "中細挽き", value: "mediumfine" },
-        { label: "中挽き", value: "medium" },
-        { label: "粗挽き", value: "coarse" },
-        { label: "極粗挽き", value: "extracourse" },
+        { label: "極細挽き", value: "極細挽き" },
+        { label: "細挽き", value: "細挽き" },
+        { label: "中細挽き", value: "中細挽き" },
+        { label: "中挽き", value: "中挽き" },
+        { label: "粗挽き", value: "粗挽き" },
+        { label: "極粗挽き", value: "極粗挽き" },
       ];
     }
     return []; // デフォルトで空の配列を返す

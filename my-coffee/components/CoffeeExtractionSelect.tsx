@@ -10,80 +10,91 @@ interface HierarchicalSelectProps {
   onSecondaryChange: (value: string) => void; // 二番目の選択肢の変更ハンドラ
   primaryValue: string; // 最初の選択肢の値
   secondaryValue: string; // 二番目の選択肢の値
+  primaryOptions?: { label: string; value: string }[]; // 最初の選択肢のオプション
+  secondaryOptions?: { label: string; value: string }[]; // 二番目の選択肢のオプション
 }
 
-// 抽出方法とメーカーのデータ構造
+// 抽出方法のデータ構造
 const extractionMethodsData = [
-  { label: "ペーパードリップ", value: "paperdrip" },
-  { label: "ネルドリップ", value: "neldrip" },
-  { label: "金属フィルタードリップ", value: "metalfilterdrip" },
-  { label: "フレンチプレス", value: "frenchpress" },
-  { label: "エアロプレス", value: "aeropress" },
-  { label: "コーヒーメーカー (ドリップ式)", value: "coffeemakerdrip" },
-  { label: "サイフォン", value: "syphon" },
-  { label: "エスプレッソ", value: "espresso" },
-  { label: "モカポット抽出", value: "mokapotextraction" },
-  { label: "水出し", value: "icedrip" },
+  { label: "ペーパードリップ", value: "ペーパードリップ" },
+  { label: "ネルドリップ", value: "ネルドリップ" },
+  { label: "金属フィルタードリップ", value: "金属フィルタードリップ" },
+  { label: "フレンチプレス", value: "フレンチプレス" },
+  { label: "エアロプレス", value: "エアロプレス" },
+  {
+    label: "コーヒーメーカー (ドリップ式)",
+    value: "コーヒーメーカー (ドリップ式)",
+  },
+  { label: "サイフォン", value: "サイフォン" },
+  { label: "エスプレッソ", value: "エスプレッソ" },
+  { label: "モカポット抽出", value: "モカポット抽出" },
+  { label: "水出し", value: "水出し" },
 ];
 
-const manufacturerData = {
-  paperdrip: [
-    { label: "ハリオ (Hario)", value: "hario" },
-    { label: "カリタ (Kalita)", value: "kalita" },
-    { label: "メリタ (Melitta)", value: "melitta" },
-    { label: "キントー (KINTO)", value: "kinto" },
-    { label: "オリガミ (ORIGAMI)", value: "origami" },
-    { label: "カフェック (CAFEC)", value: "cafec" },
+// メーカーデータの型定義
+interface ManufacturerData {
+  [key: string]: { label: string; value: string }[];
+}
+
+// 抽出方法ごとのメーカーデータ
+const manufacturerData: ManufacturerData = {
+  ペーパードリップ: [
+    { label: "ハリオ (Hario)", value: "ハリオ" },
+    { label: "カリタ (Kalita)", value: "カリタ" },
+    { label: "メリタ (Melitta)", value: "メリタ" },
+    { label: "キントー (KINTO)", value: "キントー" },
+    { label: "オリガミ (ORIGAMI)", value: "オリガミ" },
+    { label: "カフェック (CAFEC)", value: "カフェック" },
   ],
-  neldrip: [
-    { label: "ハリオ (Hario)", value: "hario" },
-    { label: "カリタ (Kalita)", value: "kalita" },
-    { label: "コーノ (KONO)", value: "kono" },
+  ネルドリップ: [
+    { label: "ハリオ (Hario)", value: "ハリオ" },
+    { label: "カリタ (Kalita)", value: "カリタ" },
+    { label: "コーノ (KONO)", value: "コーノ" },
   ],
-  metalfilterdrip: [
-    { label: "コレス (cores)", value: "cores" },
-    { label: "キントー (KINTO)", value: "kinto" },
-    { label: "エイブル ブリューイング (Able Brewing)", value: "ablebrewing" },
-    { label: "フリリング (Frieling)", value: "frieling" },
+  金属フィルタードリップ: [
+    { label: "コレス (cores)", value: "コレス" },
+    { label: "キントー (KINTO)", value: "キントー" },
+    { label: "エイブル ブリューイング (Able Brewing)", value: "エイブル" },
+    { label: "フリリング (Frieling)", value: "フリリング" },
   ],
-  frenchpress: [
-    { label: "ボダム (Bodum)", value: "bodum" },
-    { label: "ハリオ (Hario)", value: "hario" },
-    { label: "キントー (KINTO)", value: "kinto" },
-    { label: "フリリング (Frieling)", value: "frieling" },
+  フレンチプレス: [
+    { label: "ボダム (Bodum)", value: "ボダム" },
+    { label: "ハリオ (Hario)", value: "ハリオ" },
+    { label: "キントー (KINTO)", value: "キントー" },
+    { label: "フリリング (Frieling)", value: "フリリング" },
   ],
-  aeropress: [{ label: "エアロプレス (Aeropress)", value: "aeropress" }],
-  coffeemakerdrip: [
-    { label: "デロンギ (DeLonghi)", value: "delonghi" },
-    { label: "メリタ (Melitta)", value: "melitta" },
-    { label: "カリタ (Kalita)", value: "kalita" },
-    { label: "象印 (ZOJIRUSHI)", value: "zojirushi" },
-    { label: "タイガー (TIGER)", value: "tiger" },
-    { label: "バルミューダ (BALMUDA)", value: "balmuda" },
+  エアロプレス: [{ label: "エアロプレス (Aeropress)", value: "エアロプレス" }],
+  "コーヒーメーカー (ドリップ式)": [
+    { label: "デロンギ (DeLonghi)", value: "デロンギ" },
+    { label: "メリタ (Melitta)", value: "メリタ" },
+    { label: "カリタ (Kalita)", value: "カリタ" },
+    { label: "象印 (ZOJIRUSHI)", value: "象印" },
+    { label: "タイガー (TIGER)", value: "タイガー" },
+    { label: "バルミューダ (BALMUDA)", value: "バルミューダ" },
   ],
-  syphon: [
-    { label: "ハリオ (Hario)", value: "hario" },
-    { label: "コーノ (KONO)", value: "kono" },
-    { label: "ヤマグラス (Yama Glass)", value: "yamaglass" },
-    { label: "ボダム (Bodum)", value: "bodum" },
+  サイフォン: [
+    { label: "ハリオ (Hario)", value: "ハリオ" },
+    { label: "コーノ (KONO)", value: "コーノ" },
+    { label: "ヤマグラス (Yama Glass)", value: "ヤマグラス" },
+    { label: "ボダム (Bodum)", value: "ボダム" },
   ],
-  espresso: [
-    { label: "デロンギ (DeLonghi)", value: "delonghi" },
-    { label: "ガジア (Gaggia)", value: "gaggia" },
-    { label: "ランチリオ (Rancilio)", value: "rancilio" },
-    { label: "ブレビル (Breville)", value: "breville" },
-    { label: "ラ・パヴォーニ (La Pavoni)", value: "lapavoni" },
+  エスプレッソ: [
+    { label: "デロンギ (DeLonghi)", value: "デロンギ" },
+    { label: "ガジア (Gaggia)", value: "ガジア" },
+    { label: "ランチリオ (Rancilio)", value: "ランチリオ" },
+    { label: "ブレビル (Breville)", value: "ブレビル" },
+    { label: "ラ・パヴォーニ (La Pavoni)", value: "ラ・パヴォーニ" },
   ],
-  mokapotextraction: [
-    { label: "ビアレッティ (Bialetti)", value: "bialetti" },
-    { label: "イリー (illy)", value: "illy" },
+  モカポット抽出: [
+    { label: "ビアレッティ (Bialetti)", value: "ビアレッティ" },
+    { label: "イリー (illy)", value: "イリー" },
   ],
-  icedrip: [
-    { label: "ハリオ (Hario)", value: "hario" },
-    { label: "カリタ (Kalita)", value: "kalita" },
-    { label: "ボダム (Bodum)", value: "bodum" },
-    { label: "オクソー (OXO)", value: "oxo" },
-    { label: "ヤマグラス (Yama Glass)", value: "yamaglass" },
+  水出し: [
+    { label: "ハリオ (Hario)", value: "ハリオ" },
+    { label: "カリタ (Kalita)", value: "カリタ" },
+    { label: "ボダム (Bodum)", value: "ボダム" },
+    { label: "オクソー (OXO)", value: "オクソー" },
+    { label: "ヤマグラス (Yama Glass)", value: "ヤマグラス" },
   ],
 };
 
@@ -97,6 +108,7 @@ const HierarchicalCoffeeSelect: React.FC<HierarchicalSelectProps> = ({
   onSecondaryChange,
   primaryValue,
   secondaryValue,
+  primaryOptions = extractionMethodsData, // デフォルトで抽出方法データを設定
 }) => {
   // 選択された抽出方法に基づいて利用可能なメーカーを取得
   const getSecondaryOptions = (primaryValue: string) => {
@@ -114,38 +126,23 @@ const HierarchicalCoffeeSelect: React.FC<HierarchicalSelectProps> = ({
   };
 
   // primaryValueが変更された時に、secondaryValueが有効かどうかを確認し
-  // 無効な場合はリセットする追加の保証
+  // 無効な場合はリセットする
   useEffect(() => {
-    // 現在の抽出方法に対応するメーカー一覧を取得
     const availableManufacturers = getSecondaryOptions(primaryValue);
-
-    // 現在選択されているメーカーが有効かチェック
-    const isCurrentManufacturerValid = availableManufacturers.some(
-      (manufacturer) => manufacturer.value === secondaryValue
-    );
-
-    // 選択されているメーカーが有効でない場合、リセット
-    if (secondaryValue && !isCurrentManufacturerValid) {
-      onSecondaryChange("");
-    }
-  }, [primaryValue, secondaryValue]);
-  // primaryValueが変更された時に、secondaryValueが有効かどうかを確認する
-  useEffect(() => {
-    // 現在の抽出方法に対応するメーカー一覧を取得
-    const availableManufacturers = getSecondaryOptions(primaryValue);
-
-    // 現在選択されているメーカーが有効かチェック
     const isCurrentManufacturerValid =
       secondaryValue === "" ||
       availableManufacturers.some(
         (manufacturer) => manufacturer.value === secondaryValue
       );
 
-    // 選択されているメーカーが有効でない場合、リセット
     if (secondaryValue && !isCurrentManufacturerValid) {
       onSecondaryChange("");
     }
   }, [primaryValue, secondaryValue, onSecondaryChange]);
+
+  // secondaryOptions をローカルステートとして管理しないように修正
+  const secondaryOptions = getSecondaryOptions(primaryValue);
+
   return (
     <View style={styles.container}>
       {/* 最初の選択肢（抽出方法） */}
@@ -157,7 +154,7 @@ const HierarchicalCoffeeSelect: React.FC<HierarchicalSelectProps> = ({
           style={styles.select}
         >
           <Picker.Item label="選択してください" value="" />
-          {extractionMethodsData.map((method) => (
+          {primaryOptions.map((method) => (
             <Picker.Item
               key={method.value}
               label={method.label}
@@ -177,7 +174,7 @@ const HierarchicalCoffeeSelect: React.FC<HierarchicalSelectProps> = ({
             style={styles.select}
           >
             <Picker.Item label="選択してください" value="" />
-            {getSecondaryOptions(primaryValue).map((manufacturer) => (
+            {secondaryOptions.map((manufacturer) => (
               <Picker.Item
                 key={manufacturer.value}
                 label={manufacturer.label}
