@@ -22,6 +22,10 @@ import PageTitleComponent from "../../../../components/PageTitleComponent";
 import CoffeeStorageService from "../../../../services/CoffeeStorageService";
 import { CoffeeRecord } from "../../../../types/CoffeeTypes";
 import RadarChart from "../../../../components/RadarChart/RadarChart";
+import {
+  LoadingComponent,
+  NoRecordComponent,
+} from "@/components/MessageComponent";
 // import PdfButtonComponent from "@/components/button/Pdf"; //WEB版では使用しないためコメントアウト
 
 type RouteParams = {
@@ -109,20 +113,11 @@ const CoffeeItemScreen = () => {
   }, [id]);
 
   if (loading) {
-    return (
-      <View style={styles.loadingOverlay}>
-        <ActivityIndicator size="large" color="#007bff" />
-        <Text style={styles.loadingText}>ロード中...</Text>
-      </View>
-    );
+    return <LoadingComponent />;
   }
 
   if (!coffeeRecord) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>コーヒーレコードが見つかりません</Text>
-      </View>
-    );
+    return <NoRecordComponent />;
   }
 
   return (

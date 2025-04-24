@@ -4,6 +4,7 @@ import { Link } from "expo-router";
 import { IconButton } from "react-native-paper";
 import * as Font from "expo-font"; // expo-fontをインポート
 import "react-native-get-random-values";
+import { LoadingComponent } from "@/components/MessageComponent";
 export default function Index() {
   const [loading, setLoading] = useState(false);
   useEffect(() => {
@@ -20,11 +21,7 @@ export default function Index() {
   }, []);
 
   if (!loading) {
-    return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
-      </View>
-    );
+    return <LoadingComponent />;
   } else {
     return (
       <View style={styles.container}>

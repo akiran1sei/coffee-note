@@ -21,6 +21,10 @@ import PageTitleComponent from "../../../components/PageTitleComponent";
 import CoffeeStorageService from "../../../services/CoffeeStorageService";
 import { CoffeeRecord } from "../../../types/CoffeeTypes";
 import RadarChart from "../../../components/RadarChart/RadarChart";
+import {
+  LoadingComponent,
+  NoRecordComponent,
+} from "@/components/MessageComponent";
 
 type RouteParams = {
   id: string;
@@ -424,15 +428,12 @@ export default function CoffeeItemScreen() {
   </body>
   </html>
 `;
-      console.log("PDF生成を開始します");
 
       // Print APIを使用してPDFを生成
       const { uri } = await Print.printToFileAsync({
         html: htmlContent,
         base64: false,
       });
-
-      console.log("PDF生成完了:", uri);
 
       // モバイル環境ではシェア機能を使用
       await Sharing.shareAsync(uri, {
@@ -470,20 +471,11 @@ export default function CoffeeItemScreen() {
   }, [id]);
 
   if (loading) {
-    return (
-      <View style={styles.loadingOverlay}>
-        <ActivityIndicator size="large" color="#007bff" />
-        <Text style={styles.loadingText}>ロード中...</Text>
-      </View>
-    );
+    return <LoadingComponent />;
   }
 
   if (!coffeeRecord) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>コーヒーレコードが見つかりません</Text>
-      </View>
-    );
+    return <NoRecordComponent />;
   }
 
   return (
@@ -754,10 +746,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
-  errorText: {
-    fontSize: 18,
-    color: "#dc3545",
-  },
+
   downloadPdfButton: {
     backgroundColor: "#28a745",
     paddingVertical: 12,

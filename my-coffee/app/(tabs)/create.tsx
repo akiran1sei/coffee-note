@@ -11,14 +11,21 @@ import {
 } from "react-native";
 import HeaderComponent from "../../components/HeaderComponent";
 import PageTitleComponent from "../../components/PageTitleComponent";
-import CoffeeProcessingSelect from "../../components/CoffeeProcessingSelect";
-import HierarchicalCoffeeSelect from "../../components/CoffeeExtractionSelect";
-import InputComponent from "../../components/InputComponent";
+
+import {
+  HierarchicalCoffeeSelect,
+  CoffeeProcessingSelect,
+  CoffeeTypesSelect,
+} from "../../components/SelectComponent";
+import {
+  InputComponent,
+  NumberComponent,
+  TextAreaComponent,
+  MeasuredTimeInputComponent,
+} from "../../components/InputComponent";
 import RangeComponent from "../../components/RangeComponent";
-import NumberComponent from "../../components/NumberComponent";
 import ImageUploadComponent from "../../components/ImageUploadComponent";
-import TextAreaComponent from "../../components/TextAreaComponent";
-import MeasuredTimeInputComponent from "../../components/MeasuredTimeInputComponent ";
+
 import RadarChart from "../../components/RadarChart/RadarChart";
 import CoffeeStorageService from "../../services/CoffeeStorageService"; // ストレージサービスをインポート
 
@@ -76,13 +83,12 @@ const initialRangeValues = {
   aftertaste: 0,
 };
 export default function CreateScreen() {
-  const TextData = "Coffee Create"; // ページタイトルに表示するテキスト
+  const TextData = "コーヒー作成"; // ページタイトルに表示するテキスト
   const [resetKey, setResetKey] = useState(0);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [isWeb] = useState(Platform.OS === "web");
   const [InputLabel, setInputLabel] = useState({
     beansName: "名称",
-    variety: "品種",
     productionArea: "産地",
   });
   const [SelectLabel, setSelectLabel] = useState({
@@ -90,6 +96,7 @@ export default function CreateScreen() {
     extractionMaker: "抽出メーカー",
     extractionMethod: "抽出方法",
     grindSize: "挽き目",
+    variety: "品種",
   });
   const [RangeLabel, setRangeLabel] = useState({
     acidity: "酸味",
@@ -294,16 +301,88 @@ export default function CreateScreen() {
           | "extracourse";
       }
 
-      // 型安全な変換
-      const coffeeRecord: Omit<CoffeeRecord, "id"> = {
-        imageUri: formData.imageUri || "../../assets/images/no-image.png", // デフォルト画像を設定
+      const validatedRoastingDegree = validateRoastingDegree(
+        formData.roastingDegree
+      );
+      const validatedExtractionMethod = validateExtractionMethod(
+        formData.extractionMethod
+      );
+      const validatedGrindSize = validateGrindSize(formData.grindSize);
+
+      const japaneseRoastingDegreeMap: { [key: string]: string } = {
+        lightroast: "浅煎り",
+        cinnamonroast: "浅煎り",
+        mediumroast: "中浅煎り",
+        highroast: "中煎り",
+        cityroast: "中深煎り",
+        fullcityroast: "深煎り",
+        frenchroast: "深煎り",
+        italianroast: "深煎り",
+      };
+
+      const japaneseExtractionMethodMap: { [key: string]: string } = {
+        paperdrip: "ペーパードリップ",
+        neldrip: "ネルドリップ",
+        metalfilterdrip: "金属フィルタードリップ",
+        frenchpress: "フレンチプレス",
+        aeropress: "エアロプレス",
+        coffeemakerdrip: "コーヒーメーカー (ドリップ式)",
+        syphon: "サイフォン",
+        espresso: "エスプレッソ",
+        mokapotextraction: "モカポット抽出",
+        icedrip: "水出し",
+      };
+
+      const japaneseGrindSizeMap: { [key: string]: string } = {
+        extrafine: "極細挽き",
+        fine: "細挽き",
+        mediumfine: "中細挽き",
+        medium: "中挽き",
+        coarse: "粗挽き",
+        extracourse: "極粗挽き",
+      };
+
+      // 抽出メーカー名の英語から日本語へのマップ
+      const japaneseManufacturerMap: { [key: string]: string } = {
+        hario: "ハリオ",
+        kalita: "カリタ",
+        melitta: "メリタ",
+        kinto: "キントー",
+        origami: "オリガミ",
+        cafec: "カフェック",
+        kono: "コーノ",
+        cores: "コレス",
+        ablebrewing: "エイブル",
+        frieling: "フリリング",
+        bodum: "ボダム",
+        aeropress: "エアロプレス",
+        delonghi: "デロンギ",
+        zojirushi: "象印",
+        tiger: "タイガー",
+        balmuda: "バルミューダ",
+        yamaglass: "ヤマグラス",
+        gaggia: "ガジア",
+        rancilio: "ランチリオ",
+        breville: "ブレビル",
+        lapavoni: "ラ・パヴォーニ",
+        bialetti: "ビアレッティ",
+        illy: "イリー",
+        oxo: "オクソー",
+        // 必要に応じて他のメーカーも追加
+      };
+
+      const coffeeRecordForSave: Omit<CoffeeRecord, "id"> = {
+        imageUri: formData.imageUri || "../../assets/images/no-image.png",
         name: formData.beansName,
         variety: formData.variety,
         productionArea: formData.productionArea,
-        roastingDegree: validateRoastingDegree(formData.roastingDegree),
-        extractionMethod: validateExtractionMethod(formData.extractionMethod),
-        extractionMaker: formData.extractionMaker,
-        grindSize: validateGrindSize(formData.grindSize),
+        roastingDegree:
+          japaneseRoastingDegreeMap[validatedRoastingDegree] || "",
+        extractionMethod:
+          japaneseExtractionMethodMap[validatedExtractionMethod] || "",
+        extractionMaker:
+          japaneseManufacturerMap[formData.extractionMaker] || "", // ここで変換
+        grindSize: japaneseGrindSizeMap[validatedGrindSize] || "",
         temperature: formData.temperature,
         coffeeAmount: formData.coffeeAmount,
         waterAmount: formData.waterAmount,
@@ -318,7 +397,7 @@ export default function CreateScreen() {
       };
 
       const recordId = await CoffeeStorageService.saveCoffeeRecord(
-        coffeeRecord,
+        coffeeRecordForSave,
         formData.imageUri
       );
 
@@ -373,26 +452,27 @@ export default function CreateScreen() {
             showsVerticalScrollIndicator={true}
           >
             <ImageUploadComponent
-              key={`imageUpload-${resetKey}`} // 追加
+              key={`imageUpload-${resetKey}`}
               onChange={handleImageChange}
               value={imageData}
             />
             <InputComponent
-              key={`beansName-${resetKey}`} // 追加
+              key={`beansName-${resetKey}`}
               dataTitle={InputLabel.beansName}
               onChange={(value: string) =>
                 handleInputChange("beansName", value)
               }
               value={formData.beansName}
             />
-            <InputComponent
-              key={`variety-${resetKey}`} // 追加
-              dataTitle={InputLabel.variety}
-              onChange={(value: string) => handleInputChange("variety", value)}
+            <CoffeeTypesSelect
+              key={`variety-${resetKey}`}
+              dataTitle={SelectLabel.variety}
+              onChange={(value: string) => handleSelectChange("variety", value)}
               value={formData.variety}
             />
+
             <InputComponent
-              key={`productionArea-${resetKey}`} // 追加
+              key={`productionArea-${resetKey}`}
               dataTitle={InputLabel.productionArea}
               onChange={(value: string) =>
                 handleInputChange("productionArea", value)
@@ -400,7 +480,7 @@ export default function CreateScreen() {
               value={formData.productionArea}
             />
             <CoffeeProcessingSelect
-              key={`roastingDegree-${resetKey}`} // 追加
+              key={`roastingDegree-${resetKey}`}
               dataTitle={SelectLabel.roastingDegree}
               onChange={(value: string) =>
                 handleSelectChange("roastingDegree", value)
@@ -420,7 +500,7 @@ export default function CreateScreen() {
               secondaryValue={formData.extractionMaker}
             />
             <CoffeeProcessingSelect
-              key={`grindSize-${resetKey}`} // 追加
+              key={`grindSize-${resetKey}`}
               dataTitle={SelectLabel.grindSize}
               onChange={(value: string) =>
                 handleSelectChange("grindSize", value)
@@ -428,7 +508,7 @@ export default function CreateScreen() {
               value={formData.grindSize}
             />
             <NumberComponent
-              key={`temperature-${resetKey}`} // 追加
+              key={`temperature-${resetKey}`}
               dataTitle={NumberLabel.temperature}
               onChange={(value: number) =>
                 handleInputChange("temperature", value)
@@ -436,7 +516,7 @@ export default function CreateScreen() {
               value={formData.temperature}
             />
             <NumberComponent
-              key={`coffeeAmount-${resetKey}`} // 追加
+              key={`coffeeAmount-${resetKey}`}
               dataTitle={NumberLabel.coffeeAmount}
               onChange={(value: number) =>
                 handleInputChange("coffeeAmount", value)
@@ -444,7 +524,7 @@ export default function CreateScreen() {
               value={formData.coffeeAmount}
             />
             <NumberComponent
-              key={`waterAmount-${resetKey}`} // 追加
+              key={`waterAmount-${resetKey}`}
               dataTitle={NumberLabel.waterAmount}
               onChange={(value: number) =>
                 handleInputChange("waterAmount", value)
@@ -452,18 +532,18 @@ export default function CreateScreen() {
               value={formData.waterAmount}
             />
             <MeasuredTimeInputComponent
-              key={`extractionTime-${resetKey}`} // 追加
+              key={`extractionTime-${resetKey}`}
               onChange={handleMeasuredTimeChange}
               value={formData.extractionTime}
             />
             <RangeComponent
-              key={`acidity-${resetKey}`} // 追加
+              key={`acidity-${resetKey}`}
               dataTitle={RangeLabel.acidity}
               onChange={(value: number) => handleRangeChange("acidity", value)}
               value={rangeValues.acidity}
             />
             <RangeComponent
-              key={`bitterness-${resetKey}`} // 追加
+              key={`bitterness-${resetKey}`}
               dataTitle={RangeLabel.bitterness}
               onChange={(value: number) =>
                 handleRangeChange("bitterness", value)
@@ -471,7 +551,7 @@ export default function CreateScreen() {
               value={rangeValues.bitterness}
             />
             <RangeComponent
-              key={`sweetness-${resetKey}`} // 追加
+              key={`sweetness-${resetKey}`}
               dataTitle={RangeLabel.sweetness}
               onChange={(value: number) =>
                 handleRangeChange("sweetness", value)
@@ -479,19 +559,19 @@ export default function CreateScreen() {
               value={rangeValues.sweetness}
             />
             <RangeComponent
-              key={`body-${resetKey}`} // 追加
+              key={`body-${resetKey}`}
               dataTitle={RangeLabel.body}
               onChange={(value: number) => handleRangeChange("body", value)}
               value={rangeValues.body}
             />
             <RangeComponent
-              key={`aroma-${resetKey}`} // 追加
+              key={`aroma-${resetKey}`}
               dataTitle={RangeLabel.aroma}
               onChange={(value: number) => handleRangeChange("aroma", value)}
               value={rangeValues.aroma}
             />
             <RangeComponent
-              key={`aftertaste-${resetKey}`} // 追加
+              key={`aftertaste-${resetKey}`}
               dataTitle={RangeLabel.aftertaste}
               onChange={(value: number) =>
                 handleRangeChange("aftertaste", value)
@@ -500,7 +580,7 @@ export default function CreateScreen() {
             />
             <RadarChart data={rangeValues} />
             <TextAreaComponent
-              key={`textArea-${resetKey}`} // 追加
+              key={`textArea-${resetKey}`}
               onChange={handleTextAreaChange}
               value={formData.textArea}
             />

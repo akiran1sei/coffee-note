@@ -18,15 +18,25 @@ import PageTitleComponent from "../../../components/PageTitleComponent";
 import CoffeeStorageService from "../../../services/CoffeeStorageService";
 import { CoffeeRecord } from "../../../types/CoffeeTypes";
 
-import CoffeeProcessingSelect from "../../../components/CoffeeProcessingSelect";
-import HierarchicalCoffeeSelect from "../../../components/CoffeeExtractionSelect";
-import InputComponent from "../../../components/InputComponent";
+import {
+  HierarchicalCoffeeSelect,
+  CoffeeProcessingSelect,
+  CoffeeTypesSelect,
+} from "../../../components/SelectComponent";
+import {
+  InputComponent,
+  NumberComponent,
+  TextAreaComponent,
+  MeasuredTimeInputComponent,
+} from "../../../components/InputComponent";
 import RangeComponent from "../../../components/RangeComponent";
-import NumberComponent from "../../../components/NumberComponent";
 import ImageUploadComponent from "../../../components/ImageUploadComponent";
-import TextAreaComponent from "../../../components/TextAreaComponent";
-import MeasuredTimeInputComponent from "../../../components/MeasuredTimeInputComponent ";
+
 import RadarChart from "../../../components/RadarChart/RadarChart";
+import {
+  LoadingComponent,
+  NoRecordComponent,
+} from "@/components/MessageComponent";
 
 type RouteParams = {
   id: string;
@@ -38,7 +48,7 @@ export default function CoffeeItemScreen() {
   const { id } = route.params as RouteParams;
   const [InputLabel, setInputLabel] = useState({
     name: "名称",
-    variety: "品種",
+
     productionArea: "産地",
   });
   const [SelectLabel, setSelectLabel] = useState({
@@ -46,6 +56,7 @@ export default function CoffeeItemScreen() {
     extractionMaker: "抽出メーカー",
     extractionMethod: "抽出方法",
     grindSize: "挽き目",
+    variety: "品種",
   });
   const [RangeLabel, setRangeLabel] = useState({
     acidity: "酸味",
@@ -337,19 +348,11 @@ export default function CoffeeItemScreen() {
   }, [id]);
 
   if (loading) {
-    return (
-      <View style={styles.container}>
-        <Text>Loading...</Text>
-      </View>
-    );
+    return <LoadingComponent />;
   }
 
   if (!coffeeRecord) {
-    return (
-      <View style={styles.container}>
-        <Text>コーヒーレコードが見つかりません</Text>
-      </View>
-    );
+    return <NoRecordComponent />;
   }
 
   return (
@@ -373,13 +376,6 @@ export default function CoffeeItemScreen() {
                 value={formData.imageUri !== undefined ? formData.imageUri : ""}
               />
               <InputComponent
-                dataTitle={InputLabel.variety}
-                onChange={(value: string) =>
-                  handleInputChange("variety", value)
-                }
-                value={formData.variety !== undefined ? formData.variety : ""}
-              />
-              <InputComponent
                 dataTitle={InputLabel.productionArea}
                 onChange={(value: string) =>
                   handleInputChange("productionArea", value)
@@ -389,6 +385,13 @@ export default function CoffeeItemScreen() {
                     ? formData.productionArea
                     : ""
                 }
+              />
+              <CoffeeTypesSelect
+                dataTitle={SelectLabel.variety}
+                onChange={(value: string) =>
+                  handleInputChange("variety", value)
+                }
+                value={formData.variety !== undefined ? formData.variety : ""}
               />
               <CoffeeProcessingSelect
                 dataTitle={SelectLabel.roastingDegree}
@@ -430,7 +433,6 @@ export default function CoffeeItemScreen() {
                     : ""
                 }
               />
-
               <NumberComponent
                 dataTitle={NumberLabel.temperature}
                 onChange={(value: number) =>
@@ -546,12 +548,10 @@ export default function CoffeeItemScreen() {
                   }}
                 />
               </View>
-
               <TextAreaComponent
                 onChange={handleTextAreaChange}
                 value={formData.memo !== undefined ? formData.memo : ""}
               />
-
               {/* Update Button */}
               <TouchableOpacity
                 style={styles.updateButton}
@@ -562,7 +562,6 @@ export default function CoffeeItemScreen() {
                   {updating ? "更新中..." : "コーヒー情報を更新する"}
                 </Text>
               </TouchableOpacity>
-
               {/* Delete Button */}
               <TouchableOpacity
                 style={styles.deleteButton}
@@ -573,7 +572,6 @@ export default function CoffeeItemScreen() {
                   コーヒー情報を削除する
                 </Text>
               </TouchableOpacity>
-
               {/* Return to List Button */}
               <TouchableOpacity
                 style={styles.returnButton}

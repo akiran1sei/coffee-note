@@ -108,7 +108,7 @@ const PdfButtonComponent: React.FC<PdfItemProps> = () => {
 
       if (Platform.OS === "web" && jsPDF) {
         // **ウェブ環境でのPDF生成 (jsPDFを使用)**
-        console.log("Web: jsPDFでのPDF生成を開始します");
+
         const pdf = new jsPDF();
         pdf.setFontSize(16);
         pdf.text(coffeeRecord.name || "コーヒー記録", 10, 20);
