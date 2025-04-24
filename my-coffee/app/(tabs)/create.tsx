@@ -370,11 +370,15 @@ export default function CreateScreen() {
         oxo: "オクソー",
         // 必要に応じて他のメーカーも追加
       };
-
+      const japaneseVarietyMap: { [key: string]: string } = {
+        arabica: "アラビカ種",
+        canephora: "カネフォラ種",
+        liberica: "リベリカ種",
+      };
       const coffeeRecordForSave: Omit<CoffeeRecord, "id"> = {
         imageUri: formData.imageUri || "../../assets/images/no-image.png",
         name: formData.beansName,
-        variety: formData.variety,
+        variety: japaneseVarietyMap[formData.variety] || formData.variety,
         productionArea: formData.productionArea,
         roastingDegree:
           japaneseRoastingDegreeMap[validatedRoastingDegree] || "",
