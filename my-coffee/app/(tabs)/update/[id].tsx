@@ -122,12 +122,80 @@ export default function CoffeeItemScreen() {
   const handleUpdateRecord = async () => {
     setUpdating(true);
     try {
+      // 各種マッピング
+      const japaneseRoastingDegreeMap: { [key: string]: string } = {
+        lightroast: "浅煎り",
+        cinnamonroast: "浅煎り",
+        mediumroast: "中浅煎り",
+        highroast: "中煎り",
+        cityroast: "中深煎り",
+        fullcityroast: "深煎り",
+        frenchroast: "深煎り",
+        italianroast: "深煎り",
+      };
+
+      const japaneseExtractionMethodMap: { [key: string]: string } = {
+        paperdrip: "ペーパードリップ",
+        neldrip: "ネルドリップ",
+        metalfilterdrip: "金属フィルタードリップ",
+        frenchpress: "フレンチプレス",
+        aeropress: "エアロプレス",
+        coffeemakerdrip: "コーヒーメーカー (ドリップ式)",
+        syphon: "サイフォン",
+        espresso: "エスプレッソ",
+        mokapotextraction: "モカポット抽出",
+        icedrip: "水出し",
+      };
+
+      const japaneseGrindSizeMap: { [key: string]: string } = {
+        extrafine: "極細挽き",
+        fine: "細挽き",
+        mediumfine: "中細挽き",
+        medium: "中挽き",
+        coarse: "粗挽き",
+        extracourse: "極粗挽き",
+      };
+
+      const japaneseManufacturerMap: { [key: string]: string } = {
+        hario: "ハリオ",
+        kalita: "カリタ",
+        melitta: "メリタ",
+        kinto: "キントー",
+        origami: "オリガミ",
+        cafec: "カフェック",
+        kono: "コーノ",
+        cores: "コレス",
+        ablebrewing: "エイブル",
+        frieling: "フリリング",
+        bodum: "ボダム",
+        aeropress: "エアロプレス",
+        delonghi: "デロンギ",
+        zojirushi: "象印",
+        tiger: "タイガー",
+        balmuda: "バルミューダ",
+        yamaglass: "ヤマグラス",
+        gaggia: "ガジア",
+        rancilio: "ランチリオ",
+        breville: "ブレビル",
+        lapavoni: "ラ・パヴォーニ",
+        bialetti: "ビアレッティ",
+        illy: "イリー",
+        oxo: "オクソー",
+        // 必要に応じて他のメーカーも追加
+      };
+
+      const japaneseVarietyMap: { [key: string]: string } = {
+        arabica: "アラビカ種",
+        canephora: "カネフォラ種",
+        liberica: "リベリカ種",
+      };
+
       // formDataの値を優先し、未定義の場合のみcoffeeRecordの値を使用
       const updateData: Partial<CoffeeRecord> = {
         name: formData.name !== undefined ? formData.name : coffeeRecord?.name,
         variety:
           formData.variety !== undefined
-            ? formData.variety
+            ? japaneseVarietyMap[formData.variety] || formData.variety
             : coffeeRecord?.variety,
         productionArea:
           formData.productionArea !== undefined
@@ -135,19 +203,22 @@ export default function CoffeeItemScreen() {
             : coffeeRecord?.productionArea,
         roastingDegree:
           formData.roastingDegree !== undefined
-            ? formData.roastingDegree
+            ? japaneseRoastingDegreeMap[formData.roastingDegree] ||
+              formData.roastingDegree
             : coffeeRecord?.roastingDegree,
         extractionMethod:
           formData.extractionMethod !== undefined
-            ? formData.extractionMethod
+            ? japaneseExtractionMethodMap[formData.extractionMethod] ||
+              formData.extractionMethod
             : coffeeRecord?.extractionMethod,
         extractionMaker:
           formData.extractionMaker !== undefined
-            ? formData.extractionMaker
+            ? japaneseManufacturerMap[formData.extractionMaker] ||
+              formData.extractionMaker
             : coffeeRecord?.extractionMaker,
         grindSize:
           formData.grindSize !== undefined
-            ? formData.grindSize
+            ? japaneseGrindSizeMap[formData.grindSize] || formData.grindSize
             : coffeeRecord?.grindSize,
         temperature:
           formData.temperature !== undefined
@@ -208,15 +279,35 @@ export default function CoffeeItemScreen() {
         );
         if (updatedRecord) {
           setCoffeeRecord(updatedRecord);
-          // 更新された値をformDataにも反映
+          // 更新された値をformDataにも反映 (日本語表記)
           setFormData({
             name: updatedRecord.name,
-            variety: updatedRecord.variety,
+            variety:
+              Object.keys(japaneseVarietyMap).find(
+                (key) => japaneseVarietyMap[key] === updatedRecord.variety
+              ) || updatedRecord.variety,
             productionArea: updatedRecord.productionArea,
-            roastingDegree: updatedRecord.roastingDegree,
-            extractionMethod: updatedRecord.extractionMethod,
-            extractionMaker: updatedRecord.extractionMaker,
-            grindSize: updatedRecord.grindSize,
+            roastingDegree:
+              Object.keys(japaneseRoastingDegreeMap).find(
+                (key) =>
+                  japaneseRoastingDegreeMap[key] ===
+                  updatedRecord.roastingDegree
+              ) || updatedRecord.roastingDegree,
+            extractionMethod:
+              Object.keys(japaneseExtractionMethodMap).find(
+                (key) =>
+                  japaneseExtractionMethodMap[key] ===
+                  updatedRecord.extractionMethod
+              ) || updatedRecord.extractionMethod,
+            extractionMaker:
+              Object.keys(japaneseManufacturerMap).find(
+                (key) =>
+                  japaneseManufacturerMap[key] === updatedRecord.extractionMaker
+              ) || updatedRecord.extractionMaker,
+            grindSize:
+              Object.keys(japaneseGrindSizeMap).find(
+                (key) => japaneseGrindSizeMap[key] === updatedRecord.grindSize
+              ) || updatedRecord.grindSize,
             temperature: updatedRecord.temperature,
             coffeeAmount: updatedRecord.coffeeAmount,
             waterAmount: updatedRecord.waterAmount,
@@ -258,7 +349,6 @@ export default function CoffeeItemScreen() {
       setUpdating(false);
     }
   };
-
   const handleDeleteRecord = async (id: string) => {
     if (Platform.OS === "web") {
       // Web環境の場合、window.confirm を使用
