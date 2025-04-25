@@ -1,7 +1,4 @@
 import React, { useEffect, useState } from "react";
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
-import * as Print from "expo-print";
 import {
   View,
   StyleSheet,
@@ -285,7 +282,9 @@ const CoffeeItemScreen = () => {
               <TouchableOpacity
                 style={styles.editButton}
                 onPress={() =>
-                  router.push({ pathname: `../../update/${coffeeRecord.id}` })
+                  router.push({
+                    pathname: `../../update/web/${coffeeRecord.id}`,
+                  })
                 }
               >
                 <Text style={styles.buttonText}>編集</Text>
