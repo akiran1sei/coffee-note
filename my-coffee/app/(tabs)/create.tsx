@@ -82,6 +82,7 @@ const initialRangeValues = {
   aroma: 0,
   aftertaste: 0,
 };
+
 export default function CreateScreen() {
   const TextData = "コーヒー作成"; // ページタイトルに表示するテキスト
   const [resetKey, setResetKey] = useState(0);
@@ -159,8 +160,7 @@ export default function CreateScreen() {
 
   // 新しい送信ハンドラー
   const handleSubmit = async () => {
-    // 型安全な方法で必須フィールドをチェック
-
+    // 必須フィールドのチェック
     const missingFields = (
       Object.keys(formData) as Array<keyof typeof formData>
     ).filter((field) => {
@@ -195,198 +195,15 @@ export default function CreateScreen() {
     }
 
     try {
-      // バリデーション関数の修正
-      function validateRoastingDegree(
-        level: string
-      ):
-        | "lightroast"
-        | "cinnamonroast"
-        | "mediumroast"
-        | "highroast"
-        | "cityroast"
-        | "fullcityroast"
-        | "frenchroast"
-        | "italianroast" {
-        const validLevels = [
-          "lightroast",
-          "cinnamonroast",
-          "mediumroast",
-          "highroast",
-          "cityroast",
-          "fullcityroast",
-          "frenchroast",
-          "italianroast",
-        ];
-        if (!validLevels.includes(level)) {
-          throw new Error(`Invalid roast level: ${level}`);
-        }
-        return level as
-          | "lightroast"
-          | "cinnamonroast"
-          | "mediumroast"
-          | "highroast"
-          | "cityroast"
-          | "fullcityroast"
-          | "frenchroast"
-          | "italianroast";
-      }
-
-      function validateExtractionMethod(
-        method: string
-      ):
-        | "paperdrip"
-        | "neldrip"
-        | "metalfilterdrip"
-        | "frenchpress"
-        | "aeropress"
-        | "coffeemakerdrip"
-        | "syphon"
-        | "espresso"
-        | "mokapotextraction"
-        | "icedrip" {
-        const validMethods = [
-          "paperdrip",
-          "neldrip",
-          "metalfilterdrip",
-          "frenchpress",
-          "aeropress",
-          "coffeemakerdrip",
-          "syphon",
-          "espresso",
-          "mokapotextraction",
-          "icedrip",
-        ];
-        if (!validMethods.includes(method)) {
-          throw new Error(`Invalid extraction method: ${method}`);
-        }
-        return method as
-          | "paperdrip"
-          | "neldrip"
-          | "metalfilterdrip"
-          | "frenchpress"
-          | "aeropress"
-          | "coffeemakerdrip"
-          | "syphon"
-          | "espresso"
-          | "mokapotextraction"
-          | "icedrip";
-      }
-
-      function validateGrindSize(
-        size: string
-      ):
-        | "extrafine"
-        | "fine"
-        | "mediumfine"
-        | "medium"
-        | "coarse"
-        | "extracourse" {
-        const validSizes = [
-          "extrafine",
-          "fine",
-          "mediumfine",
-          "medium",
-          "coarse",
-          "extracourse",
-        ];
-        if (!validSizes.includes(size)) {
-          throw new Error(`Invalid grind size: ${size}`);
-        }
-        return size as
-          | "extrafine"
-          | "fine"
-          | "mediumfine"
-          | "medium"
-          | "coarse"
-          | "extracourse";
-      }
-
-      const validatedRoastingDegree = validateRoastingDegree(
-        formData.roastingDegree
-      );
-      const validatedExtractionMethod = validateExtractionMethod(
-        formData.extractionMethod
-      );
-      const validatedGrindSize = validateGrindSize(formData.grindSize);
-
-      const japaneseRoastingDegreeMap: { [key: string]: string } = {
-        lightroast: "浅煎り",
-        cinnamonroast: "浅煎り",
-        mediumroast: "中浅煎り",
-        highroast: "中煎り",
-        cityroast: "中深煎り",
-        fullcityroast: "深煎り",
-        frenchroast: "深煎り",
-        italianroast: "深煎り",
-      };
-
-      const japaneseExtractionMethodMap: { [key: string]: string } = {
-        paperdrip: "ペーパードリップ",
-        neldrip: "ネルドリップ",
-        metalfilterdrip: "金属フィルタードリップ",
-        frenchpress: "フレンチプレス",
-        aeropress: "エアロプレス",
-        coffeemakerdrip: "コーヒーメーカー (ドリップ式)",
-        syphon: "サイフォン",
-        espresso: "エスプレッソ",
-        mokapotextraction: "モカポット抽出",
-        icedrip: "水出し",
-      };
-
-      const japaneseGrindSizeMap: { [key: string]: string } = {
-        extrafine: "極細挽き",
-        fine: "細挽き",
-        mediumfine: "中細挽き",
-        medium: "中挽き",
-        coarse: "粗挽き",
-        extracourse: "極粗挽き",
-      };
-
-      // 抽出メーカー名の英語から日本語へのマップ
-      const japaneseManufacturerMap: { [key: string]: string } = {
-        hario: "ハリオ",
-        kalita: "カリタ",
-        melitta: "メリタ",
-        kinto: "キントー",
-        origami: "オリガミ",
-        cafec: "カフェック",
-        kono: "コーノ",
-        cores: "コレス",
-        ablebrewing: "エイブル",
-        frieling: "フリリング",
-        bodum: "ボダム",
-        aeropress: "エアロプレス",
-        delonghi: "デロンギ",
-        zojirushi: "象印",
-        tiger: "タイガー",
-        balmuda: "バルミューダ",
-        yamaglass: "ヤマグラス",
-        gaggia: "ガジア",
-        rancilio: "ランチリオ",
-        breville: "ブレビル",
-        lapavoni: "ラ・パヴォーニ",
-        bialetti: "ビアレッティ",
-        illy: "イリー",
-        oxo: "オクソー",
-        // 必要に応じて他のメーカーも追加
-      };
-      const japaneseVarietyMap: { [key: string]: string } = {
-        arabica: "アラビカ種",
-        canephora: "カネフォラ種",
-        liberica: "リベリカ種",
-      };
       const coffeeRecordForSave: Omit<CoffeeRecord, "id"> = {
         imageUri: formData.imageUri || "../../assets/images/no-image.png",
         name: formData.beansName,
-        variety: japaneseVarietyMap[formData.variety] || formData.variety,
+        variety: formData.variety,
         productionArea: formData.productionArea,
-        roastingDegree:
-          japaneseRoastingDegreeMap[validatedRoastingDegree] || "",
-        extractionMethod:
-          japaneseExtractionMethodMap[validatedExtractionMethod] || "",
-        extractionMaker:
-          japaneseManufacturerMap[formData.extractionMaker] || "", // ここで変換
-        grindSize: japaneseGrindSizeMap[validatedGrindSize] || "",
+        roastingDegree: formData.roastingDegree || "",
+        extractionMethod: formData.extractionMethod || "",
+        extractionMaker: formData.extractionMaker || "", // メーカー名を日本語に変換
+        grindSize: formData.grindSize || "",
         temperature: formData.temperature,
         coffeeAmount: formData.coffeeAmount,
         waterAmount: formData.waterAmount,

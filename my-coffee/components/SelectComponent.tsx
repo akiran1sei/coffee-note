@@ -16,16 +16,19 @@ interface HierarchicalSelectProps {
 
 // 抽出方法のデータ構造
 const extractionMethodsData = [
-  { label: "ペーパードリップ", value: "paperdrip" },
-  { label: "ネルドリップ", value: "neldrip" },
-  { label: "金属フィルタードリップ", value: "metalfilterdrip" },
-  { label: "フレンチプレス", value: "frenchpress" },
-  { label: "エアロプレス", value: "aeropress" },
-  { label: "コーヒーメーカー (ドリップ式)", value: "coffeemakerdrip" },
-  { label: "サイフォン", value: "syphon" },
-  { label: "エスプレッソ", value: "espresso" },
-  { label: "モカポット抽出", value: "mokapotextraction" },
-  { label: "水出し", value: "icedrip" },
+  { label: "ペーパードリップ", value: "ペーパードリップ" },
+  { label: "ネルドリップ", value: "ネルドリップ" },
+  { label: "金属フィルタードリップ", value: "金属フィルタードリップ" },
+  { label: "フレンチプレス", value: "フレンチプレス" },
+  { label: "エアロプレス", value: "エアロプレス" },
+  {
+    label: "コーヒーメーカー (ドリップ式)",
+    value: "コーヒーメーカー (ドリップ式)",
+  },
+  { label: "サイフォン", value: "サイフォン" },
+  { label: "エスプレッソ", value: "エスプレッソ" },
+  { label: "モカポット抽出", value: "モカポット抽出" },
+  { label: "水出し", value: "水出し" },
 ];
 
 // メーカーデータの型定義
@@ -35,65 +38,66 @@ interface ManufacturerData {
 
 // 抽出方法ごとのメーカーデータ
 const manufacturerData: ManufacturerData = {
-  paperdrip: [
-    { label: "ハリオ (Hario)", value: "hario" },
-    { label: "カリタ (Kalita)", value: "kalita" },
-    { label: "メリタ (Melitta)", value: "melitta" },
-    { label: "キントー (KINTO)", value: "kinto" },
-    { label: "オリガミ (ORIGAMI)", value: "origami" },
-    { label: "カフェック (CAFEC)", value: "cafec" },
+  ペーパードリップ: [
+    { label: "ハリオ", value: "ハリオ" },
+    { label: "カリタ", value: "カリタ" },
+    { label: "メリタ", value: "メリタ" },
+    { label: "キントー", value: "キントー" },
+    { label: "オリガミ", value: "オリガミ" },
+    { label: "カフェック", value: "カフェック" },
   ],
-  neldrip: [
-    { label: "ハリオ (Hario)", value: "hario" },
-    { label: "カリタ (Kalita)", value: "kalita" },
-    { label: "コーノ (KONO)", value: "kono" },
+  ネルドリップ: [
+    { label: "ハリオ", value: "ハリオ" },
+    { label: "カリタ", value: "カリタ" },
+    { label: "コーノ", value: "コーノ" },
   ],
-  metalfilterdrip: [
-    { label: "コレス (cores)", value: "cores" },
-    { label: "キントー (KINTO)", value: "kinto" },
-    { label: "エイブル ブリューイング (Able Brewing)", value: "ablebrewing" },
-    { label: "フリリング (Frieling)", value: "frieling" },
+  金属フィルタードリップ: [
+    { label: "コレス", value: "コレス" },
+    { label: "キントー", value: "キントー" },
+    { label: "エイブル ブリューイング", value: "エイブル ブリューイング" },
+    { label: "フリリング", value: "フリリング" },
   ],
-  frenchpress: [
-    { label: "ボダム (Bodum)", value: "bodum" },
-    { label: "ハリオ (Hario)", value: "hario" },
-    { label: "キントー (KINTO)", value: "kinto" },
-    { label: "フリリング (Frieling)", value: "frieling" },
+  フレンチプレス: [
+    { label: "ボダム", value: "ボダム" },
+    { label: "ハリオ", value: "ハリオ" },
+    { label: "キントー", value: "キントー" },
+    { label: "フリリング", value: "フリリング" },
   ],
-  aeropress: [{ label: "エアロプレス (Aeropress)", value: "aeropress" }],
-  coffeemakerdrip: [
-    { label: "デロンギ (DeLonghi)", value: "delonghi" },
-    { label: "メリタ (Melitta)", value: "melitta" },
-    { label: "カリタ (Kalita)", value: "kalita" },
-    { label: "象印 (ZOJIRUSHI)", value: "zojirushi" },
-    { label: "タイガー (TIGER)", value: "tiger" },
-    { label: "バルミューダ (BALMUDA)", value: "balmuda" },
+  エアロプレス: [{ label: "エアロプレス", value: "エアロプレス" }],
+  "コーヒーメーカー(ドリップ式)": [
+    { label: "デロンギ", value: "デロンギ" },
+    { label: "メリタ", value: "メリタ" },
+    { label: "カリタ", value: "カリタ" },
+    { label: "象印", value: "象印" },
+    { label: "タイガー", value: "タイガー" },
+    { label: "バルミューダ", value: "バルミューダ" },
   ],
-  syphon: [
-    { label: "ハリオ (Hario)", value: "hario" },
-    { label: "コーノ (KONO)", value: "kono" },
-    { label: "ヤマグラス (Yama Glass)", value: "yamaglass" },
-    { label: "ボダム (Bodum)", value: "bodum" },
+  サイフォン: [
+    { label: "ハリオ", value: "ハリオ" },
+    { label: "コーノ", value: "コーノ" },
+    { label: "ヤマグラス", value: "ヤマグラス" },
+    { label: "ボダム", value: "ボダム" },
   ],
-  espresso: [
-    { label: "デロンギ (DeLonghi)", value: "delonghi" },
-    { label: "ガジア (Gaggia)", value: "gaggia" },
-    { label: "ランチリオ (Rancilio)", value: "rancilio" },
-    { label: "ブレビル (Breville)", value: "breville" },
-    { label: "ラ・パヴォーニ (La Pavoni)", value: "lapavoni" },
+  エスプレッソ: [
+    { label: "デロンギ", value: "デロンギ" },
+    { label: "ガジア", value: "ガジア" },
+    { label: "ランチリオ", value: "ランチリオ" },
+    { label: "ブレビル", value: "ブレビル" },
+    { label: "ラ・パヴォーニ", value: "ラ・パヴォーニ" },
   ],
-  mokapotextraction: [
-    { label: "ビアレッティ (Bialetti)", value: "bialetti" },
-    { label: "イリー (illy)", value: "illy" },
+  モカポット抽出: [
+    { label: "ビアレッティ", value: "ビアレッティ" },
+    { label: "イリー", value: "イリー" },
   ],
-  icedrip: [
-    { label: "ハリオ (Hario)", value: "hario" },
-    { label: "カリタ (Kalita)", value: "kalita" },
-    { label: "ボダム (Bodum)", value: "bodum" },
-    { label: "オクソー (OXO)", value: "oxo" },
-    { label: "ヤマグラス (Yama Glass)", value: "yamaglass" },
+  水出し: [
+    { label: "ハリオ", value: "ハリオ" },
+    { label: "カリタ", value: "カリタ" },
+    { label: "ボダム", value: "ボダム" },
+    { label: "オクソー", value: "オクソー" },
+    { label: "ヤマグラス", value: "ヤマグラス" },
   ],
 };
+
 /**
  * 階層的選択が可能なコーヒー抽出方法と関連メーカーの選択コンポーネント
  */
@@ -197,23 +201,41 @@ export const CoffeeProcessingSelect: React.FC<SelectProps> = ({
   const methods = () => {
     if (dataTitle === "焙煎度") {
       return [
-        { label: "ライトロースト (浅煎り)", value: "lightroast" },
-        { label: "シナモンロースト (浅煎り)", value: "cinnamonroast" },
-        { label: "ミディアムロースト (中浅煎り)", value: "mediumroast" },
-        { label: "ハイロースト (中煎り)", value: "highroast" },
-        { label: "シティロースト (中深煎り)", value: "cityroast" },
-        { label: "フルシティロースト (深煎り)", value: "fullcityroast" },
-        { label: "フレンチロースト (深煎り)", value: "frenchroast" },
-        { label: "イタリアンロースト (深煎り)", value: "italianroast" },
+        { label: "ライトロースト (浅煎り)", value: "ライトロースト (浅煎り)" },
+        {
+          label: "シナモンロースト (浅煎り)",
+          value: "シナモンロースト (浅煎り)",
+        },
+        {
+          label: "ミディアムロースト (中浅煎り)",
+          value: "ミディアムロースト (中浅煎り)",
+        },
+        { label: "ハイロースト (中煎り)", value: "ハイロースト (中煎り)" },
+        {
+          label: "シティロースト (中深煎り)",
+          value: "シティロースト (中深煎り)",
+        },
+        {
+          label: "フルシティロースト (深煎り)",
+          value: "フルシティロースト (深煎り)",
+        },
+        {
+          label: "フレンチロースト (深煎り)",
+          value: "フレンチロースト (深煎り)",
+        },
+        {
+          label: "イタリアンロースト (深煎り)",
+          value: "イタリアンロースト (深煎り)",
+        },
       ];
     } else if (dataTitle === "挽き目") {
       return [
-        { label: "極細挽き", value: "extrafine" },
-        { label: "細挽き", value: "fine" },
-        { label: "中細挽き", value: "mediumfine" },
-        { label: "中挽き", value: "medium" },
-        { label: "粗挽き", value: "coarse" },
-        { label: "極粗挽き", value: "extracourse" },
+        { label: "極細挽き", value: "極細挽き" },
+        { label: "細挽き", value: "細挽き" },
+        { label: "中細挽き", value: "中細挽き" },
+        { label: "中挽き", value: "中挽き" },
+        { label: "粗挽き", value: "粗挽き" },
+        { label: "極粗挽き", value: "極粗挽き" },
       ];
     }
     return [];
@@ -251,9 +273,9 @@ export const CoffeeTypesSelect: React.FC<SelectProps> = ({
   const [selectedValue, setSelectedValue] = useState(value || "");
 
   const options = [
-    { label: "アラビカ種", value: "arabica" },
-    { label: "カネフォラ種", value: "canephora" },
-    { label: "リベリカ種", value: "liberica" },
+    { label: "アラビカ種", value: "アラビカ種" },
+    { label: "カネフォラ種", value: "カネフォラ種" },
+    { label: "リベリカ種", value: "リベリカ種" },
   ];
 
   // selectedValueが変更されたときに、「その他」が選択されたかどうかを判定
