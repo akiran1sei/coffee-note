@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Coffee Note",
-    "slug": "Coffee Note",
+    "name": "Tutorial",
+    "slug": "Tutorial",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
