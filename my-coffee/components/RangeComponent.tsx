@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   },
   sliderWrapper: {
     width: "60%",
-    height: 60,
+    height: 100,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -176,31 +176,35 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start", // 上揃えに変更
+    alignItems: "center", //中央に変更
     paddingHorizontal: 10,
     marginBottom: 5, // スライダーとの間隔を追加
   },
   tick: {
-    width: 1,
+    width: 6,
     backgroundColor: "#D2B48C",
     alignItems: "center",
   },
   majorTick: {
     height: 12,
-    width: 2,
+    width: 6,
   },
   minorTick: {
     height: 6,
   },
   activeTick: {
-    backgroundColor: "#A67B5B",
-    width: 3,
+    backgroundColor: "#333",
+
+    width: 6,
   },
   tickLabel: {
     color: "#A67B5B",
-    fontSize: 10,
+
+    fontSize: 12,
     marginBottom: 5, // ラベルとメモリの間隔を追加
     fontWeight: "500",
+    position: "absolute",
+    top: -20,
   },
 });
 
