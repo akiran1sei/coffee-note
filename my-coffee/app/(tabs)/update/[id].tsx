@@ -354,7 +354,7 @@ export default function CoffeeItemScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.contents}>
         <HeaderComponent />
-        <PageTitleComponent TextData={"コーヒー情報を編集"} />
+        <PageTitleComponent TextData={"Coffee Info Edit"} />
         <View style={[styles.absoluteBox, styles.mainContents]}>
           <ScrollView
             contentContainerStyle={styles.scrollContainer}
