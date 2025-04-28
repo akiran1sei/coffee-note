@@ -22,8 +22,8 @@ const extractionMethodsData = [
   { label: "フレンチプレス", value: "フレンチプレス" },
   { label: "エアロプレス", value: "エアロプレス" },
   {
-    label: "コーヒーメーカー (ドリップ式)",
-    value: "コーヒーメーカー (ドリップ式)",
+    label: "コーヒーメーカー(ドリップ式)",
+    value: "コーヒーメーカー(ドリップ式)",
   },
   { label: "サイフォン", value: "サイフォン" },
   { label: "エスプレッソ", value: "エスプレッソ" },

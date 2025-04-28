@@ -84,7 +84,7 @@ const initialRangeValues = {
 };
 
 export default function CreateScreen() {
-  const TextData = "コーヒー作成"; // ページタイトルに表示するテキスト
+  const TextData = "Coffee Create"; // ページタイトルに表示するテキスト
   const [resetKey, setResetKey] = useState(0);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [isWeb] = useState(Platform.OS === "web");
