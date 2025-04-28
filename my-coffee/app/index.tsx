@@ -63,9 +63,12 @@ const styles = StyleSheet.create({
     right: 0,
   },
   title: {
+    width: "100%",
     alignItems: "center",
   },
   titleText: {
+    width: "100%",
+    textAlign: "center",
     fontFamily: "Caveat",
     color: "#D2B48C",
     fontSize: 48,
