@@ -24,10 +24,11 @@ import {
   MeasuredTimeInputComponent,
 } from "../../components/InputComponent";
 import RangeComponent from "../../components/RangeComponent";
-import ImageUploadComponent from "../../components/ImageUploadComponent";
+import ImageUploadComponent from "../../components/ImageUploadComponent"; // ImageUploadComponentをインポート
 
 import RadarChart from "../../components/RadarChart/RadarChart";
 import CoffeeStorageService from "../../services/CoffeeStorageService"; // ストレージサービスをインポート
+import * as FileSystem from "expo-file-system"; // expo-file-systemをインポート
 
 interface CoffeeRecord {
   id: string;
@@ -49,7 +50,7 @@ interface CoffeeRecord {
   aroma: number;
   aftertaste: number;
   memo: string;
-  imageUri: string;
+  imageUri: string; // Base64またはWebアクセス可能なURIを格納
 }
 // 初期状態を定数として定義
 const initialFormData = {
@@ -110,12 +111,13 @@ export default function CreateScreen() {
   const [NumberLabel, setNumberLabel] = useState({
     temperature: "温度（℃）",
     coffeeAmount: "紛量（g）",
-    waterAmount: "湯量（g）",
+    waterAmount: "湯量（ml）", // 湯量は通常mlで測ることが多いですが、gでも可
   });
 
   const [imageData, setImageData] = useState("");
   const [formData, setFormData] = useState({ ...initialFormData });
   const [rangeValues, setRangeValues] = useState({ ...initialRangeValues });
+
   // Web環境でフォーム送信後の状態をリセット
   useEffect(() => {
     if (formSubmitted && isWeb) {
@@ -126,14 +128,16 @@ export default function CreateScreen() {
       return () => clearTimeout(timer);
     }
   }, [formSubmitted, isWeb]);
+
   // フォームリセット関数
   const resetForm = useCallback(() => {
-    setImageData("../../assets/images/no-image.png");
+    setImageData(""); // 画像データもリセット
     setFormData({ ...initialFormData });
     setRangeValues({ ...initialRangeValues });
     setResetKey((prevKey) => prevKey + 1);
     setFormSubmitted(true);
   }, []);
+
   const handleInputChange = (label: string, value: string | number) => {
     setFormData({ ...formData, [label]: value });
   };
@@ -141,7 +145,9 @@ export default function CreateScreen() {
   const handleSelectChange = (label: string, value: string) => {
     setFormData((prevFormData) => ({ ...prevFormData, [label]: value }));
   };
+
   const handleRangeChange = (label: string, value: number) => {
+    // RangeComponentからは数値が来ることを想定
     setFormData({ ...formData, [label]: value });
     setRangeValues({ ...rangeValues, [label]: value });
   };
@@ -153,9 +159,49 @@ export default function CreateScreen() {
   const handleMeasuredTimeChange = (value: string) => {
     setFormData({ ...formData, extractionTime: value });
   };
-  const handleImageChange = (value: string) => {
-    setImageData(value);
-    setFormData({ ...formData, imageUri: value }); // imageData の更新後に formData を更新
+
+  // 画像変更ハンドラ - Base64変換処理を追加
+  const handleImageChange = async (uri: string | null) => {
+    if (!uri) {
+      // URIがない場合はデフォルト画像または空を設定
+      setImageData(""); // 画像データは空に
+      setFormData({ ...formData, imageUri: "" }); // imageUriも空に
+      return;
+    }
+
+    let processedUri = uri;
+
+    // モバイル環境で、かつローカルファイルURIの場合のみBase64に変換
+    if (Platform.OS !== "web" && uri.startsWith("file://")) {
+      try {
+        // ファイルをBase64形式で読み込む
+        const base64 = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        // Base64 URI形式に変換 (データタイプを付加)
+        // ImagePicker.MediaTypeOptions.Images の結果などから MIME タイプを取得できるとより良いですが、
+        // ここでは単純にjpegと仮定しています。適切なMIMEタイプに修正してください。
+        processedUri = `data:image/jpeg;base64,${base64}`;
+        console.log(
+          "Image converted to Base64:",
+          processedUri.substring(0, 50) + "..."
+        ); // ログ出力 (Base64は長いため短縮)
+      } catch (error) {
+        console.error("Failed to convert image to Base64:", error);
+        Alert.alert("エラー", "画像の読み込みに失敗しました。");
+        // Base64変換に失敗した場合はURIをクリア
+        processedUri = "";
+      }
+    } else {
+      // Web環境、またはモバイルだがローカルファイルURIでない場合はそのまま使用
+      console.log(
+        "Using original image URI:",
+        processedUri.substring(0, 50) + "..."
+      );
+    }
+
+    setImageData(processedUri); // 処理後のURIをimageDataにセット
+    setFormData({ ...formData, imageUri: processedUri }); // 処理後のURIをformDataにセット
   };
 
   // 新しい送信ハンドラー
@@ -165,30 +211,74 @@ export default function CreateScreen() {
       Object.keys(formData) as Array<keyof typeof formData>
     ).filter((field) => {
       const value = formData[field];
+      // imageUriとtextAreaは必須ではないので除外
+      if (field === "imageUri" || field === "textArea") {
+        return false;
+      }
       return (
         value === null ||
         value === undefined ||
         (typeof value === "string" && value === "") ||
-        (typeof value === "number" && value === 0)
+        // 数値フィールドで0を許容しない場合はここを修正
+        (typeof value === "number" &&
+          value === 0 &&
+          field !== "temperature" &&
+          field !== "coffeeAmount" &&
+          field !== "waterAmount")
       );
     });
 
-    // textArea と imageUri を必須フィールドから除外
-    const requiredFields = missingFields.filter(
-      (field) => field !== "textArea" && field !== "imageUri"
-    );
-
-    if (requiredFields.length > 0) {
+    if (missingFields.length > 0) {
+      const fieldNames = missingFields.map((field) => {
+        // ユーザーフレンドリーなフィールド名に変換（必要に応じて）
+        switch (field) {
+          case "beansName":
+            return "名称";
+          case "variety":
+            return "品種";
+          case "productionArea":
+            return "産地";
+          case "roastingDegree":
+            return "焙煎度";
+          case "extractionMethod":
+            return "抽出方法";
+          case "extractionMaker":
+            return "抽出メーカー";
+          case "grindSize":
+            return "挽き目";
+          // 数値フィールドは必須から除外しているため通常ここには来ないはずですが、念のため
+          case "temperature":
+            return NumberLabel.temperature;
+          case "coffeeAmount":
+            return NumberLabel.coffeeAmount;
+          case "waterAmount":
+            return NumberLabel.waterAmount;
+          case "extractionTime":
+            return "抽出時間";
+          case "acidity":
+            return RangeLabel.acidity;
+          case "bitterness":
+            return RangeLabel.bitterness;
+          case "sweetness":
+            return RangeLabel.sweetness;
+          case "body":
+            return RangeLabel.body;
+          case "aroma":
+            return RangeLabel.aroma;
+          case "aftertaste":
+            return RangeLabel.aftertaste;
+          default:
+            return field;
+        }
+      });
       if (isWeb) {
         alert(
-          `入力エラー\n以下の必須項目が未入力です：\n${requiredFields.join(
-            ", "
-          )}`
+          `入力エラー\n以下の必須項目が未入力です：\n${fieldNames.join(", ")}`
         );
       } else {
         Alert.alert(
           "入力エラー",
-          `以下の必須項目が未入力です：\n${requiredFields.join(", ")}`
+          `以下の必須項目が未入力です：\n${fieldNames.join(", ")}`
         );
       }
       return;
@@ -196,36 +286,38 @@ export default function CreateScreen() {
 
     try {
       const coffeeRecordForSave: Omit<CoffeeRecord, "id"> = {
-        imageUri: formData.imageUri || "../../assets/images/no-image.png",
+        // imageUriはBase64変換されたものがformDataに格納されている
+        imageUri: formData.imageUri || "", // 画像が選択されなかった場合は空文字列を保存
         name: formData.beansName,
         variety: formData.variety,
         productionArea: formData.productionArea,
         roastingDegree: formData.roastingDegree || "",
         extractionMethod: formData.extractionMethod || "",
-        extractionMaker: formData.extractionMaker || "", // メーカー名を日本語に変換
+        extractionMaker: formData.extractionMaker || "",
         grindSize: formData.grindSize || "",
         temperature: formData.temperature,
         coffeeAmount: formData.coffeeAmount,
         waterAmount: formData.waterAmount,
         extractionTime: formData.extractionTime,
-        acidity: formData.acidity,
-        bitterness: formData.bitterness,
-        sweetness: formData.sweetness,
-        body: formData.body,
-        aroma: formData.aroma,
-        aftertaste: formData.aftertaste,
+        acidity: formData.acidity, // formDataに直接数値が格納されている
+        bitterness: formData.bitterness, // formDataに直接数値が格納されている
+        sweetness: formData.sweetness, // formDataに直接数値が格納されている
+        body: formData.body, // formDataに直接数値が格納されている
+        aroma: formData.aroma, // formDataに直接数値が格納されている
+        aftertaste: formData.aftertaste, // formDataに直接数値が格納されている
         memo: formData.textArea,
       };
 
+      // saveCoffeeRecord 関数は CoffeeRecordForSave オブジェクトと画像URIを引数に取るように修正
       const recordId = await CoffeeStorageService.saveCoffeeRecord(
         coffeeRecordForSave,
-        formData.imageUri
+        formData.imageUri // imageUriを第2引数として渡す
       );
 
       showWebAlert(
         "保存成功",
         `コーヒーレコードが保存されました。ID: ${recordId}`,
-        resetForm
+        resetForm // 保存成功後にフォームをリセット
       );
     } catch (error) {
       if (isWeb) {
@@ -247,19 +339,16 @@ export default function CreateScreen() {
       console.error("保存エラー:", error);
     }
   };
-  // Web向けのアラートコンポーネント
+
+  // Web向けのアラートコンポーネント（モバイルでも動作するようにAlert.alertを使用）
   const showWebAlert = (
     title: string,
     message: string,
     onConfirm: () => void
   ) => {
-    if (isWeb) {
-      alert(`${title}\n${message}`);
-      onConfirm();
-    } else {
-      Alert.alert(title, message, [{ text: "OK", onPress: onConfirm }]);
-    }
+    Alert.alert(title, message, [{ text: "OK", onPress: onConfirm }]);
   };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.contents}>
@@ -272,10 +361,11 @@ export default function CreateScreen() {
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={true}
           >
+            {/* ImageUploadComponent に Base64 変換後のURIが渡されるようになる */}
             <ImageUploadComponent
               key={`imageUpload-${resetKey}`}
-              onChange={handleImageChange}
-              value={imageData}
+              onChange={handleImageChange} // 修正したハンドラを渡す
+              value={imageData} // Base64変換されたURIまたは空文字列が渡される
             />
             <InputComponent
               key={`beansName-${resetKey}`}
@@ -357,11 +447,12 @@ export default function CreateScreen() {
               onChange={handleMeasuredTimeChange}
               value={formData.extractionTime}
             />
+            {/* RangeComponentからのonChangeは数値を受け取り、直接formDataを更新 */}
             <RangeComponent
               key={`acidity-${resetKey}`}
               dataTitle={RangeLabel.acidity}
               onChange={(value: number) => handleRangeChange("acidity", value)}
-              value={rangeValues.acidity}
+              value={formData.acidity} // formDataから値を参照
             />
             <RangeComponent
               key={`bitterness-${resetKey}`}
@@ -369,7 +460,7 @@ export default function CreateScreen() {
               onChange={(value: number) =>
                 handleRangeChange("bitterness", value)
               }
-              value={rangeValues.bitterness}
+              value={formData.bitterness} // formDataから値を参照
             />
             <RangeComponent
               key={`sweetness-${resetKey}`}
@@ -377,19 +468,19 @@ export default function CreateScreen() {
               onChange={(value: number) =>
                 handleRangeChange("sweetness", value)
               }
-              value={rangeValues.sweetness}
+              value={formData.sweetness} // formDataから値を参照
             />
             <RangeComponent
               key={`body-${resetKey}`}
               dataTitle={RangeLabel.body}
               onChange={(value: number) => handleRangeChange("body", value)}
-              value={rangeValues.body}
+              value={formData.body} // formDataから値を参照
             />
             <RangeComponent
               key={`aroma-${resetKey}`}
               dataTitle={RangeLabel.aroma}
               onChange={(value: number) => handleRangeChange("aroma", value)}
-              value={rangeValues.aroma}
+              value={formData.aroma} // formDataから値を参照
             />
             <RangeComponent
               key={`aftertaste-${resetKey}`}
@@ -397,9 +488,19 @@ export default function CreateScreen() {
               onChange={(value: number) =>
                 handleRangeChange("aftertaste", value)
               }
-              value={rangeValues.aftertaste}
+              value={formData.aftertaste} // formDataから値を参照
             />
-            <RadarChart data={rangeValues} />
+            {/* RadarChart には rangeValues ではなく formData の値を渡す */}
+            <RadarChart
+              data={{
+                acidity: Number(formData.acidity) || 0,
+                bitterness: Number(formData.bitterness) || 0,
+                sweetness: Number(formData.sweetness) || 0,
+                body: Number(formData.body) || 0,
+                aroma: Number(formData.aroma) || 0,
+                aftertaste: Number(formData.aftertaste) || 0,
+              }}
+            />
             <TextAreaComponent
               key={`textArea-${resetKey}`}
               onChange={handleTextAreaChange}
@@ -407,7 +508,7 @@ export default function CreateScreen() {
             />
             <TouchableOpacity
               style={styles.submitButton}
-              onPress={handleSubmit}
+              onPress={handleSubmit} // 修正したハンドラを渡す
             >
               <Text style={styles.submitButtonText}>保存</Text>
             </TouchableOpacity>

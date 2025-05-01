@@ -11,9 +11,10 @@ import {
   Text,
   Alert,
   ActivityIndicator,
+  Modal, // Modalコンポーネントをインポート
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
-import { useRouter } from "expo-router";
+import { useRouter, Link } from "expo-router";
 import HeaderComponent from "../../../../components/HeaderComponent";
 import PageTitleComponent from "../../../../components/PageTitleComponent";
 import CoffeeStorageService from "../../../../services/CoffeeStorageService";
@@ -23,7 +24,9 @@ import {
   LoadingComponent,
   NoRecordComponent,
 } from "../../../../components/MessageComponent";
-// import PdfButtonComponent from "../../../../components/button/Pdf"; // WEB版では使用しないためコメントアウト
+// PdfButtonComponentはWeb版では使用しないため、ここではコメントアウトを維持または削除します。
+// 今回はModal内にボタンを配置するため、このコンポーネントは使用しません。
+// import PdfButtonComponent from "../../../../components/button/Pdf";
 
 type RouteParams = {
   id: string;
@@ -36,7 +39,8 @@ const CoffeeItemScreen = () => {
 
   const [coffeeRecord, setCoffeeRecord] = useState<CoffeeRecord | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // PDF生成中の状態管理 (ここでは使用しないが元のコードから残す)
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // PDF生成中の状態管理
+  const [showPdfModal, setShowPdfModal] = useState(false); // PDFポップアップ表示の状態管理
 
   // 画像URIを環境に応じて適切に処理する関数
   const getImageSource = (uri?: string | null): ImageSourcePropType => {
@@ -120,6 +124,26 @@ const CoffeeItemScreen = () => {
 
     fetchCoffeeRecord();
   }, [id]); // idが変わるたびに再実行
+
+  // PDF生成処理 (Web向けにwindow.print()を使用)
+  const handleGeneratePdf = () => {
+    if (Platform.OS === "web") {
+      // Web環境の場合、印刷ダイアログを表示
+      // Modalを非表示にしてから印刷を実行することで、Modal以外の部分も印刷対象に含めることができます。
+      // もしModalの内容だけを印刷したい場合は、Modal表示中に印刷を実行し、
+      // CSSの@media printでModal以外の要素を非表示にするなどの工夫が必要です。
+      // ここではシンプルにModalを閉じてからwindow.print()を呼び出します。
+      setShowPdfModal(false); // Modalを閉じる
+      // 少し遅延させてModalが完全に閉じるのを待つ
+      setTimeout(() => {
+        window.print();
+      }, 100); // 100msの遅延
+    } else {
+      // モバイル環境の場合、別途PDF生成ライブラリの実装が必要です。
+      // 例: react-native-html-to-pdf など
+      Alert.alert("PDF生成", "このプラットフォームではPDF生成は未実装です。");
+    }
+  };
 
   // ローディング中の表示
   if (loading) {
@@ -249,7 +273,11 @@ const CoffeeItemScreen = () => {
                       </Text>
                     </View>
                   </View>
+                </View>
+                {/* /leftColumn */}
 
+                {/* 右カラム */}
+                <View style={styles.rightColumn}>
                   {/* 味わい評価セクション */}
                   <View style={styles.tastingInfo}>
                     <Text style={styles.tastingTitle}>テイスティング</Text>
@@ -308,17 +336,12 @@ const CoffeeItemScreen = () => {
                     </View>
                   </View>
                 </View>
-                {/* /leftColumn */}
-
-                {/* 右カラム */}
-                <View style={styles.rightColumn}>
-                  {/* メモセクション */}
-                  <View style={styles.memoSection}>
-                    <Text style={styles.memoTitle}>メモ</Text>
-                    <Text style={styles.memo}>
-                      {coffeeRecord.memo || "未記入"}
-                    </Text>
-                  </View>
+                {/* メモセクション */}
+                <View style={styles.memoSection}>
+                  <Text style={styles.memoTitle}>メモ</Text>
+                  <Text style={styles.memo}>
+                    {coffeeRecord.memo || "未記入"}
+                  </Text>
                 </View>
                 {/* /rightColumn */}
               </View>
@@ -346,18 +369,30 @@ const CoffeeItemScreen = () => {
                 <Text style={styles.buttonText}>削除</Text>
               </TouchableOpacity>
 
-              {/* WEB版ではPDFダウンロードは利用できないため、PdfButtonComponentを削除
-                  元のコードにあったコメントアウトされたPdfButtonComponentの表示ロジックは削除しました。
-                  PDFダウンロード機能が必要な場合は、別途実装が必要です。
-              */}
-              {/*
-               {Platform.OS === "web" && (
-                 <Text style={{ color: "red", marginTop: 10 }}>
-                   ※WEB版ではPDFダウンロードはご利用いただけません。
-                   <PdfButtonComponent data={coffeeRecord} />
-                 </Text>
-               )}
-               */}
+              {/* PDFボタンを追加 */}
+              {/* Web版のみ表示 */}
+              {Platform.OS === "web" && (
+                <TouchableOpacity
+                  style={styles.pdfButton}
+                  onPress={() =>
+                    router.push({
+                      pathname: `../webPdf/${coffeeRecord.id}`, // 編集画面への遷移パス
+                    })
+                  }
+                >
+                  <Text style={styles.buttonText}>PDF</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* モバイル版のPDFボタンは別途実装が必要であれば追加 */}
+              {/* {Platform.OS !== "web" && (
+                 <TouchableOpacity
+                   style={styles.pdfButton}
+                   onPress={() => handleGeneratePdf()} // モバイル版のPDF生成処理を呼び出す
+                 >
+                   <Text style={styles.buttonText}>PDF出力 (モバイル)</Text>
+                 </TouchableOpacity>
+               )} */}
             </View>
             {/* /buttonContainer */}
           </ScrollView>
@@ -366,6 +401,8 @@ const CoffeeItemScreen = () => {
         {/* /mainContents */}
       </View>
       {/* /contents */}
+
+      {/* /PDF表示用Modal */}
     </SafeAreaView> // /SafeAreaView
   );
 };
@@ -425,16 +462,17 @@ const styles = StyleSheet.create({
   },
   leftColumn: {
     flex: 2, // 利用可能なスペースの2/3を占める
-    minWidth: 450, // 左カラムの最小幅
-    maxWidth: 650, // 左カラムの最大幅 (調整可能)
+    minWidth: 300, // 左カラムの最小幅を調整
+    maxWidth: 400, // 左カラムの最大幅を調整
     flexDirection: "column", // 左カラム内の要素は縦に並べる
     gap: 20, // 左カラム内のセクション間の隙間
   },
   rightColumn: {
-    flex: 1, // 利用可能なスペースの1/3を占める
-    minWidth: 300, // 右カラムの最小幅
-    maxWidth: 350, // 右カラムの最大幅 (調整可能)
+    flex: 2, // 利用可能なスペースの3/3を占める（左カラムより広く）
+    minWidth: 300, // 右カラムの最小幅を調整
+    maxWidth: 400, // 右カラムの最大幅を調整
     flexDirection: "column", // 右カラム内の要素は縦に並べる
+    gap: 20, // 右カラム内のセクション間の隙間
   },
 
   imageContainer: {
@@ -450,7 +488,7 @@ const styles = StyleSheet.create({
 
   infoSection: {
     marginBottom: 0, // 横並びになるため下マージンを調整
-    // flexGrow: 1, // 必要に応じて高さを伸ばす
+    width: "100%", // 親要素の幅いっぱいに広げる
   },
   infoItem: {
     display: "flex",
@@ -470,10 +508,11 @@ const styles = StyleSheet.create({
   value: {
     flex: 1, // 残りのスペースを占める
     color: "#333",
+    // textAlign: "center", // 中央寄せは不要
   },
   tastingInfo: {
     marginBottom: 0, // 横並びになるため下マージンを調整
-    // flexGrow: 1, // 必要に応じて高さを伸ばす
+    width: "100%", // 親要素の幅いっぱいに広げる
   },
   tastingTitle: {
     fontSize: 18,
@@ -485,7 +524,7 @@ const styles = StyleSheet.create({
   radarChartSection: {
     marginBottom: 0, // 横並びになるため下マージンを調整
     alignItems: "center", // 中央寄せ
-    // flexGrow: 1, // 必要に応じて高さを伸ばす
+    width: "100%", // 親要素の幅いっぱいに広げる
   },
   chartTitle: {
     fontSize: 18,
@@ -499,7 +538,7 @@ const styles = StyleSheet.create({
   },
   memoSection: {
     marginBottom: 0, // 横並びになるため下マージンを調整
-    // flexGrow: 1, // 必要に応じて高さを伸ばす
+    width: "100%", // 親要素の幅いっぱいに広げる
   },
   memoTitle: {
     fontSize: 18,
@@ -510,7 +549,6 @@ const styles = StyleSheet.create({
   memo: {
     lineHeight: 22, // 行間を調整
     color: "#333",
-    // flexGrow: 1, // メモの内容が多い場合に高さを伸ばす
   },
   buttonContainer: {
     display: "flex",
@@ -533,6 +571,17 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     backgroundColor: "#dc3545",
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 10,
+    width: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  pdfButton: {
+    // PDFボタンのスタイルを追加
+    backgroundColor: "#28a745", // 緑色系の色
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 10,
