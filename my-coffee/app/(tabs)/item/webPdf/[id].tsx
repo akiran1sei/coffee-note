@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
   pageTitle: {
-    fontSize: 24,
+    fontSize: 27,
     fontWeight: "bold",
     marginBottom: 10,
     textAlign: "center",
@@ -472,7 +472,7 @@ const styles = StyleSheet.create({
   },
   pdfHorizontalLayout: {
     flexDirection: "row",
-    gap: 20,
+    gap: 15,
     flexWrap: "wrap",
     justifyContent: "center",
   },
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   pdfRightColumn: {
     flex: 2,
     minWidth: 300,
-    maxWidth: 400,
+    maxWidth: 300,
     flexDirection: "column",
     gap: 15,
   },
@@ -507,10 +507,10 @@ const styles = StyleSheet.create({
   pdfInfoItem: {
     display: "flex",
     flexDirection: "row",
-    marginBottom: 6,
+    marginBottom: 5,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
-    paddingBottom: 6,
+    paddingBottom: 5,
     alignItems: "baseline",
   },
   pdfLabel: {
@@ -531,7 +531,7 @@ const styles = StyleSheet.create({
   pdfTastingTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginBottom: 5,
     textAlign: "center",
     color: "#555",
   },
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   pdfChartTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginBottom: 5,
     color: "#555",
   },
   pdfRadarChart: {
@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
   pdfMemoTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginBottom: 5,
     color: "#555",
   },
   pdfMemo: {
