@@ -93,7 +93,7 @@ const CoffeePdfDisplayScreen = () => {
           setImageBase64(base64data);
         };
 
-        reader.readAsDataURL(blob);
+        await reader.readAsDataURL(blob);
       } catch (error) {
         console.error("Web環境での画像Base64変換エラー:", error);
         setImageBase64(null);
@@ -121,6 +121,7 @@ const CoffeePdfDisplayScreen = () => {
   // Web環境での印刷イベントリスナー設定
   useEffect(() => {
     if (Platform.OS === "web") {
+      console.log("imageBase64", imageBase64);
       const beforePrint = () => {
         setIsPrinting(true);
         console.log("Printing starts");
