@@ -28,6 +28,7 @@ import ImageUploadComponent from "../../components/ImageUploadComponent";
 
 import RadarChart from "../../components/RadarChart/RadarChart";
 import CoffeeStorageService from "../../services/CoffeeStorageService"; // ストレージサービスをインポート
+import * as FileSystem from "expo-file-system"; // expo-file-systemをインポート
 
 interface CoffeeRecord {
   id: string;
@@ -153,9 +154,49 @@ export default function CreateScreen() {
   const handleMeasuredTimeChange = (value: string) => {
     setFormData({ ...formData, extractionTime: value });
   };
-  const handleImageChange = (value: string) => {
-    setImageData(value);
-    setFormData({ ...formData, imageUri: value }); // imageData の更新後に formData を更新
+
+  // 画像変更ハンドラ - Base64変換処理を追加
+  const handleImageChange = async (uri: string | null) => {
+    if (!uri) {
+      // URIがない場合はデフォルト画像または空を設定
+      setImageData(""); // 画像データは空に
+      setFormData({ ...formData, imageUri: "" }); // imageUriも空に
+      return;
+    }
+
+    let processedUri = uri;
+
+    // モバイル環境で、かつローカルファイルURIの場合のみBase64に変換
+    if (Platform.OS !== "web" && uri.startsWith("file://")) {
+      try {
+        // ファイルをBase64形式で読み込む
+        const base64 = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        // Base64 URI形式に変換 (データタイプを付加)
+        // ImagePicker.MediaTypeOptions.Images の結果などから MIME タイプを取得できるとより良いですが、
+        // ここでは単純にjpegと仮定しています。適切なMIMEタイプに修正してください。
+        processedUri = `data:image/jpeg;base64,${base64}`;
+        console.log(
+          "Image converted to Base64:",
+          processedUri.substring(0, 50) + "..."
+        ); // ログ出力 (Base64は長いため短縮)
+      } catch (error) {
+        console.error("Failed to convert image to Base64:", error);
+        Alert.alert("エラー", "画像の読み込みに失敗しました。");
+        // Base64変換に失敗した場合はURIをクリア
+        processedUri = "";
+      }
+    } else {
+      // Web環境、またはモバイルだがローカルファイルURIでない場合はそのまま使用
+      console.log(
+        "Using original image URI:",
+        processedUri.substring(0, 50) + "..."
+      );
+    }
+
+    setImageData(processedUri); // 処理後のURIをimageDataにセット
+    setFormData({ ...formData, imageUri: processedUri }); // 処理後のURIをformDataにセット
   };
 
   // 新しい送信ハンドラー
