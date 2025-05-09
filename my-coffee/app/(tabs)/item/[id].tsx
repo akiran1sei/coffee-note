@@ -102,14 +102,13 @@ export default function CoffeeItemScreen() {
               encoding: FileSystem.EncodingType.Base64,
             }
           );
-          // float: right; が指定されているため、画像は右寄せになります。
-          // 左寄せにしたい場合は float: left; に変更してください。
-          imageHtml = `<img src="data:image/jpeg;base64,${base64}" style="width: 100px; height: 100px; border-radius: 50px; object-fit: cover; float: right; margin: 0 0 10px 10px;" />`;
+          imageHtml = `<img src="data:image/jpeg;base64,${base64}" alt="Coffee Image" />`;
         } catch (err) {
           console.error("画像の読み込みエラー:", err);
-          // エラー時は画像なしで続行
-          imageHtml = `<div style="width: 100px; height: 100px; border-radius: 50px; background-color: #e0e0e0; display: flex; justify-content: center; align-items: center;">No Image</div>`;
+          imageHtml = `<div class="no-image-placeholder">No Image</div>`;
         }
+      } else {
+        imageHtml = `<div class="no-image-placeholder">No Image</div>`;
       }
 
       // レーダーチャートのデータ
@@ -122,8 +121,7 @@ export default function CoffeeItemScreen() {
         Number(coffeeRecord.aftertaste) || 0,
       ];
 
-      // SVGレーダーチャートの生成
-      // ヘルパー関数：円上の座標を計算
+      // SVGレーダーチャート生成に必要な関数
       const calculatePointOnCircle = (
         centerX: number,
         centerY: number,
@@ -140,14 +138,11 @@ export default function CoffeeItemScreen() {
       const maxDataRadius = 40; // データが最大値(5)の時のレーダーチャートの半径
       const labelRadius = 48; // ラベルを配置する半径 (maxDataRadiusより少し大きく)
 
-      // 各カテゴリの角度を定義（「酸味」が上になるように270度（-90度）から開始）
-      // 順序: 酸味, 甘味, 苦味, コク, 香り, 後味
       const anglesDegrees = [270, 330, 30, 90, 150, 210];
       const anglesRadians = anglesDegrees.map(
         (angle) => (angle * Math.PI) / 180
       );
 
-      // 多角形（レーダーチャートのデータライン）のポイントを生成
       let polygonPoints = "";
       radarDataValues.forEach((value, index) => {
         const { x, y } = calculatePointOnCircle(
@@ -159,14 +154,12 @@ export default function CoffeeItemScreen() {
         polygonPoints += `${x},${y} `;
       });
 
-      // 軸の線とラベルを生成
       const labelsSvg = ["酸味", "甘味", "苦味", "コク", "香り", "後味"];
       const axisLinesHtml: string[] = [];
       const labelTextsHtml: string[] = [];
 
       anglesRadians.forEach((angle, index) => {
-        // 軸の線：maxDataRadiusより少し長く伸ばす
-        const axisLineLength = maxDataRadius + 5; // 軸の線の長さ
+        const axisLineLength = maxDataRadius + 5;
         const { x: lineX, y: lineY } = calculatePointOnCircle(
           centerX,
           centerY,
@@ -177,35 +170,27 @@ export default function CoffeeItemScreen() {
           `<line x1="${centerX}" y1="${centerY}" x2="${lineX}" y2="${lineY}" stroke="#ccc" />`
         );
 
-        // ラベルの配置
         let { x: labelX, y: labelY } = calculatePointOnCircle(
           centerX,
           centerY,
           labelRadius,
           angle
         );
-        let textAnchor = "middle"; // デフォルトは中央寄せ
+        let textAnchor = "middle";
 
-        // 角度に基づいて text-anchor を調整し、ラベルが軸に沿って綺麗に表示されるようにする
         const angleDeg = anglesDegrees[index];
         if (Math.abs(angleDeg - 270) < 1 || Math.abs(angleDeg - 90) < 1) {
-          // 上 (270度) または下 (90度)
           textAnchor = "middle";
         } else if (angleDeg > 270 || angleDeg < 90) {
-          // 右側 (330度, 30度)
-          textAnchor = "start"; // テキストの開始位置が x 座標になる
+          textAnchor = "start";
         } else {
-          // 左側 (150度, 210度)
-          textAnchor = "end"; // テキストの終了位置が x 座標になる
+          textAnchor = "end";
         }
 
-        // 上と下のラベルのy座標を微調整して、円から少し離す
         if (Math.abs(angleDeg - 270) < 1) {
-          // 酸味 (上)
-          labelY -= 5; // テキストを上に少し移動
+          labelY -= 5;
         } else if (Math.abs(angleDeg - 90) < 1) {
-          // コク (下)
-          labelY += 5; // テキストを下に少し移動
+          labelY += 5;
         }
 
         labelTextsHtml.push(
@@ -213,11 +198,9 @@ export default function CoffeeItemScreen() {
         );
       });
 
-      // スケールを示す同心円を生成 (最大5レベル)
       const scaleCirclesHtml = [];
       for (let i = 1; i <= 5; i++) {
         const r = (i / 5) * maxDataRadius;
-        // 最も外側の円は実線、内側の円は破線にして見やすくする
         scaleCirclesHtml.push(
           `<circle cx="${centerX}" cy="${centerY}" r="${r}" stroke="${
             i === 5 ? "#888" : "#ccc"
@@ -228,352 +211,353 @@ export default function CoffeeItemScreen() {
       const svgChart = `
         <svg width="150" height="150" viewBox="0 0 120 120">
           ${scaleCirclesHtml.join("\n")}
-
           ${axisLinesHtml.join("\n")}
-
           <polygon
             points="${polygonPoints.trim()}"
             fill="rgba(210, 180, 140, 0.5)"
             stroke="rgba(210, 180, 140, 1)"
             stroke-width="1.5"
           />
-
           ${labelTextsHtml.join("\n")}
         </svg>`;
 
-      const htmlContent = `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="utf-8">
-    <title>${coffeeRecord.name}</title>
-    <style>
-    @page {
-          size: A4 portrait;
-          margin: 10mm; /* ページ全体の余白 */
-        }
-        body {
-          width: 100%; /* ボディ幅 */
-          /* max-width: 595px; /* A4幅より少し小さくすると余白内におさまりやすい */ */
-          height: auto;
-          font-family: "Helvetica", sans-serif;
-          font-size: 15pt;
-          line-height: 1.3;
-          color: #333;
-          margin: 10mm; /* ボディの外側の余白 */
-          padding: 0;
-          /* 中央寄せの原因になるtext-align: center; はbodyには通常つけません */
-        }
-
-      h1 {
-        font-size: 20pt;
-        color: #333;
-        margin-bottom: 10px;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 5px;
-        text-align: center; /* タイトルは中央寄せを維持 */
-      }
-
-      h2 {
-        font-size: 18pt;
-        color: #555;
-        margin-top: 15px;
-        margin-bottom: 8px;
-        text-align: left; /* セクションタイトルは左寄せ */
-      }
-
-      .bean-extraction-container {
-        width: 100%;
-        max-width: 590px;
-        /* === 修正ここから === */
-        /* margin: 0 auto; */ /* 中央寄せを削除 */
-        margin-left: 0; /* 明示的に左マージンを0に */
-        margin-right: auto; /* 右マージンをautoにして左寄せを確実にする */
-        /* === 修正ここまで === */
-        margin-bottom: 15px;
-        display: flex; /* flexを追加 */
-        flex-direction: column; /* flex-directionを追加 */
-        /* flex-wrap: nowrap; flex-wrapは親flexコンテナにつけるべきですが、今回はcolumnなので不要かも */
-      }
-
-      .bean-info {
-        display: flex;
-        align-items: center; /* 縦方向中央寄せ */
-        margin-bottom: 15px;
-        flex-direction: column; /* 子要素（h2とcontents）を縦に並べる */
-        /* flex-wrap: nowrap; */
-        /* justify-content: center; */ /* 子要素を縦方向に中央寄せ */
-      }
-
-      .bean-info-contents {
-        display: flex;
-        flex-direction: row; /* 子要素（txtとimg）を横に並べる */
-        flex-wrap: nowrap;
-        align-items: flex-start; /* 子要素を上端に揃える */
-        justify-content: space-between; /* 子要素間に均等なスペース */
-        gap: 10px;
-        width: 100%; /* 親要素の幅に合わせる */
-      }
-
-      .bean-txt {
-        flex: 1; /* 残りスペースを埋める */
-      }
-
-      .bean-img {
-        width: 120px;
-        height: 120px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 8pt;
-        /* background-color: #e0e0e0; 画像なしの場合の背景 */
-      }
-
-      .image-container {
-        width: 100%;
-        height: 100%;
-        /* object-fit: contain; これはimgタグにつけるスタイル */
-      }
-
-      .extraction-info {
-        flex: 1; /* 適切か確認が必要 */
-        display: flex;
-        align-items: center; /* 縦方向中央寄せ */
-        margin-bottom: 15px;
-        flex-direction: column; /* 子要素（h2とcontents）を縦に並べる */
-        /* flex-wrap: nowrap; */
-        /* justify-content: center; */ /* 子要素を縦方向に中央寄せ */
-      }
-      .extraction-info-contents {
-        display: flex;
-        flex-direction: column;
-        flex-wrap: nowrap;
-        /* justify-content: center; */
-        align-items: stretch; /* 子要素の幅を親要素に合わせる */
-      }
-      .flavor-chart-container {
-        width: 100%;
-        max-width: 590px;      
-        margin-left: 0; /* 明示的に左マージンを0に */
-        margin-right: auto; /* 右マージンをautoにして左寄せを確実にする */
-        /* === 修正ここまで === */
-        margin-bottom: 15px;
-        display: flex; /* flexを追加 */
-        flex-direction: column; /* 子要素（h2とcontents）を縦に並べる */
-        /* align-items: center; */ /* セクション全体の子要素（h2とcontents）を横方向中央寄せ */
-      }
-      .flavor-chart-contents {
-        width: 100%; /* 親要素の幅に合わせる */
-        display: flex;
-        flex-direction: row; /* 子要素（ratingとchart）を横に並べる */
-        flex-wrap: nowrap;
-        justify-content: space-between; /* 子要素間に均等なスペース */
-        align-items: flex-start; /* 子要素を上端に揃える */
-        gap: 10px;
-      }
-      .flavor-rating {
-        flex: 1; /* 残りスペースを埋める */
-      }
-
-      .chart-container {
-        width: 150; /* svgChartのwidth/heightに合わせる */
-        height: auto; /* svgChartのwidth/heightに合わせる */
-        background-color: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: #777;
-        font-size: 8pt; 
-      
-      }
-
-      .detail-item {
-        margin-bottom: 6px;
-        font-size: 15pt;
-      }
-
-      .detail-label {
-        font-weight: bold;
-        color: #555;
-        margin-right: 8px;
-      }
-
-      .rating-item {
-        margin-bottom: 6px; /* 追加: レーティング項目間のスペース */
-        font-size: 15pt;
-      }
-        /* レーティング最後の項目に下マージンをなくすスタイルを追加 */
-      .flavor-rating .rating-item:last-child {
-          margin-bottom: 0;
-      }
-
-
-      .rating-label {
-        font-weight: bold;
-        color: #555;
-        /* margin-right: 8px; */ /* 追加: ラベルと値の間にスペース */
-      }
-        /* レーティング項目のレイアウトを調整 */
-      .flavor-rating .rating-item {
-            display: flex; /* flexboxにする */
-            flex-direction: row; /* 横並び */
-            align-items: baseline; /* テキストベースラインを揃える */
-      }
-      .flavor-rating .rating-label {
-            flex-shrink: 0; /* 縮まない */
-            margin-right: 8px; /* ラベルと値の間にスペース */
-            width: 60px; /* ラベルの幅を固定または調整 */
-      }
-        .flavor-rating .rating-value { /* 値の部分のクラスを追加してスタイル */
-            flex: 1; /* 残りスペースを埋める */
-        }
-
-
-      .memo-section {
-        width: 100%;
-        max-width: 590px;
-      margin: 0 auto;     
-        margin-top: 25px;
-        border-top: 1px solid #ccc;
-        padding-top: 10px;
-        display: flex; /* flexを追加 */
-        flex-direction: column; /* 子要素（h2とcontent）を縦に並べる */
-        /* align-items: center; */ /* セクション全体の子要素（h2とcontent）を横方向中央寄せ */
-      }
-
-      .memo-content {
-        font-size: 13pt;
-        white-space: pre-wrap;
-        padding: 8px;
-        background-color: #f9f9f9;
-        border: 1px solid #eee;
-        border-radius: 4px;
-          width: auto; /* 親要素の幅に合わせる */
-          max-width: 100%; /* 追加: 親要素を超えない */
-      }
-    </style>
-  </head>
-  <body>
-    <h1>${coffeeRecord.name}</h1>
-
-    <div class="bean-extraction-container">
-      <div class="bean-info">
-        <h2>豆の情報</h2>
-        <div class="bean-info-contents">
-          <div class="bean-txt">
-            <div class="detail-item"><span class="detail-label">種類:</span> ${
-              coffeeRecord.variety || "未記入"
-            }</div>
-            <div class="detail-item"><span class="detail-label">産地:</span> ${
-              coffeeRecord.productionArea || "未記入"
-            }</div>
-            <div class="detail-item"><span class="detail-label">焙煎度:</span> ${
-              coffeeRecord.roastingDegree || "未記入"
-            }</div>
+      // 評価バーを直接HTMLで生成する関数
+      const createRatingBarHtml = (label: string, value: number) => {
+        const maxRating = 5;
+        const percentage = (value / maxRating) * 100;
+        return `
+          <div class="rating-item">
+            <span class="rating-label">${label}:</span>
+            <div class="rating-value">
+              <span class="rating-bar" style="width: ${percentage}%;"></span>
+              <span class="rating-text">${value}</span>
+            </div>
           </div>
-          <div class="bean-img">
+        `;
+      };
+
+      // HTML生成
+      const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="ja">
+      <head>
+        <meta charset="utf-8">
+        <title>${coffeeRecord.name}</title>
+        <style>
+          /* リセットとベース設定 */
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+          }
+      
+          /* ページ設定 */
+          @page {
+            size: A4 portrait;
+            margin: 15mm; /* 統一された余白設定 */
+          }
+          
+          body {
+            width: 100%;
+            font-family: "Helvetica", "Arial", "Hiragino Sans", sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #333;
+            background-color: #fff;
+          }
+          
+          /* コンテンツコンテナ */
+          .main-contents {
+            max-width: 210mm; /* A4の幅 */
+            margin: 0 auto;
+            padding: 0;
+          }
+      
+          /* 見出し */
+          h1 {
+            font-size: 18pt;
+            color: #222;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            text-align: center;
+            border-bottom: 2px solid #555;
+          }
+      
+          h2 {
+            font-size: 14pt;
+            color: #444;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            padding-left: 5px;
+            border-left: 4px solid #666;
+          }
+      
+          /* セクションコンテナ */
+          .section-container {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+      
+          /* 豆情報セクション */
+          .bean-info-contents {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+          }
+      
+          .bean-txt {
+            flex: 1;
+          }
+      
+          /* 画像スタイル */
+          .image-container {
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+      
+          .image-container img {
+            width: 110px;
+            height: 110px;
+            border-radius: 55px;
+            object-fit: cover;
+            border: 2px solid #ddd;
+          }
+      
+          .no-image-placeholder {
+            width: 110px;
+            height: 110px;
+            border-radius: 55px;
+            background-color: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 9pt;
+            color: #777;
+            text-align: center;
+            border: 1px dashed #ccc;
+          }
+      
+          /* 詳細情報項目 */
+          .detail-item {
+            margin-bottom: 8px;
+            font-size: 12pt;
+            display: flex;
+          }
+      
+          .detail-label {
+            font-weight: bold;
+            color: #555;
+            min-width: 90px;
+            padding-right: 10px;
+          }
+      
+          /* 抽出情報レイアウト */
+          .extraction-info-contents {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+          }
+      
+          /* フレーバーチャートセクション */
+          .flavor-chart-contents {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+          }
+      
+          .flavor-rating {
+            flex: 1;
+          }
+      
+          .chart-container {
+            width: 180px;
+            height: 180px;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #eaeaea;
+            border-radius: 5px;
+          }
+      
+          /* 評価項目 */
+          .rating-item {
+            margin-bottom: 8px;
+            font-size: 12pt;
+            display: flex;
+            align-items: center;
+          }
+      
+          .rating-label {
+            font-weight: bold;
+            color: #555;
+            width: 70px;
+          }
+      
+          .rating-value {
+            flex: 1;
+            display: flex;
+            align-items: center;
+          }
+      
+          /* 評価バー表示 */
+          .rating-bar {
+            display: inline-block;
+            height: 10px;
+            background-color: #4a86e8;
+            border-radius: 2px;
+            margin-right: 5px;
+          }
+      
+          .rating-text {
+            display: inline-block;
+            vertical-align: middle;
+          }
+      
+          /* メモセクション */
+          .memo-section {
+            margin-top: 25px;
+          }
+      
+          .memo-content {
+            font-size: 11pt;
+            white-space: pre-wrap;
+            padding: 12px;
+            background-color: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            min-height: 100px;
+          }
+        </style>
+      </head>
+      <body>
+      <div class="main-contents">
+        <h1>${coffeeRecord.name}</h1>
+      
+        <div class="section-container">
+          <h2>豆の情報</h2>
+          <div class="bean-info-contents">
+            <div class="bean-txt">
+              <div class="detail-item">
+                <span class="detail-label">種類:</span> 
+                <span>${coffeeRecord.variety || "未記入"}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">産地:</span> 
+                <span>${coffeeRecord.productionArea || "未記入"}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">焙煎度:</span> 
+                <span>${coffeeRecord.roastingDegree || "未記入"}</span>
+              </div>
+            </div>
             <div class="image-container">
               ${imageHtml}
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="extraction-info">
-        <h2>抽出情報</h2>
-        <div class="extraction-info-contents">
-          <div class="detail-item"><span class="detail-label">抽出器具:</span> ${
-            coffeeRecord.extractionMethod || "未記入"
-          }</div>
-          <div class="detail-item"><span class="detail-label">抽出メーカー:</span> ${
-            coffeeRecord.extractionMaker || "未記入"
-          }</div>
-          <div class="detail-item"><span class="detail-label">挽き目:</span> ${
-            coffeeRecord.grindSize || "未記入"
-          }</div>
-          <div class="detail-item"><span class="detail-label">注湯温度:</span> ${
-            coffeeRecord.temperature || "未記入"
-          }</div>
-          <div class="detail-item"><span class="detail-label">粉量:</span> ${
-            coffeeRecord.coffeeAmount || "未記入"
-          }</div>
-          <div class="detail-item"><span class="detail-label">水量:</span> ${
-            coffeeRecord.waterAmount || "未記入"
-          }</div>
-          <div class="detail-item"><span class="detail-label">抽出時間:</span> ${
-            coffeeRecord.extractionTime || "未記入"
-          }</div>
-            <div class="detail-item"><span class="detail-label">豆/水比率:</span> ${
-              coffeeRecord.coffeeAmount && coffeeRecord.waterAmount
-                ? `1:${
-                    Math.round(
-                      (coffeeRecord.waterAmount / coffeeRecord.coffeeAmount) *
-                        10
-                    ) / 10
-                  }`
-                : "計算不可"
-            }</div>
+      
+        <div class="section-container">
+          <h2>抽出情報</h2>
+          <div class="extraction-info-contents">
+            <div class="detail-item">
+              <span class="detail-label">抽出器具:</span> 
+              <span>${coffeeRecord.extractionMethod || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">抽出メーカー:</span> 
+              <span>${coffeeRecord.extractionMaker || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">挽き目:</span> 
+              <span>${coffeeRecord.grindSize || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">注湯温度:</span> 
+              <span>${coffeeRecord.temperature || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">粉量:</span> 
+              <span>${coffeeRecord.coffeeAmount || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">水量:</span> 
+              <span>${coffeeRecord.waterAmount || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">抽出時間:</span> 
+              <span>${coffeeRecord.extractionTime || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">豆/水比率:</span> 
+              <span>${
+                coffeeRecord.coffeeAmount && coffeeRecord.waterAmount
+                  ? `1:${
+                      Math.round(
+                        (coffeeRecord.waterAmount / coffeeRecord.coffeeAmount) *
+                          10
+                      ) / 10
+                    }`
+                  : "計算不可"
+              }</span>
+            </div>
+          </div>
+        </div>
+      
+        <div class="section-container">
+          <h2>味わいの評価</h2>
+          <div class="flavor-chart-contents">
+            <div class="flavor-rating">
+              ${createRatingBarHtml("酸味", Number(coffeeRecord.acidity) || 0)}
+              ${createRatingBarHtml(
+                "甘味",
+                Number(coffeeRecord.sweetness) || 0
+              )}
+              ${createRatingBarHtml(
+                "苦味",
+                Number(coffeeRecord.bitterness) || 0
+              )}
+              ${createRatingBarHtml("コク", Number(coffeeRecord.body) || 0)}
+              ${createRatingBarHtml("香り", Number(coffeeRecord.aroma) || 0)}
+              ${createRatingBarHtml(
+                "後味",
+                Number(coffeeRecord.aftertaste) || 0
+              )}
+            </div>
+            <div class="chart-container">
+              ${svgChart}
+            </div>
+          </div>
+        </div>
+      
+        <div class="section-container memo-section">
+          <h2>MEMO</h2>
+          <div class="memo-content">
+      ${coffeeRecord.memo || "未記入"}
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="flavor-chart-container">
-      <h2>味わいの評価</h2>
-      <div class="flavor-chart-contents">
-        <div class="flavor-rating">
-          <div class="rating-item"><span class="rating-label">酸味:</span><span class="rating-value"> ${
-            coffeeRecord.acidity || "0"
-          }</span></div>
-          <div class="rating-item"><span class="rating-label">甘味:</span><span class="rating-value"> ${
-            coffeeRecord.sweetness || "0"
-          }</span></div>
-          <div class="rating-item"><span class="rating-label">苦味:</span><span class="rating-value"> ${
-            coffeeRecord.bitterness || "0"
-          }</span></div>
-          <div class="rating-item"><span class="rating-label">コク:</span><span class="rating-value"> ${
-            coffeeRecord.body || "0"
-          }</span></div>
-          <div class="rating-item"><span class="rating-label">香り:</span><span class="rating-value"> ${
-            coffeeRecord.aroma || "0"
-          }</span></div>
-          <div class="rating-item"><span class="rating-label">後味:</span><span class="rating-value"> ${
-            coffeeRecord.aftertaste || "0"
-          }</span></div>
-        </div>
-        <div class="chart-container">
-          ${svgChart}
-        </div>
-      </div>
-    </div>
-
-    <div class="memo-section">
-      <h2>MEMO</h2>
-      <div class="memo-content">
-  ${coffeeRecord.memo || "未記入"}
-      </div>
-    </div>
-  </body>
-  </html>
-`;
+      </body>
+      </html>
+      `;
 
       // Print APIを使用してPDFを生成
       const { uri } = await Print.printToFileAsync({
         html: htmlContent,
         base64: false,
-        // Webの場合、orientation: 'portrait' は @page size で指定済みのため不要かもしれません。
-        // モバイルで orientation を明示的に指定したい場合はここに追加できます。
-        // orientation: 'portrait',
       });
 
-      // モバイル環境ではシェア機能を使用 (Platform.OSで分岐が必要な場合あり)
-      // この関数はモバイルのみで使用することを想定しているようですが、
-      // Webでも印刷ではなくダウンロードさせたい場合は別の処理が必要です。
-      // 例: Webの場合は uri を window.open などで開く
       if (Platform.OS === "web") {
-        // Webの場合はダウンロードを促す
         window.open(uri, "_blank");
       } else {
-        // モバイルの場合はシェア
         await Sharing.shareAsync(uri, {
           mimeType: "application/pdf",
           dialogTitle: "コーヒー情報をPDFで共有",
@@ -583,7 +567,6 @@ export default function CoffeeItemScreen() {
     } catch (error) {
       console.error("PDF生成エラー:", error);
 
-      // エラーメッセージの取得を安全に行う
       const errorMessage =
         error instanceof Error ? error.message : "不明なエラーが発生しました";
 
@@ -592,7 +575,6 @@ export default function CoffeeItemScreen() {
       setIsGeneratingPdf(false);
     }
   };
-
   useEffect(() => {
     const fetchCoffeeRecord = async () => {
       try {
