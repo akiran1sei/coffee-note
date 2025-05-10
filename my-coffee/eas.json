@@ -1,0 +1,46 @@
+{
+  "cli": {
+    "version": ">= 16.4.1",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "packageName": "com.akiran1sei.coffee_note.dev"
+      },
+      "ios": {
+        "bundleIdentifier": "com.akiran1sei.coffee-note.dev"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "packageName": "com.akiran1sei.coffee_note.preview"
+      },
+      "ios": {
+        "bundleIdentifier": "com.akiran1sei.coffee-note.preview"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "app-bundle",
+        "serviceAccountKeyPath": "./firebase_keys/service-account.json",
+        "packageName": "com.akiran1sei.coffee_note"
+      },
+      "ios": {
+        "buildConfiguration": "Release",
+        "bundleIdentifier": "com.akiran1sei.coffee-note"
+      },
+      "release": {
+        "releaseNotes": "Production release for Coffee Note app."
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
