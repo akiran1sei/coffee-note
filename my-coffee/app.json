@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Coffee Note",
-    "slug": "Coffee Note",
+    "name": "coffee-note",
+    "slug": "coffee-note",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -36,12 +36,21 @@
       [
         "expo-font",
         {
-          "fonts": ["./assets/fonts/Caveat-VariableFont_wght.ttf"]
+          "fonts": [
+            "./assets/fonts/Caveat-VariableFont_wght.ttf"
+          ]
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "52a20f50-a71c-45d3-8a07-276036beb534"
+      }
+    },
+    "owner": "akiran1sei"
   }
 }
