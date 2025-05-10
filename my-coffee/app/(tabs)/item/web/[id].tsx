@@ -372,16 +372,19 @@ const CoffeeItemScreen = () => {
               {/* PDFボタンを追加 */}
               {/* Web版のみ表示 */}
               {Platform.OS === "web" && (
-                <TouchableOpacity
-                  style={styles.pdfButton}
-                  onPress={() =>
-                    router.push({
-                      pathname: `../webPdf/${coffeeRecord.id}`, // 編集画面への遷移パス
-                    })
-                  }
-                >
-                  <Text style={styles.buttonText}>PDF</Text>
-                </TouchableOpacity>
+                // <TouchableOpacity
+                //   style={styles.pdfButton}
+                //   onPress={() =>
+                //     router.push({
+                //       pathname: `../webPdf/${coffeeRecord.id}`, // 編集画面への遷移パス
+                //     })
+                //   }
+                // >
+                //   <Text style={styles.buttonText}>PDF</Text>
+                // </TouchableOpacity>
+                <Text style={{ color: "red", marginTop: 10 }}>
+                  ※WEB版ではPDFダウンロードはご利用いただけません。
+                </Text>
               )}
 
               {/* モバイル版のPDFボタンは別途実装が必要であれば追加 */}

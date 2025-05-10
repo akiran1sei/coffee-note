@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   Text,
   Alert,
+  Platform,
   ActivityIndicator,
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
@@ -38,6 +39,7 @@ export default function CoffeeItemScreen() {
   const [coffeeRecord, setCoffeeRecord] = useState<CoffeeRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  // 以下の labels と angles は RadarChart コンポーネント用で、SVG生成には直接関係しないため変更不要です。
   const labels = ["酸味", "甘味", "苦味", "コク", "香り", "後味"];
   const angles = [0, 60, 120, 180, 240, 300].map(
     (angle) => (angle * Math.PI) / 180
@@ -100,334 +102,452 @@ export default function CoffeeItemScreen() {
               encoding: FileSystem.EncodingType.Base64,
             }
           );
-          imageHtml = `<img src="data:image/jpeg;base64,${base64}" style="width: 100px; height: 100px; border-radius: 50px; object-fit: cover; float: right; margin: 0 0 10px 10px;" />`;
+          imageHtml = `<img src="data:image/jpeg;base64,${base64}" alt="Coffee Image" />`;
         } catch (err) {
           console.error("画像の読み込みエラー:", err);
-          // エラー時は画像なしで続行
-          imageHtml = `<div style="width: 100px; height: 100px; border-radius: 50px; background-color: #e0e0e0; display: flex; justify-content: center; align-items: center;">No Image</div>`;
+          imageHtml = `<div class="no-image-placeholder">No Image</div>`;
         }
+      } else {
+        imageHtml = `<div class="no-image-placeholder">No Image</div>`;
       }
 
-      const radarData = {
-        acidity: Number(coffeeRecord.acidity) || 0,
-        sweetness: Number(coffeeRecord.sweetness) || 0,
-        bitterness: Number(coffeeRecord.bitterness) || 0,
-        body: Number(coffeeRecord.body) || 0,
-        aroma: Number(coffeeRecord.aroma) || 0,
-        aftertaste: Number(coffeeRecord.aftertaste) || 0,
+      // レーダーチャートのデータ
+      const radarDataValues = [
+        Number(coffeeRecord.acidity) || 0,
+        Number(coffeeRecord.sweetness) || 0,
+        Number(coffeeRecord.bitterness) || 0,
+        Number(coffeeRecord.body) || 0,
+        Number(coffeeRecord.aroma) || 0,
+        Number(coffeeRecord.aftertaste) || 0,
+      ];
+
+      // SVGレーダーチャート生成に必要な関数
+      const calculatePointOnCircle = (
+        centerX: number,
+        centerY: number,
+        radius: number,
+        angleRadians: number
+      ) => {
+        const x = centerX + radius * Math.cos(angleRadians);
+        const y = centerY + radius * Math.sin(angleRadians);
+        return { x, y };
       };
 
-      // レーダーチャートをSVGとして直接HTMLに埋め込む
+      const centerX = 60;
+      const centerY = 60;
+      const maxDataRadius = 40; // データが最大値(5)の時のレーダーチャートの半径
+      const labelRadius = 48; // ラベルを配置する半径 (maxDataRadiusより少し大きく)
+
+      const anglesDegrees = [270, 330, 30, 90, 150, 210];
+      const anglesRadians = anglesDegrees.map(
+        (angle) => (angle * Math.PI) / 180
+      );
+
+      let polygonPoints = "";
+      radarDataValues.forEach((value, index) => {
+        const { x, y } = calculatePointOnCircle(
+          centerX,
+          centerY,
+          (value / 5) * maxDataRadius,
+          anglesRadians[index]
+        );
+        polygonPoints += `${x},${y} `;
+      });
+
+      const labelsSvg = ["酸味", "甘味", "苦味", "コク", "香り", "後味"];
+      const axisLinesHtml: string[] = [];
+      const labelTextsHtml: string[] = [];
+
+      anglesRadians.forEach((angle, index) => {
+        const axisLineLength = maxDataRadius + 5;
+        const { x: lineX, y: lineY } = calculatePointOnCircle(
+          centerX,
+          centerY,
+          axisLineLength,
+          angle
+        );
+        axisLinesHtml.push(
+          `<line x1="${centerX}" y1="${centerY}" x2="${lineX}" y2="${lineY}" stroke="#ccc" />`
+        );
+
+        let { x: labelX, y: labelY } = calculatePointOnCircle(
+          centerX,
+          centerY,
+          labelRadius,
+          angle
+        );
+        let textAnchor = "middle";
+
+        const angleDeg = anglesDegrees[index];
+        if (Math.abs(angleDeg - 270) < 1 || Math.abs(angleDeg - 90) < 1) {
+          textAnchor = "middle";
+        } else if (angleDeg > 270 || angleDeg < 90) {
+          textAnchor = "start";
+        } else {
+          textAnchor = "end";
+        }
+
+        if (Math.abs(angleDeg - 270) < 1) {
+          labelY -= 5;
+        } else if (Math.abs(angleDeg - 90) < 1) {
+          labelY += 5;
+        }
+
+        labelTextsHtml.push(
+          `<text x="${labelX}" y="${labelY}" text-anchor="${textAnchor}" font-size="8" fill="#555">${labelsSvg[index]}</text>`
+        );
+      });
+
+      const scaleCirclesHtml = [];
+      for (let i = 1; i <= 5; i++) {
+        const r = (i / 5) * maxDataRadius;
+        scaleCirclesHtml.push(
+          `<circle cx="${centerX}" cy="${centerY}" r="${r}" stroke="${
+            i === 5 ? "#888" : "#ccc"
+          }" fill="none" stroke-dasharray="${i === 5 ? "none" : "2 2"}" />`
+        );
+      }
+
       const svgChart = `
-    <svg width="150" height="150" viewBox="0 0 100 100">
-      <line x1="50" y1="50" x2="70" y2="15" stroke="#ccc" /> 
-      <line x1="50" y1="50" x2="90" y2="50" stroke="#ccc" /> 
-      <line x1="50" y1="50" x2="70" y2="85" stroke="#ccc" /> 
-      <line x1="50" y1="50" x2="30" y2="85" stroke="#ccc" /> 
-      <line x1="50" y1="50" x2="10" y2="50" stroke="#ccc" /> 
-      <line x1="50" y1="50" x2="30" y2="15" stroke="#ccc" /> 
-      <polygon
-        points="
-          ${50 + (radarData.acidity / 5) * 40 * Math.cos((Math.PI * 0) / 3)},${
-        50 + (radarData.acidity / 5) * 40 * Math.sin((Math.PI * 0) / 3)
-      }
-          ${
-            50 + (radarData.sweetness / 5) * 40 * Math.cos((Math.PI * 1) / 3)
-          },${50 + (radarData.sweetness / 5) * 40 * Math.sin((Math.PI * 1) / 3)}
-          ${
-            50 + (radarData.bitterness / 5) * 40 * Math.cos((Math.PI * 2) / 3)
-          },${
-        50 + (radarData.bitterness / 5) * 40 * Math.sin((Math.PI * 2) / 3)
-      }
-          ${50 + (radarData.body / 5) * 40 * Math.cos((Math.PI * 3) / 3)},${
-        50 + (radarData.body / 5) * 40 * Math.sin((Math.PI * 3) / 3)
-      }
-          ${50 + (radarData.aroma / 5) * 40 * Math.cos((Math.PI * 4) / 3)},${
-        50 + (radarData.aroma / 5) * 40 * Math.sin((Math.PI * 4) / 3)
-      }
-          ${
-            50 + (radarData.aftertaste / 5) * 40 * Math.cos((Math.PI * 5) / 3)
-          },${
-        50 + (radarData.aftertaste / 5) * 40 * Math.sin((Math.PI * 5) / 3)
-      }
-        "
-        fill="rgba(210, 180, 140, 0.5)"
-        stroke="rgba(210, 180, 140, 1)"
-        stroke-width="1"
-      />
-        <text x="80" y="15" text-anchor="middle" font-size="5">酸味</text>
-        <text x="25" y="15" text-anchor="end" font-size="5">甘味</text>
-        <text x="80" y="85" text-anchor="middle" font-size="5">苦味</text>
-        <text x="5" y="45" text-anchor="middle" font-size="5">コク</text>
-        <text x="15" y="85" text-anchor="start" font-size="5">香り</text>
-        <text x="95" y="45" text-anchor="middle" font-size="5">後味</text>
-    </svg>`;
+        <svg width="150" height="150" viewBox="0 0 120 120">
+          ${scaleCirclesHtml.join("\n")}
+          ${axisLinesHtml.join("\n")}
+          <polygon
+            points="${polygonPoints.trim()}"
+            fill="rgba(210, 180, 140, 0.5)"
+            stroke="rgba(210, 180, 140, 1)"
+            stroke-width="1.5"
+          />
+          ${labelTextsHtml.join("\n")}
+        </svg>`;
 
-      const htmlContent = `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta charset="utf-8">
-    <title>${coffeeRecord.name}</title>
-    <style>
-    @page {
-          size: A4 portrait;
-          margin: 10mm;
-        }
-        body {
-          width: 100%;
-          max-width: 595px;
-          height: auto;
-          font-family: "Helvetica", sans-serif;
-          font-size: 15pt;
-          line-height: 1.3;
-          color: #333;
-          margin: 10mm;
-          padding: 0;
-        }
-
-      h1 {
-        font-size: 20pt;
-        color: #333;
-        margin-bottom: 10px;
-        border-bottom: 1px solid #ccc;
-        padding-bottom: 5px;
-      }
-
-      h2 {
-        font-size: 18pt;
-        color: #555;
-        margin-top: 15px;
-        margin-bottom: 8px;
-      }
-
-      .bean-extraction-container {
-        width: 100%;
-        max-width: 590px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 15px;
-      }
-
-      .bean-info {
-        display: flex;
-        align-items: center;
-        margin-bottom: 15px;
-        flex-direction: column;
-        flex-wrap: nowrap;
-        justify-content: center;
-      }
-
-      .bean-info-contents {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-      }
-
-      .bean-txt {}
-
-      .bean-img {
-        width: 120px;
-        height: 120px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 8pt;
-      }
-
-      .image-container {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-      }
-
-      .extraction-info {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        margin-bottom: 15px;
-        flex-direction: column;
-        flex-wrap: nowrap;
-        justify-content: center;
-      }
-      .extraction-info-contents {
-        display: flex;
-        flex-direction: column;
-        flex-wrap: nowrap;
-        justify-content: center;
-        align-items: stretch;
-      }
-      .flavor-chart-container {
-        display: flex;
-        align-items: center;
-        margin-bottom: 15px;
-        flex-direction: column;
-        flex-wrap: nowrap;
-        justify-content: center;
-      }
-      .flavor-chart-contents {
-        width: auto;
-        display: flex;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-      }
-      .flavor-rating {
-        flex: 1;
-      }
-
-      .chart-container {
-        width: 120px;
-        height: 120px;
-        background-color: #fff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: #777;
-        font-size: 8pt; 
-        border-radius: 50%;
-        border: 1px solid #bbb;
-        box-shadow:1px 1px 1px #33333333;
-      }
-
-      .detail-item {
-        margin-bottom: 6px;
-        font-size: 15pt;
-      }
-
-      .detail-label {
-        font-weight: bold;
-        color: #555;
-        margin-right: 8px;
-      }
-
-      .rating-item {
-        font-size: 15pt;
-      }
-
-      .rating-label {
-        font-weight: bold;
-        color: #555;
-      }
-
-      .memo-section {
-        display: flex;
-        flex-direction: column;
-        flex-wrap: nowrap;
-        justify-content: center;
-        align-items: center;
-        border-top: 1px solid #ccc;
-        padding-top: 10px;
-      }
-
-      .memo-content {
-        font-size: 13pt;
-        white-space: pre-wrap;
-        padding: 8px;
-        background-color: #f9f9f9;
-        border: 1px solid #eee;
-        border-radius: 4px;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>${coffeeRecord.name}</h1>
-
-    <div class="bean-extraction-container">
-      <div class="bean-info">
-        <h2>豆の情報</h2>
-        <div class="bean-info-contents">
-          <div class="bean-txt">
-            <div class="detail-item"><span class="detail-label">種類:</span> ${
-              coffeeRecord.variety || "未記入"
-            }</div>
-            <div class="detail-item"><span class="detail-label">産地:</span> ${
-              coffeeRecord.productionArea || "未記入"
-            }</div>
-            <div class="detail-item"><span class="detail-label">焙煎度:</span> ${
-              coffeeRecord.roastingDegree || "未記入"
-            }</div>
+      // 評価バーを直接HTMLで生成する関数
+      const createRatingBarHtml = (label: string, value: number) => {
+        const maxRating = 5;
+        const percentage = (value / maxRating) * 100;
+        return `
+          <div class="rating-item">
+            <span class="rating-label">${label}:</span>
+            <div class="rating-value">
+              <span class="rating-bar" style="width: ${percentage}%;"></span>
+              <span class="rating-text">${value}</span>
+            </div>
           </div>
-          <div class="bean-img">
+        `;
+      };
+
+      // HTML生成
+      const htmlContent = `
+      <!DOCTYPE html>
+      <html lang="ja">
+      <head>
+        <meta charset="utf-8">
+        <title>${coffeeRecord.name}</title>
+        <style>
+          /* リセットとベース設定 */
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+          }
+      
+          /* ページ設定 */
+          @page {
+            size: A4 portrait;
+            margin: 15mm; /* 統一された余白設定 */
+          }
+          
+          body {
+            width: 100%;
+            font-family: "Helvetica", "Arial", "Hiragino Sans", sans-serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #333;
+            background-color: #fff;
+          }
+          
+          /* コンテンツコンテナ */
+          .main-contents {
+            max-width: 210mm; /* A4の幅 */
+            margin: 0 auto;
+            padding: 0;
+          }
+      
+          /* 見出し */
+          h1 {
+            font-size: 18pt;
+            color: #222;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            text-align: center;
+            border-bottom: 2px solid #555;
+          }
+      
+          h2 {
+            font-size: 14pt;
+            color: #444;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            padding-left: 5px;
+            border-left: 4px solid #666;
+          }
+      
+          /* セクションコンテナ */
+          .section-container {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #fafafa;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+      
+          /* 豆情報セクション */
+          .bean-info-contents {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+          }
+      
+          .bean-txt {
+            flex: 1;
+          }
+      
+          /* 画像スタイル */
+          .image-container {
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+      
+          .image-container img {
+            width: 110px;
+            height: 110px;
+            border-radius: 55px;
+            object-fit: cover;
+            border: 2px solid #ddd;
+          }
+      
+          .no-image-placeholder {
+            width: 110px;
+            height: 110px;
+            border-radius: 55px;
+            background-color: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 9pt;
+            color: #777;
+            text-align: center;
+            border: 1px dashed #ccc;
+          }
+      
+          /* 詳細情報項目 */
+          .detail-item {
+            margin-bottom: 8px;
+            font-size: 12pt;
+            display: flex;
+          }
+      
+          .detail-label {
+            font-weight: bold;
+            color: #555;
+            min-width: 90px;
+            padding-right: 10px;
+          }
+      
+          /* 抽出情報レイアウト */
+          .extraction-info-contents {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+          }
+      
+          /* フレーバーチャートセクション */
+          .flavor-chart-contents {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+          }
+      
+          .flavor-rating {
+            flex: 1;
+          }
+      
+          .chart-container {
+            width: 180px;
+            height: 180px;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #eaeaea;
+            border-radius: 5px;
+          }
+      
+          /* 評価項目 */
+          .rating-item {
+            margin-bottom: 8px;
+            font-size: 12pt;
+            display: flex;
+            align-items: center;
+          }
+      
+          .rating-label {
+            font-weight: bold;
+            color: #555;
+            width: 70px;
+          }
+      
+          .rating-value {
+            flex: 1;
+            display: flex;
+            align-items: center;
+          }
+      
+          /* 評価バー表示 */
+          .rating-bar {
+            display: inline-block;
+            height: 10px;
+            background-color: #4a86e8;
+            border-radius: 2px;
+            margin-right: 5px;
+          }
+      
+          .rating-text {
+            display: inline-block;
+            vertical-align: middle;
+          }
+      
+          /* メモセクション */
+          .memo-section {
+            margin-top: 25px;
+          }
+      
+          .memo-content {
+            font-size: 11pt;
+            white-space: pre-wrap;
+            padding: 12px;
+            background-color: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            min-height: 100px;
+          }
+        </style>
+      </head>
+      <body>
+      <div class="main-contents">
+        <h1>${coffeeRecord.name}</h1>
+      
+        <div class="section-container">
+          <h2>豆の情報</h2>
+          <div class="bean-info-contents">
+            <div class="bean-txt">
+              <div class="detail-item">
+                <span class="detail-label">種類:</span> 
+                <span>${coffeeRecord.variety || "未記入"}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">産地:</span> 
+                <span>${coffeeRecord.productionArea || "未記入"}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">焙煎度:</span> 
+                <span>${coffeeRecord.roastingDegree || "未記入"}</span>
+              </div>
+            </div>
             <div class="image-container">
               ${imageHtml}
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="extraction-info">
-        <h2>抽出情報</h2>
-        <div class="extraction-info-contents">
-          <div class="detail-item"><span class="detail-label">抽出器具:</span> ${
-            coffeeRecord.extractionMethod || "未記入"
-          }</div>
-          <div class="detail-item"><span class="detail-label">抽出メーカー:</span> ${
-            coffeeRecord.extractionMaker || "未記入"
-          }</div>
-          <div class="detail-item"><span class="detail-label">挽き目:</span> ${
-            coffeeRecord.grindSize || "未記入"
-          }</div>
-          <div class="detail-item"><span class="detail-label">注湯温度:</span> ${
-            coffeeRecord.temperature || "未記入"
-          }</div>
-          <div class="detail-item"><span class="detail-label">粉量:</span> ${
-            coffeeRecord.coffeeAmount || "未記入"
-          }</div>
-          <div class="detail-item"><span class="detail-label">水量:</span> ${
-            coffeeRecord.waterAmount || "未記入"
-          }</div>
-          <div class="detail-item"><span class="detail-label">抽出時間:</span> ${
-            coffeeRecord.extractionTime || "未記入"
-          }</div>
+      
+        <div class="section-container">
+          <h2>抽出情報</h2>
+          <div class="extraction-info-contents">
+            <div class="detail-item">
+              <span class="detail-label">抽出器具:</span> 
+              <span>${coffeeRecord.extractionMethod || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">抽出メーカー:</span> 
+              <span>${coffeeRecord.extractionMaker || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">挽き目:</span> 
+              <span>${coffeeRecord.grindSize || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">注湯温度:</span> 
+              <span>${coffeeRecord.temperature || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">粉量:</span> 
+              <span>${coffeeRecord.coffeeAmount || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">水量:</span> 
+              <span>${coffeeRecord.waterAmount || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">抽出時間:</span> 
+              <span>${coffeeRecord.extractionTime || "未記入"}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">豆/水比率:</span> 
+              <span>${
+                coffeeRecord.coffeeAmount && coffeeRecord.waterAmount
+                  ? `1:${
+                      Math.round(
+                        (coffeeRecord.waterAmount / coffeeRecord.coffeeAmount) *
+                          10
+                      ) / 10
+                    }`
+                  : "計算不可"
+              }</span>
+            </div>
+          </div>
+        </div>
+      
+        <div class="section-container">
+          <h2>味わいの評価</h2>
+          <div class="flavor-chart-contents">
+            <div class="flavor-rating">
+              ${createRatingBarHtml("酸味", Number(coffeeRecord.acidity) || 0)}
+              ${createRatingBarHtml(
+                "甘味",
+                Number(coffeeRecord.sweetness) || 0
+              )}
+              ${createRatingBarHtml(
+                "苦味",
+                Number(coffeeRecord.bitterness) || 0
+              )}
+              ${createRatingBarHtml("コク", Number(coffeeRecord.body) || 0)}
+              ${createRatingBarHtml("香り", Number(coffeeRecord.aroma) || 0)}
+              ${createRatingBarHtml(
+                "後味",
+                Number(coffeeRecord.aftertaste) || 0
+              )}
+            </div>
+            <div class="chart-container">
+              ${svgChart}
+            </div>
+          </div>
+        </div>
+      
+        <div class="section-container memo-section">
+          <h2>MEMO</h2>
+          <div class="memo-content">
+      ${coffeeRecord.memo || "未記入"}
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="flavor-chart-container">
-      <h2>味わいの評価</h2>
-      <div class="flavor-chart-contents">
-        <div class="flavor-rating">
-          <div class="rating-item"><span class="rating-label">酸味:</span> ${
-            coffeeRecord.acidity || "0"
-          }</div>
-          <div class="rating-item"><span class="rating-label">甘味:</span> ${
-            coffeeRecord.sweetness || "0"
-          }</div>
-          <div class="rating-item"><span class="rating-label">苦味:</span> ${
-            coffeeRecord.bitterness || "0"
-          }</div>
-          <div class="rating-item"><span class="rating-label">コク:</span> ${
-            coffeeRecord.body || "0"
-          }</div>
-          <div class="rating-item"><span class="rating-label">香り:</span> ${
-            coffeeRecord.aroma || "0"
-          }</div>
-          <div class="rating-item"><span class="rating-label">後味:</span> ${
-            coffeeRecord.aftertaste || "0"
-          }</div>
-        </div>
-        <div class="chart-container">
-          ${svgChart}
-        </div>
-      </div>
-    </div>
-
-    <div class="memo-section">
-      <h2>MEMO</h2>
-      <div class="memo-content">
-  ${coffeeRecord.memo || "未記入"}
-      </div>
-    </div>
-  </body>
-  </html>
-`;
+      </body>
+      </html>
+      `;
 
       // Print APIを使用してPDFを生成
       const { uri } = await Print.printToFileAsync({
@@ -435,17 +555,18 @@ export default function CoffeeItemScreen() {
         base64: false,
       });
 
-      // モバイル環境ではシェア機能を使用
-      await Sharing.shareAsync(uri, {
-        mimeType: "application/pdf",
-        dialogTitle: "コーヒー情報をPDFで共有",
-      });
-
-      console.log("PDF共有完了");
+      if (Platform.OS === "web") {
+        window.open(uri, "_blank");
+      } else {
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/pdf",
+          dialogTitle: "コーヒー情報をPDFで共有",
+        });
+        console.log("PDF共有完了 (Mobile)");
+      }
     } catch (error) {
       console.error("PDF生成エラー:", error);
 
-      // エラーメッセージの取得を安全に行う
       const errorMessage =
         error instanceof Error ? error.message : "不明なエラーが発生しました";
 
@@ -454,7 +575,6 @@ export default function CoffeeItemScreen() {
       setIsGeneratingPdf(false);
     }
   };
-
   useEffect(() => {
     const fetchCoffeeRecord = async () => {
       try {
