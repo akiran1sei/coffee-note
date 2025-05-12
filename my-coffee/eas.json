@@ -8,39 +8,34 @@
       "developmentClient": true,
       "distribution": "internal",
       "android": {
-        "packageName": "com.akiran1sei.coffee_note.dev"
+        "buildType": "apk"
       },
       "ios": {
-        "bundleIdentifier": "com.akiran1sei.coffee-note.dev"
+        "simulator": true
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
-        "packageName": "com.akiran1sei.coffee_note.preview"
-      },
-      "ios": {
-        "bundleIdentifier": "com.akiran1sei.coffee-note.preview"
+        "buildType": "apk"
       }
     },
     "production": {
       "autoIncrement": true,
       "distribution": "internal",
       "android": {
-        "buildType": "app-bundle",
-        "serviceAccountKeyPath": "./firebase_keys/service-account.json",
-        "packageName": "com.akiran1sei.coffee_note"
+        "buildType": "app-bundle"
       },
       "ios": {
-        "buildConfiguration": "Release",
-        "bundleIdentifier": "com.akiran1sei.coffee-note"
-      },
-      "release": {
-        "releaseNotes": "Production release for Coffee Note app."
+        "buildConfiguration": "Release"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./firebase_keys/service-account.json"
+      }
+    }
   }
 }
