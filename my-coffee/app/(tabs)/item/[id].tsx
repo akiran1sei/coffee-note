@@ -166,7 +166,7 @@ export default function CoffeeItemScreen() {
           axisLineLength,
           angle
         );
-        axisLinesHtml.push(
+        axisLinesHtml.replace(
           `<line x1="${centerX}" y1="${centerY}" x2="${lineX}" y2="${lineY}" stroke="#ccc" />`
         );
 
@@ -193,7 +193,7 @@ export default function CoffeeItemScreen() {
           labelY += 5;
         }
 
-        labelTextsHtml.push(
+        labelTextsHtml.replace(
           `<text x="${labelX}" y="${labelY}" text-anchor="${textAnchor}" font-size="8" fill="#555">${labelsSvg[index]}</text>`
         );
       });
@@ -201,7 +201,7 @@ export default function CoffeeItemScreen() {
       const scaleCirclesHtml = [];
       for (let i = 1; i <= 5; i++) {
         const r = (i / 5) * maxDataRadius;
-        scaleCirclesHtml.push(
+        scaleCirclesHtml.replace(
           `<circle cx="${centerX}" cy="${centerY}" r="${r}" stroke="${
             i === 5 ? "#888" : "#ccc"
           }" fill="none" stroke-dasharray="${i === 5 ? "none" : "2 2"}" />`
