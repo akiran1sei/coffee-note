@@ -71,7 +71,7 @@ export default function CoffeeItemScreen() {
           onPress: async () => {
             try {
               await CoffeeStorageService.deleteCoffeeRecord(id);
-              router.push("/list");
+              router.replace("/list");
             } catch (error) {
               console.error("レコードの削除に失敗しました:", error);
             }
@@ -724,7 +724,7 @@ export default function CoffeeItemScreen() {
               <TouchableOpacity
                 style={styles.updateButton}
                 onPress={() =>
-                  router.push({ pathname: `../update/${coffeeRecord.id}` })
+                  router.replace({ pathname: `../update/${coffeeRecord.id}` })
                 }
               >
                 <Text style={styles.buttonText}>編集</Text>

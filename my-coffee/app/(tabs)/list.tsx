@@ -187,7 +187,7 @@ export default function ListScreen() {
             const pathname = isWeb ? "/item/web/[id]" : "/item/[id]";
 
             // router オブジェクトが変更されない限り useCallback は不要だが、念のため
-            router.push({ pathname: pathname, params: { id: record.id } });
+            router.replace({ pathname: pathname, params: { id: record.id } });
           }}
           style={styles.recordItemTouchable}
         >
