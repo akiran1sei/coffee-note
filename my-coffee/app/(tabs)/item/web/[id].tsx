@@ -72,7 +72,7 @@ const CoffeeItemScreen = () => {
       if (window.confirm("このレコードを削除しますか？")) {
         try {
           await CoffeeStorageService.deleteCoffeeRecord(id);
-          router.push("/list"); // 削除成功後リスト画面へ遷移
+          router.replace("/list"); // 削除成功後リスト画面へ遷移
         } catch (error) {
           console.error("レコードの削除に失敗しました:", error);
           Alert.alert("エラー", "レコードの削除に失敗しました。");
@@ -94,7 +94,7 @@ const CoffeeItemScreen = () => {
             onPress: async () => {
               try {
                 await CoffeeStorageService.deleteCoffeeRecord(id);
-                router.push("/list"); // 削除成功後リスト画面へ遷移
+                router.replace("/list"); // 削除成功後リスト画面へ遷移
               } catch (error) {
                 console.error("レコードの削除に失敗しました:", error);
                 Alert.alert("エラー", "レコードの削除に失敗しました。");
@@ -354,7 +354,7 @@ const CoffeeItemScreen = () => {
               <TouchableOpacity
                 style={styles.editButton}
                 onPress={() =>
-                  router.push({
+                  router.replace({
                     pathname: `../../update/web/${coffeeRecord.id}`, // 編集画面への遷移パス
                   })
                 }
@@ -375,7 +375,7 @@ const CoffeeItemScreen = () => {
                 // <TouchableOpacity
                 //   style={styles.pdfButton}
                 //   onPress={() =>
-                //     router.push({
+                //     router.replace({
                 //       pathname: `../webPdf/${coffeeRecord.id}`, // 編集画面への遷移パス
                 //     })
                 //   }

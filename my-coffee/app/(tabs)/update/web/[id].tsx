@@ -260,7 +260,7 @@ export default function CoffeeItemWebScreen() {
       if (window.confirm("このレコードを削除しますか？")) {
         try {
           await CoffeeStorageService.deleteCoffeeRecord(id);
-          router.push("/list");
+          router.replace("/list");
         } catch (error) {
           console.error("レコードの削除に失敗しました:", error);
         }
@@ -281,7 +281,7 @@ export default function CoffeeItemWebScreen() {
             onPress: async () => {
               try {
                 await CoffeeStorageService.deleteCoffeeRecord(id);
-                router.push("/list");
+                router.replace("/list");
               } catch (error) {
                 console.error("レコードの削除に失敗しました:", error);
               }
@@ -570,7 +570,7 @@ export default function CoffeeItemWebScreen() {
               {/* Return to List Button */}
               <TouchableOpacity
                 style={styles.returnButton}
-                onPress={() => router.push("/list")}
+                onPress={() => router.replace("/list")}
               >
                 <Text style={styles.returnButtonText}>リストに戻る</Text>
               </TouchableOpacity>
