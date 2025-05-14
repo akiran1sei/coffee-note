@@ -16,6 +16,7 @@ import HeaderComponent from "../../components/HeaderComponent";
 import PageTitleComponent from "../../components/PageTitleComponent";
 import CoffeeStorageService from "../../services/CoffeeStorageService";
 import { CoffeeRecord } from "../../types/CoffeeTypes";
+import { LoadingComponent } from "@/components/MessageComponent";
 import RadarChart from "../../components/RadarChart/RadarChart";
 import Checkbox from "expo-checkbox";
 import SearchComponent from "../../components/button/Search";
@@ -23,6 +24,7 @@ import SortComponent from "@/components/button/Sort";
 
 export default function ListScreen() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [allCoffeeRecords, setAllCoffeeRecords] = useState<CoffeeRecord[]>([]); // 元の全データ
   const [displayedCoffeeRecords, setDisplayedCoffeeRecords] = useState<
     CoffeeRecord[]
@@ -33,6 +35,7 @@ export default function ListScreen() {
   useEffect(() => {
     fetchData();
     loadCoffeeRecords();
+    setLoading(true);
   }, []);
 
   const fetchData = async () => {
@@ -276,62 +279,65 @@ export default function ListScreen() {
       </View>
     </View>
   );
+  if (!loading) {
+    return <LoadingComponent />;
+  } else {
+    return (
+      <View style={styles.container}>
+        <View style={styles.contents}>
+          <HeaderComponent />
+          <PageTitleComponent TextData={"Coffee List"} />
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.contents}>
-        <HeaderComponent />
-        <PageTitleComponent TextData={"Coffee List"} />
-
-        <View style={[styles.absoluteBox, styles.mainContents]}>
-          <View style={styles.subMenuBox}>
-            <SearchComponent
-              initialData={allCoffeeRecords}
-              onSearch={handleSearch}
-            />
-            <SortComponent
-              onSort={handleSort}
-              records={displayedCoffeeRecords}
-            />
-          </View>
-          <ScrollView
-            style={{ flex: 1 }}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={handleRefresh}
+          <View style={[styles.absoluteBox, styles.mainContents]}>
+            <View style={styles.subMenuBox}>
+              <SearchComponent
+                initialData={allCoffeeRecords}
+                onSearch={handleSearch}
               />
-            }
-          >
+              <SortComponent
+                onSort={handleSort}
+                records={displayedCoffeeRecords}
+              />
+            </View>
             <ScrollView
-              horizontal={true}
-              showsHorizontalScrollIndicator={true}
-              contentContainerStyle={styles.innerScrollContainer}
+              style={{ flex: 1 }}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                />
+              }
             >
-              <View style={styles.recordContainer}>
-                {displayedCoffeeRecords.map(renderCoffeeRecord)}
-                {/* 表示するデータを使用 */}
-              </View>
+              <ScrollView
+                horizontal={true}
+                showsHorizontalScrollIndicator={true}
+                contentContainerStyle={styles.innerScrollContainer}
+              >
+                <View style={styles.recordContainer}>
+                  {displayedCoffeeRecords.map(renderCoffeeRecord)}
+                  {/* 表示するデータを使用 */}
+                </View>
+              </ScrollView>
             </ScrollView>
-          </ScrollView>
 
-          {/* 一括削除ボタン */}
-          {selectedRecords.length > 0 && (
-            <TouchableOpacity
-              style={styles.batchDeleteButton}
-              onPress={handleDeleteSelected}
-            >
-              <Text style={styles.deleteButtonText}>
-                {selectedRecords.length === 1
-                  ? "1件のレコードを削除"
-                  : `選択した ${selectedRecords.length} 件を削除`}
-              </Text>
-            </TouchableOpacity>
-          )}
+            {/* 一括削除ボタン */}
+            {selectedRecords.length > 0 && (
+              <TouchableOpacity
+                style={styles.batchDeleteButton}
+                onPress={handleDeleteSelected}
+              >
+                <Text style={styles.deleteButtonText}>
+                  {selectedRecords.length === 1
+                    ? "1件のレコードを削除"
+                    : `選択した ${selectedRecords.length} 件を削除`}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  }
 }
 
 const styles = StyleSheet.create({
