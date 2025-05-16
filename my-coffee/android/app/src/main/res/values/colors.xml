@@ -1,5 +1,0 @@
-<!-- filepath: c:\Users\drecome_mine_02\OneDrive\document\GitHub\coffee-note\my-coffee\android\app\src\main\res\values\colors.xml -->
-<resources>
-    <color name="splashscreen_background">#FFFFFF</color>
-    <color name="iconBackground">#FFFFFF</color> <!-- 必要に応じて色を変更 -->
-</resources>
