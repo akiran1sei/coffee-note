@@ -328,28 +328,30 @@ export default function ListScreen() {
                 records={allCoffeeRecords} // ソートは常に元の全データに対して行う
               />
             </View>
-
             {/* FlatList に置き換え */}
+
             <FlatList
-              data={displayedCoffeeRecords} // 表示するデータを指定
-              renderItem={renderCoffeeRecord} // アイテムをレンダリングする関数を指定
-              keyExtractor={(item) => item.id} // アイテムのユニークなキーを指定
-              style={{ flex: 1 }} // ScrollView と同様に flex: 1 を指定
-              contentContainerStyle={styles.flatListContentContainer} // コンテンツのスタイルを指定 (後述)
+              data={displayedCoffeeRecords}
+              renderItem={renderCoffeeRecord}
+              keyExtractor={(item) => item.id}
+              horizontal={true}
+              style={styles.horizontalList} // 専用のスタイルを適用
+              contentContainerStyle={styles.flatListContentContainer}
               refreshControl={
-                // プルツーリフレッシュの設定
                 <RefreshControl
                   refreshing={refreshing}
                   onRefresh={handleRefresh}
                 />
               }
-              // パフォーマンス向上のための追加設定 (任意だが推奨)
-              removeClippedSubviews={true} // 画面外の要素をクリッピングして描画負荷軽減
-              maxToRenderPerBatch={10} // 一度にレンダリングするアイテム数の上限
-              updateCellsBatchingPeriod={50} // レンダーバッチ間の遅延時間 (ミリ秒)
-              windowSize={10} // レンダリングする可視範囲外のアイテム数
+              removeClippedSubviews={true}
+              maxToRenderPerBatch={5}
+              updateCellsBatchingPeriod={50}
+              windowSize={5}
+              showsHorizontalScrollIndicator={false}
+              snapToAlignment="start" // スナップ効果を追加（オプション）
+              decelerationRate="fast" // 速い減速率（オプション）
+              snapToInterval={370} // カードの幅+マージン（オプション）
             />
-
             {/* 一括削除ボタン */}
             {selectedRecords.length > 0 && (
               <TouchableOpacity
@@ -405,36 +407,32 @@ const styles = StyleSheet.create({
     top: 210, // HeaderComponent + PageTitleComponent の高さ分 + マージン
     bottom: 0,
   },
-  // FlatList の contentContainerStyle
-  flatListContentContainer: {
-    // items が中央揃えになるように paddingHorizontal や alignItems を調整
-    paddingVertical: 20,
-    paddingBottom: 40, // 下部余白
-    alignItems: "center", // 子要素 (wrapContainer) を中央揃えにする
-    // flexDirection: "row", // この行は不要
-    // flexWrap: "wrap", // この行は不要
+
+  // 横スクロールリスト専用スタイル
+  horizontalList: {
+    flexGrow: 0,
+    height: 620, // カードの高さに合わせて調整
+    width: "100%",
   },
-  // recordContainer スタイルは FlatList の contentContainerStyle に統合するか削除
-  // recordContainer: {
-  //   flex: 1,
-  //   flexDirection: "row",
-  //   flexWrap: "wrap",
-  //   width: "100%",
-  //   height: "auto",
-  //   marginVertical: 20,
-  //   justifyContent: "center",
-  // },
+
+  // FlatListのコンテンツコンテナスタイル
+  flatListContentContainer: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    paddingBottom: 10,
+    alignItems: "center", // 各カードを縦方向中央揃え
+  },
+
+  // カードのコンテナスタイル
   wrapContainer: {
     flexDirection: "column",
     alignItems: "center",
-    marginBottom: 20,
-    width: "95%", // 親 (FlatList の contentContainerStyle) が alignItems: center なので、幅を調整
-    // maxWidth: 350, // 必要に応じて最大幅を指定
-    margin: 10, // アイテム間の余白
+    width: 350,
+    marginHorizontal: 10,
+    height: 600, // カードの高さを固定
   },
-  recordItemTouchable: {
-    width: "100%", // wrapContainer の幅いっぱいに広げる
-  },
+
+  // カード自体のスタイル
   recordItem: {
     width: "100%",
     backgroundColor: "#FFF",
@@ -445,6 +443,76 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    maxHeight: 580, // 最大高さを設定
+    overflow: "hidden", // はみ出た内容を隠す
+  },
+
+  // 画像のサイズを調整
+  recordImagePreview: {
+    width: 150, // 小さくする
+    height: 150, // 小さくする
+    borderRadius: 10,
+    marginVertical: 5,
+    backgroundColor: "#F0F0F0",
+  },
+
+  // メイン情報領域をコンパクトに
+  recordMainInfo: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 5, // 余白を減らす
+    paddingBottom: 5, // 余白を減らす
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+
+  // セクションタイトルをコンパクトに
+  sectionTitle: {
+    fontSize: 16, // 小さくする
+    fontWeight: "600",
+    color: "#5D4037",
+    marginBottom: 5, // 余白を減らす
+    textAlign: "center",
+  },
+
+  // レーダーチャートのコンテナ
+  radarChartContainer: {
+    alignItems: "center",
+    marginBottom: 5, // 余白を減らす
+    paddingBottom: 5, // 余白を減らす
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+    height: 160, // 高さを固定
+  },
+
+  // レーダーチャート自体
+  recordRadarChart: {
+    width: "100%",
+    height: 150, // 高さを固定
+    alignSelf: "center",
+  },
+
+  // メモコンテナ
+  memoContainer: {
+    marginBottom: 5, // 余白を減らす
+    width: "100%",
+    maxHeight: 60, // 最大高さを制限
+    overflow: "hidden", // はみ出た内容を隠す
+  },
+
+  // メモテキスト
+  memoText: {
+    fontSize: 14, // 小さくする
+    color: "#333",
+    backgroundColor: "#F5F5F5",
+    padding: 5, // パディングを減らす
+    borderRadius: 8,
+    lineHeight: 18, // 行間を詰める
+  },
+
+  recordItemTouchable: {
+    width: "100%", // wrapContainer の幅いっぱいに広げる
+    flexDirection: "column",
   },
   recordHeader: {
     alignItems: "center",
@@ -457,21 +525,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: "center",
   },
-  recordImagePreview: {
-    width: 200,
-    height: 200,
-    borderRadius: 10,
-    marginVertical: 5,
-    backgroundColor: "#F0F0F0",
-  },
-  recordMainInfo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-  },
+
   infoColumn: {
     flex: 1,
   },
@@ -493,13 +547,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#5D4037",
-    marginBottom: 10,
-    textAlign: "center",
-  },
+
   tastingGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -528,31 +576,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#5D4037",
   },
-  radarChartContainer: {
-    alignItems: "center",
-    marginBottom: 10,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-  },
-  recordRadarChart: {
-    width: "100%", // wrapContainer の幅に合わせる
-    height: 200, // チャートの適切な高さを指定
-    alignSelf: "center",
-    // レーダーチャートの実装によっては、ここに適切なサイズ指定が必要
-  },
-  memoContainer: {
-    marginBottom: 10,
-    width: "100%", // wrapContainer の幅に合わせる
-  },
-  memoText: {
-    fontSize: 16,
-    color: "#333",
-    backgroundColor: "#F5F5F5", // メモ背景色
-    padding: 10,
-    borderRadius: 8,
-    lineHeight: 22,
-  },
   checkbox: {
     marginBottom: 5,
     alignSelf: "flex-start", // wrapContainer 内で左寄せ
@@ -561,12 +584,14 @@ const styles = StyleSheet.create({
     height: 20,
   },
   deleteButton: {
+    width: "100%", // wrapContainer の幅に合わせる
     backgroundColor: "#D32F2F",
-    paddingVertical: 10,
     borderRadius: 8,
     marginTop: 10, // アイテムの他の部分との間に余白
-    width: "100%", // wrapContainer の幅に合わせる
     alignItems: "center",
+    marginHorizontal: "auto",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
   batchDeleteButton: {
     backgroundColor: "#D32F2F",
