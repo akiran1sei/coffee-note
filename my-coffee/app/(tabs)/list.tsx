@@ -9,7 +9,7 @@ import {
   RefreshControl,
   TouchableOpacity,
   Alert,
-  // ScrollView を FlatList に置き換える
+  ScrollView,
   FlatList,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -329,29 +329,30 @@ export default function ListScreen() {
               />
             </View>
             {/* FlatList に置き換え */}
-
-            <FlatList
-              data={displayedCoffeeRecords}
-              renderItem={renderCoffeeRecord}
-              keyExtractor={(item) => item.id}
-              horizontal={true}
-              style={styles.horizontalList} // 専用のスタイルを適用
-              contentContainerStyle={styles.flatListContentContainer}
-              refreshControl={
-                <RefreshControl
-                  refreshing={refreshing}
-                  onRefresh={handleRefresh}
-                />
-              }
-              removeClippedSubviews={true}
-              maxToRenderPerBatch={5}
-              updateCellsBatchingPeriod={50}
-              windowSize={5}
-              showsHorizontalScrollIndicator={false}
-              snapToAlignment="start" // スナップ効果を追加（オプション）
-              decelerationRate="fast" // 速い減速率（オプション）
-              snapToInterval={370} // カードの幅+マージン（オプション）
-            />
+            <ScrollView>
+              <FlatList
+                data={displayedCoffeeRecords}
+                renderItem={renderCoffeeRecord}
+                keyExtractor={(item) => item.id}
+                horizontal={true}
+                style={styles.horizontalList} // 専用のスタイルを適用
+                contentContainerStyle={styles.flatListContentContainer}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                  />
+                }
+                removeClippedSubviews={true}
+                maxToRenderPerBatch={5}
+                updateCellsBatchingPeriod={50}
+                windowSize={5}
+                showsHorizontalScrollIndicator={false}
+                snapToAlignment="start" // スナップ効果を追加（オプション）
+                decelerationRate="fast" // 速い減速率（オプション）
+                snapToInterval={370} // カードの幅+マージン（オプション）
+              />
+            </ScrollView>
             {/* 一括削除ボタン */}
             {selectedRecords.length > 0 && (
               <TouchableOpacity
@@ -411,7 +412,7 @@ const styles = StyleSheet.create({
   // 横スクロールリスト専用スタイル
   horizontalList: {
     flexGrow: 0,
-    height: 620, // カードの高さに合わせて調整
+    height: "100%", // カードの高さに合わせて調整
     width: "100%",
   },
 
@@ -429,7 +430,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 350,
     marginHorizontal: 10,
-    height: 600, // カードの高さを固定
+    height: "100%", // カードの高さを固定
   },
 
   // カード自体のスタイル
@@ -443,8 +444,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    maxHeight: 580, // 最大高さを設定
-    overflow: "hidden", // はみ出た内容を隠す
+    height: "auto", // 最大高さを設定
   },
 
   // 画像のサイズを調整
@@ -482,13 +482,13 @@ const styles = StyleSheet.create({
     paddingBottom: 5, // 余白を減らす
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
-    height: 160, // 高さを固定
+    height: "auto", // 高さを固定
   },
 
   // レーダーチャート自体
   recordRadarChart: {
     width: "100%",
-    height: 150, // 高さを固定
+    height: "auto", // 高さを固定
     alignSelf: "center",
   },
 
@@ -496,8 +496,7 @@ const styles = StyleSheet.create({
   memoContainer: {
     marginBottom: 5, // 余白を減らす
     width: "100%",
-    maxHeight: 60, // 最大高さを制限
-    overflow: "hidden", // はみ出た内容を隠す
+    height: 150, // 最大高さを制限
   },
 
   // メモテキスト
@@ -507,7 +506,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
     padding: 5, // パディングを減らす
     borderRadius: 8,
-    lineHeight: 18, // 行間を詰める
+    lineHeight: 20, // 行間を詰める
   },
 
   recordItemTouchable: {
