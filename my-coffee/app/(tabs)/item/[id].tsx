@@ -209,7 +209,7 @@ export default function CoffeeItemScreen() {
       }
 
       const svgChart = `
-        <svg width="150" height="150" viewBox="0 0 120 120">
+        <svg width="200" height="200" viewBox="0 0 120 120">
           ${scaleCirclesHtml.join("\n")}
           ${axisLinesHtml.join("\n")}
           <polygon
@@ -254,13 +254,12 @@ export default function CoffeeItemScreen() {
           /* ページ設定 */
           @page {
             size: A4 portrait;
-            margin: 15mm; /* 統一された余白設定 */
           }
           
           body {
             width: 100%;
             font-family: "Helvetica", "Arial", "Hiragino Sans", sans-serif;
-            font-size: 11pt;
+            font-size: 16pt;
             line-height: 1.4;
             color: #333;
             background-color: #fff;
@@ -277,16 +276,16 @@ export default function CoffeeItemScreen() {
           h1 {
             font-size: 18pt;
             color: #222;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
+            margin-bottom: 10px;
+            padding: 10px 0;
             text-align: center;
             border-bottom: 2px solid #555;
           }
       
           h2 {
-            font-size: 14pt;
+            font-size: 16pt;
             color: #444;
-            margin-top: 15px;
+            margin-top: 10px;
             margin-bottom: 10px;
             padding-left: 5px;
             border-left: 4px solid #666;
@@ -294,7 +293,7 @@ export default function CoffeeItemScreen() {
       
           /* セクションコンテナ */
           .section-container {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             padding: 10px;
             background-color: #fafafa;
             border-radius: 5px;
@@ -323,8 +322,8 @@ export default function CoffeeItemScreen() {
           }
       
           .image-container img {
-            width: 110px;
-            height: 110px;
+            width: 100%;
+            height: 100%;
             border-radius: 55px;
             object-fit: cover;
             border: 2px solid #ddd;
@@ -338,7 +337,7 @@ export default function CoffeeItemScreen() {
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 9pt;
+            font-size: 16pt;
             color: #777;
             text-align: center;
             border: 1px dashed #ccc;
@@ -346,8 +345,8 @@ export default function CoffeeItemScreen() {
       
           /* 詳細情報項目 */
           .detail-item {
-            margin-bottom: 8px;
-            font-size: 12pt;
+            margin-bottom: 5px;
+            font-size: 16pt;
             display: flex;
           }
       
@@ -378,8 +377,8 @@ export default function CoffeeItemScreen() {
           }
       
           .chart-container {
-            width: 180px;
-            height: 180px;
+            width: 200px;
+            height: 200px;
             background-color: #fff;
             display: flex;
             justify-content: center;
@@ -390,8 +389,8 @@ export default function CoffeeItemScreen() {
       
           /* 評価項目 */
           .rating-item {
-            margin-bottom: 8px;
-            font-size: 12pt;
+            margin-bottom: 5px;
+            font-size: 16pt;
             display: flex;
             align-items: center;
           }
@@ -424,17 +423,17 @@ export default function CoffeeItemScreen() {
       
           /* メモセクション */
           .memo-section {
-            margin-top: 25px;
+            margin-top: 15px;
           }
       
           .memo-content {
-            font-size: 11pt;
+            font-size: 16pt;
             white-space: pre-wrap;
-            padding: 12px;
+            padding: 0;
             background-color: #f5f5f5;
             border: 1px solid #e0e0e0;
             border-radius: 5px;
-            min-height: 100px;
+            height: 100%;
           }
         </style>
       </head>

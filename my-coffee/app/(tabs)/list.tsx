@@ -330,6 +330,19 @@ export default function ListScreen() {
             </View>
             {/* FlatList に置き換え */}
             <ScrollView>
+              {/* 一括削除ボタン */}
+              {selectedRecords.length > 0 && (
+                <TouchableOpacity
+                  style={styles.batchDeleteButton}
+                  onPress={handleDeleteSelected}
+                >
+                  <Text style={styles.deleteButtonText}>
+                    {selectedRecords.length === 1
+                      ? "1件のレコードを削除"
+                      : `選択した ${selectedRecords.length} 件を削除`}
+                  </Text>
+                </TouchableOpacity>
+              )}
               <FlatList
                 data={displayedCoffeeRecords}
                 renderItem={renderCoffeeRecord}
@@ -353,19 +366,6 @@ export default function ListScreen() {
                 snapToInterval={370} // カードの幅+マージン（オプション）
               />
             </ScrollView>
-            {/* 一括削除ボタン */}
-            {selectedRecords.length > 0 && (
-              <TouchableOpacity
-                style={styles.batchDeleteButton}
-                onPress={handleDeleteSelected}
-              >
-                <Text style={styles.deleteButtonText}>
-                  {selectedRecords.length === 1
-                    ? "1件のレコードを削除"
-                    : `選択した ${selectedRecords.length} 件を削除`}
-                </Text>
-              </TouchableOpacity>
-            )}
           </View>
         </View>
       </View>
@@ -380,9 +380,6 @@ const styles = StyleSheet.create({
   },
   contents: {
     flex: 1,
-    // FlatList を使う場合、contents の justifyContent/alignItems は不要になることが多い
-    // justifyContent: "center",
-    // alignItems: "center",
   },
   absoluteBox: {
     flex: 1,
@@ -397,7 +394,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     height: "100%",
-    maxHeight: 100, // 一定の高さを設定
+    maxHeight: 120, // 一定の高さを設定
     // 必要に応じて paddingHorizontal などを調整
   },
   mainContents: {
