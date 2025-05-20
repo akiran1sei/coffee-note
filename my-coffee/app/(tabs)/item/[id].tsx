@@ -223,16 +223,9 @@ export default function CoffeeItemScreen() {
 
       // 評価バーを直接HTMLで生成する関数
       const createRatingBarHtml = (label: string, value: number) => {
-        const maxRating = 5;
-        const percentage = (value / maxRating) * 100;
         return `
-          <div class="rating-item">
-            <span class="rating-label">${label}:</span>
-            <div class="rating-value">
-              <span class="rating-bar" style="width: ${percentage}%;"></span>
-              <span class="rating-text">${value}</span>
-            </div>
-          </div>
+         <div class="taste-label">${label}</div>
+                <div class="taste-input"> ${value}</div>
         `;
       };
 
@@ -252,298 +245,341 @@ export default function CoffeeItemScreen() {
           }
       
           /* ページ設定 */
-          @page {
-            size: A4 portrait;
-          }
-          
-          body {
-            width: 100%;
-            font-family: "Helvetica", "Arial", "Hiragino Sans", sans-serif;
-            font-size: 16pt;
-            line-height: 1.4;
-            color: #333;
-            background-color: #fff;
-          }
-          
-          /* コンテンツコンテナ */
-          .main-contents {
-            max-width: 210mm; /* A4の幅 */
+          /* A4サイズ指定 (210mm × 297mm) */
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        
+        @media print {
+            html, body {
+                width: 210mm;
+                height: 297mm;
+                margin: 0;
+                padding: 0;
+            }
+                
+            .page {
+                margin: 0;
+                border: initial;
+                border-radius: initial;
+                width: initial;
+                min-height: initial;
+                box-shadow: initial;
+                background: initial;
+                page-break-after: always;
+            }
+        }
+        
+        body {
+            font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+            width: 210mm;
+            height: 297mm;
             margin: 0 auto;
-            padding: 0;
-          }
-      
-          /* 見出し */
-          h1 {
-            font-size: 18pt;
-            color: #222;
-            margin-bottom: 10px;
-            padding: 10px 0;
+            padding: 15mm;
+            color: #333;
+            background-color: white;
+            box-sizing: border-box;
+        }
+        
+        h1 {
             text-align: center;
-            border-bottom: 2px solid #555;
-          }
-      
-          h2 {
-            font-size: 16pt;
-            color: #444;
-            margin-top: 10px;
             margin-bottom: 10px;
-            padding-left: 5px;
-            border-left: 4px solid #666;
-          }
-      
-          /* セクションコンテナ */
-          .section-container {
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: #fafafa;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          }
-      
-          /* 豆情報セクション */
-          .bean-info-contents {
+            font-size: 24px;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .left-column {
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 15px;
-          }
-      
-          .bean-txt {
-            flex: 1;
-          }
-      
-          /* 画像スタイル */
-          .image-container {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .section-title {
+            font-weight: bold;
+            margin: 10px 0 5px;
+            text-align: center;
+        }
+        
+        .field-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        
+        .field-label {
+            background-color: #D2B48C;
+            padding: 8px;
             width: 120px;
-            height: 120px;
+            border-radius: 4px;
+            text-align: center;
+            color: #000;
+        }
+        
+        .field-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-left: 5px;
+            background-color: #fff;
+        }
+        
+        .memo-field {
+            height: 200px;
+        }
+        
+        .image-container {
+            width: 100%;
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .image-item {
+            width: 100%;
+            max-width: 200px;
             display: flex;
-            justify-content: center;
             align-items: center;
-          }
-      
-          .image-container img {
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            border: 1px solid #ddd;
+            margin: 0 auto;
+        }
+        .image-item img {
             width: 100%;
             height: 100%;
-            border-radius: 55px;
             object-fit: cover;
             border: 2px solid #ddd;
           }
-      
-          .no-image-placeholder {
-            width: 110px;
-            height: 110px;
-            border-radius: 55px;
-            background-color: #eee;
+        .taste-field {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 16pt;
-            color: #777;
+            margin-bottom: 8px;
+        }
+        
+        .taste-label {
+            background-color: #D2B48C;
+            padding: 8px;
+            width: 80px;
+            border-radius: 4px;
             text-align: center;
-            border: 1px dashed #ccc;
-          }
-      
-          /* 詳細情報項目 */
-          .detail-item {
-            margin-bottom: 5px;
-            font-size: 16pt;
-            display: flex;
-          }
-      
-          .detail-label {
-            font-weight: bold;
-            color: #555;
-            min-width: 90px;
-            padding-right: 10px;
-          }
-      
-          /* 抽出情報レイアウト */
-          .extraction-info-contents {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-          }
-      
-          /* フレーバーチャートセクション */
-          .flavor-chart-contents {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-          }
-      
-          .flavor-rating {
-            flex: 1;
-          }
-      
-          .chart-container {
-            width: 200px;
-            height: 200px;
+            color: #000;
+        }
+        
+        .taste-input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-left: 5px;
             background-color: #fff;
+        }
+        
+        .radar-chart {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            margin: 15px auto;
+            position: relative;
+        }
+        .radar-chart-image {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
             display: flex;
+            align-items: center;
             justify-content: center;
-            align-items: center;
-            border: 1px solid #eaeaea;
-            border-radius: 5px;
-          }
-      
-          /* 評価項目 */
-          .rating-item {
-            margin-bottom: 5px;
-            font-size: 16pt;
-            display: flex;
-            align-items: center;
-          }
-      
-          .rating-label {
+            font-size: 20px;
             font-weight: bold;
-            color: #555;
-            width: 70px;
-          }
-      
-          .rating-value {
-            flex: 1;
-            display: flex;
-            align-items: center;
-          }
-      
-          /* 評価バー表示 */
-          .rating-bar {
-            display: inline-block;
-            height: 10px;
-            background-color: #4a86e8;
-            border-radius: 2px;
-            margin-right: 5px;
-          }
-      
-          .rating-text {
-            display: inline-block;
-            vertical-align: middle;
-          }
-      
-          /* メモセクション */
-          .memo-section {
-            margin-top: 15px;
-          }
-      
-          .memo-content {
-            font-size: 16pt;
-            white-space: pre-wrap;
-            padding: 0;
-            background-color: #f5f5f5;
-            border: 1px solid #e0e0e0;
-            border-radius: 5px;
-            height: 100%;
-          }
+            border: 1px solid #ddd;
+            margin: 0 auto;
+            padding: 10px 0;
+        }
+       
+        
+        /* Responsive adjustments */
+        @media screen and (max-width: 768px) {
+            body {
+                width: 100%;
+                height: auto;
+                padding: 10px;
+            }
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .field-label, .taste-label {
+                width: 100px;
+                font-size: 14px;
+            }
+        }
         </style>
       </head>
       <body>
-      <div class="main-contents">
-        <h1>${coffeeRecord.name}</h1>
-      
-        <div class="section-container">
-          <h2>豆の情報</h2>
-          <div class="bean-info-contents">
-            <div class="bean-txt">
-              <div class="detail-item">
-                <span class="detail-label">種類:</span> 
-                <span>${coffeeRecord.variety || "未記入"}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">産地:</span> 
-                <span>${coffeeRecord.productionArea || "未記入"}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">焙煎度:</span> 
-                <span>${coffeeRecord.roastingDegree || "未記入"}</span>
-              </div>
+<div class="page">
+         <h1>${coffeeRecord.name}</h1>
+    
+    <div class="container">
+        <div class="left-column">
+            <div class="section-title">豆の情報</div>
+            
+            <div class="field-row">
+                <div class="field-label">種類</div>
+                <div class="field-input">${
+                  coffeeRecord.variety || "未記入"
+                }</div>
             </div>
+            
+            <div class="field-row">
+                <div class="field-label">産地</div>
+                <div class="field-input">${
+                  coffeeRecord.productionArea || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">焙煎度</div>
+                <div class="field-input">${
+                  coffeeRecord.roastingDegree || "未記入"
+                }</div>
+            </div>
+            
+            <div class="section-title">抽出情報</div>
+            
+            <div class="field-row">
+                <div class="field-label">抽出器具</div>
+                <div class="field-input">${
+                  coffeeRecord.extractionMethod || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">抽出メーカー</div>
+                <div class="field-input">${
+                  coffeeRecord.extractionMaker || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">挽き目</div>
+                <div class="field-input">${
+                  coffeeRecord.grindSize || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">注出温度</div>
+                <div class="field-input">${
+                  coffeeRecord.temperature || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">粉量</div>
+                <div class="field-input">${
+                  coffeeRecord.coffeeAmount || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">水量</div>
+                <div class="field-input">${
+                  coffeeRecord.waterAmount || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">抽出時間</div>
+                <div class="field-input">${
+                  coffeeRecord.extractionTime || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">豆/水比率</div>
+                <div class="field-input">${
+                  coffeeRecord.coffeeAmount && coffeeRecord.waterAmount
+                    ? `1:${
+                        Math.round(
+                          (coffeeRecord.waterAmount /
+                            coffeeRecord.coffeeAmount) *
+                            10
+                        ) / 10
+                      }`
+                    : "計算不可"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">メモ</div>
+                <div class="field-input memo-field"> ${
+                  coffeeRecord.memo || "未記入"
+                }</div>
+            </div>
+        </div>
+        
+        <div class="right-column">
             <div class="image-container">
-              ${imageHtml}
+                <div class="image-item">${imageHtml}</div>
             </div>
-          </div>
-        </div>
-      
-        <div class="section-container">
-          <h2>抽出情報</h2>
-          <div class="extraction-info-contents">
-            <div class="detail-item">
-              <span class="detail-label">抽出器具:</span> 
-              <span>${coffeeRecord.extractionMethod || "未記入"}</span>
+            
+            <div class="section-title">味わいの評価（５点満点）</div>
+            <div class="taste-field">
+                  ${createRatingBarHtml(
+                    "酸味",
+                    Number(coffeeRecord.acidity) || 0
+                  )}
             </div>
-            <div class="detail-item">
-              <span class="detail-label">抽出メーカー:</span> 
-              <span>${coffeeRecord.extractionMaker || "未記入"}</span>
+           
+            
+            <div class="taste-field">
+               ${createRatingBarHtml(
+                 "甘味",
+                 Number(coffeeRecord.sweetness) || 0
+               )}
             </div>
-            <div class="detail-item">
-              <span class="detail-label">挽き目:</span> 
-              <span>${coffeeRecord.grindSize || "未記入"}</span>
+            
+            <div class="taste-field">
+                 ${createRatingBarHtml(
+                   "苦味",
+                   Number(coffeeRecord.bitterness) || 0
+                 )}
             </div>
-            <div class="detail-item">
-              <span class="detail-label">注湯温度:</span> 
-              <span>${coffeeRecord.temperature || "未記入"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">粉量:</span> 
-              <span>${coffeeRecord.coffeeAmount || "未記入"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">水量:</span> 
-              <span>${coffeeRecord.waterAmount || "未記入"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">抽出時間:</span> 
-              <span>${coffeeRecord.extractionTime || "未記入"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">豆/水比率:</span> 
-              <span>${
-                coffeeRecord.coffeeAmount && coffeeRecord.waterAmount
-                  ? `1:${
-                      Math.round(
-                        (coffeeRecord.waterAmount / coffeeRecord.coffeeAmount) *
-                          10
-                      ) / 10
-                    }`
-                  : "計算不可"
-              }</span>
-            </div>
-          </div>
-        </div>
-      
-        <div class="section-container">
-          <h2>味わいの評価</h2>
-          <div class="flavor-chart-contents">
-            <div class="flavor-rating">
-              ${createRatingBarHtml("酸味", Number(coffeeRecord.acidity) || 0)}
-              ${createRatingBarHtml(
-                "甘味",
-                Number(coffeeRecord.sweetness) || 0
-              )}
-              ${createRatingBarHtml(
-                "苦味",
-                Number(coffeeRecord.bitterness) || 0
-              )}
+            
+            <div class="taste-field">
               ${createRatingBarHtml("コク", Number(coffeeRecord.body) || 0)}
-              ${createRatingBarHtml("香り", Number(coffeeRecord.aroma) || 0)}
-              ${createRatingBarHtml(
-                "後味",
-                Number(coffeeRecord.aftertaste) || 0
-              )}
             </div>
-            <div class="chart-container">
-              ${svgChart}
+            
+            <div class="taste-field">
+                 ${createRatingBarHtml("香り", Number(coffeeRecord.aroma) || 0)}
             </div>
-          </div>
+            
+            <div class="taste-field">
+                ${createRatingBarHtml(
+                  "後味",
+                  Number(coffeeRecord.aftertaste) || 0
+                )}
+            </div>
+            
+            <div class="radar-chart">
+                <!-- Placeholder for radar chart -->
+              
+                <div class="radar-chart-image">${svgChart}</div>
+            
+            </div>
         </div>
-      
-        <div class="section-container memo-section">
-          <h2>MEMO</h2>
-          <div class="memo-content">
-      ${coffeeRecord.memo || "未記入"}
-          </div>
-        </div>
-      </div>
+    </div>
+</div>
       </body>
       </html>
       `;
