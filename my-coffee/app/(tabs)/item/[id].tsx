@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import * as FileSystem from "expo-file-system";
+import { Asset } from "expo-asset"; // Expo環境の場合
 import * as Sharing from "expo-sharing";
 import * as Print from "expo-print";
 import {
@@ -30,7 +31,63 @@ import {
 type RouteParams = {
   id: string;
 };
+const STAR_ASSET_MODULES = {
+  Star0: require("../../../assets/images/Star0.png"),
+  Star0_5: require("../../../assets/images/Star0.5.png"), // 0.5はファイル名としてハイフンやアンダースコアを使うのが一般的
+  Star1: require("../../../assets/images/Star1.png"),
+  Star1_5: require("../../../assets/images/Star1.5.png"),
+  Star2: require("../../../assets/images/Star2.png"),
+  Star2_5: require("../../../assets/images/Star2.5.png"),
+  Star3: require("../../../assets/images/Star3.png"),
+  Star3_5: require("../../../assets/images/Star3.5.png"),
+  Star4: require("../../../assets/images/Star4.png"),
+  Star4_5: require("../../../assets/images/Star4.5.png"),
+  Star5: require("../../../assets/images/Star5.png"),
+  // 他の単一の星画像やNo Image画像などもここに追加
+  no_image: require("../../../assets/images/no-image.png"), // 例: no-image.png
+};
+let Base64Cache: string | null = null;
 
+let base64ImageCache: { [key: string]: string } = {};
+
+// 画像キー（例: 'Star3_5'）を受け取ってBase64形式で返す汎用関数
+const getBase64ImageByKey = async (
+  imageKey: keyof typeof STAR_ASSET_MODULES
+): Promise<string> => {
+  if (base64ImageCache[imageKey]) {
+    return base64ImageCache[imageKey];
+  }
+
+  const assetModule = STAR_ASSET_MODULES[imageKey];
+  if (!assetModule) {
+    console.error(`Asset module not found for key: ${imageKey}`);
+    return "";
+  }
+
+  try {
+    const asset = Asset.fromModule(assetModule);
+    await asset.downloadAsync();
+
+    const base64 = await FileSystem.readAsStringAsync(
+      asset.localUri || asset.uri,
+      {
+        encoding: FileSystem.EncodingType.Base64,
+      }
+    );
+    // 画像がPNGであることを想定しています。もしJPEGなら 'image/jpeg' に変更
+    base64ImageCache[imageKey] = `data:image/png;base64,${base64}`;
+    return base64ImageCache[imageKey];
+  } catch (err) {
+    console.error(`Error loading asset ${imageKey}:`, err);
+    return "";
+  }
+};
+
+// この関数は、アプリ起動時やコンポーネントのマウント時などに一度だけ呼び出すことを推奨します
+// 例:
+// useEffect(() => {
+//   getStarGaugeBase64();
+// }, []);
 export default function CoffeeItemScreen() {
   const route = useRoute();
   const router = useRouter();
@@ -222,13 +279,49 @@ export default function CoffeeItemScreen() {
         </svg>`;
 
       // 評価バーを直接HTMLで生成する関数
-      const createRatingBarHtml = (label: string, value: number) => {
-        return `
-         <div class="taste-label">${label}</div>
-                <div class="taste-input"> ${value}</div>
-        `;
-      };
+      const createRatingBarHtml = async (label: string, value: number) => {
+        // value を基に適切な星画像キーを生成
+        const roundedValue = Math.round(value * 2) / 2; // 0.5刻みに丸める
+        const imageKey = `Star${roundedValue
+          .toString()
+          .replace(".", "_")}` as keyof typeof STAR_ASSET_MODULES;
 
+        const starBase64 = await getBase64ImageByKey(imageKey);
+
+        return `
+        <div class="taste-field">
+          <div class="taste-label">${label}</div>
+          <div class="taste-input">
+            <img src="${starBase64}" alt="Star Rating" style="width: 80%; height: auto; vertical-align: middle;" />
+            <span class="rating-text">${value}</span>
+          </div>
+        </div>
+      `;
+      };
+      const acidityHtml = await createRatingBarHtml(
+        "酸味",
+        Number(coffeeRecord.acidity) || 0
+      );
+      const sweetnessHtml = await createRatingBarHtml(
+        "甘味",
+        Number(coffeeRecord.sweetness) || 0
+      );
+      const bitternessHtml = await createRatingBarHtml(
+        "苦味",
+        Number(coffeeRecord.bitterness) || 0
+      );
+      const bodyHtml = await createRatingBarHtml(
+        "コク",
+        Number(coffeeRecord.body) || 0
+      );
+      const aromaHtml = await createRatingBarHtml(
+        "香り",
+        Number(coffeeRecord.aroma) || 0
+      );
+      const aftertasteHtml = await createRatingBarHtml(
+        "後味",
+        Number(coffeeRecord.aftertaste) || 0
+      );
       // HTML生成
       const htmlContent = `
       <!DOCTYPE html>
@@ -534,42 +627,13 @@ export default function CoffeeItemScreen() {
             </div>
             
             <div class="section-title">味わいの評価（５点満点）</div>
-            <div class="taste-field">
-                  ${createRatingBarHtml(
-                    "酸味",
-                    Number(coffeeRecord.acidity) || 0
-                  )}
-            </div>
-           
+        ${acidityHtml}
+            ${sweetnessHtml}
+            ${bitternessHtml}
+            ${bodyHtml}
+            ${aromaHtml}
+            ${aftertasteHtml}
             
-            <div class="taste-field">
-               ${createRatingBarHtml(
-                 "甘味",
-                 Number(coffeeRecord.sweetness) || 0
-               )}
-            </div>
-            
-            <div class="taste-field">
-                 ${createRatingBarHtml(
-                   "苦味",
-                   Number(coffeeRecord.bitterness) || 0
-                 )}
-            </div>
-            
-            <div class="taste-field">
-              ${createRatingBarHtml("コク", Number(coffeeRecord.body) || 0)}
-            </div>
-            
-            <div class="taste-field">
-                 ${createRatingBarHtml("香り", Number(coffeeRecord.aroma) || 0)}
-            </div>
-            
-            <div class="taste-field">
-                ${createRatingBarHtml(
-                  "後味",
-                  Number(coffeeRecord.aftertaste) || 0
-                )}
-            </div>
             
             <div class="radar-chart">
                 <!-- Placeholder for radar chart -->
