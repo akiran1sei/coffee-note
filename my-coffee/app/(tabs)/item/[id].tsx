@@ -463,13 +463,14 @@ export default function CoffeeItemScreen() {
         .taste-label {
             background-color: #D2B48C;
             padding: 8px;
-            width: 80px;
+            width: 50%;
             border-radius: 4px;
             text-align: center;
             color: #000;
         }
         
         .taste-input {
+        width: auto;
             flex-grow: 1;
             padding: 8px;
             border: 1px solid #ccc;
@@ -627,7 +628,7 @@ export default function CoffeeItemScreen() {
             </div>
             
             <div class="section-title">味わいの評価（５点満点）</div>
-        ${acidityHtml}
+            ${acidityHtml}
             ${sweetnessHtml}
             ${bitternessHtml}
             ${bodyHtml}
