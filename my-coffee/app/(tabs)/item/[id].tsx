@@ -979,11 +979,12 @@ const styles = StyleSheet.create({
   radarChartContainer: {
     width: "100%",
     alignItems: "center",
-    marginTop: 20,
+    marginVertical: 20,
   },
   recordRadarChart: {
     width: 250,
     height: 250,
+    marginVertical: 20,
   },
   memoContainer: {
     width: "100%",
