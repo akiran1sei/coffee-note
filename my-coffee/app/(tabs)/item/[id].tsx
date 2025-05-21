@@ -329,227 +329,274 @@ export default function CoffeeItemScreen() {
       <head>
         <meta charset="utf-8">
         <title>${coffeeRecord.name}</title>
-        <style>
-          /* リセットとベース設定 */
-          * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-          }
-      
-          /* ページ設定 */
-          /* A4サイズ指定 (210mm × 297mm) */
-        @page {
-            size: A4;
-            margin: 0;
-        }
-        
-        @media print {
-            html, body {
-                width: 210mm;
-                height: 297mm;
-                margin: 0;
-                padding: 0;
-            }
-                
-            .page {
-                margin: 0;
-                border: initial;
-                border-radius: initial;
-                width: initial;
-                min-height: initial;
-                box-shadow: initial;
-                background: initial;
-                page-break-after: always;
-            }
-        }
-        
-        body {
-            font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+   <style>
+    /* ------------------------------------------------------------------- */
+    /* リセットとベース設定 */
+    /* ------------------------------------------------------------------- */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* ページ設定 (A4サイズ指定 210mm × 297mm) */
+    /* ------------------------------------------------------------------- */
+    @page {
+        size: A4;
+        margin: 0;
+    }
+    
+    @media print {
+        html, body {
             width: 210mm;
             height: 297mm;
-            margin: 0 auto;
-            padding: 15mm;
-            color: #333;
-            background-color: white;
-            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-        
-        h1 {
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 24px;
+                        
+        .page {
+            margin: 0;
+            border: initial;
+            border-radius: initial;
+            width: initial;
+            min-height: initial;
+            box-shadow: initial;
+            background: initial;
+            page-break-after: always;
         }
-        
-        .container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        
-        .left-column {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .right-column {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .section-title {
-            font-weight: bold;
-            margin: 10px 0 5px;
-            text-align: center;
-        }
-        
-        .field-row {
-            display: flex;
-            margin-bottom: 8px;
-        }
-        
-        .field-label {
-            background-color: #D2B48C;
-            padding: 8px;
-            width: 120px;
-            border-radius: 4px;
-            text-align: center;
-            color: #000;
-        }
-        
-        .field-input {
-            flex-grow: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-left: 5px;
-            background-color: #fff;
-        }
-        
-        .memo-field {
-            height: 200px;
-        }
-        
-        .image-container {
-            width: 100%;
-            text-align: center;
-            margin: 15px 0;
-        }
-        
-        .image-item {
-            width: 100%;
-            max-width: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-            border: 1px solid #ddd;
-            margin: 0 auto;
-        }
-        .image-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border: 2px solid #ddd;
-          }
-        .taste-field {
-            display: flex;
-            margin-bottom: 8px;
-        }
-        
-        .taste-label {
-            background-color: #D2B48C;
-            padding: 8px;
-            width: 50%;
-            border-radius: 4px;
-            text-align: center;
-            color: #000;
-        }
-        
-        .taste-input {
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* Bodyの基本スタイル */
+    /* ------------------------------------------------------------------- */
+    body {
+        font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+        width: 210mm;
+        height: 297mm;
+        margin: 0 auto;
+        padding: 15mm;
+        color: #333;
+        background-color: rgba(250, 245, 240, 1);
+        box-sizing: border-box;
+    }
+
+    /* ------------------------------------------------------------------- */
+    /* タイトルとカラムレイアウト */
+    /* ------------------------------------------------------------------- */
+    .title {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 24px;
+    }
+    
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    .left-column {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .right-column {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* セクションタイトル */
+    /* ------------------------------------------------------------------- */
+    .section-title {
+        font-weight: bold;
+        margin: 10px 0 5px;
+        text-align: center;
+        color: rgba(70, 70, 70, 1);
+        font-size: 20px;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* 項目行のスタイル (field-row, field-label, field-input) */
+    /* ------------------------------------------------------------------- */
+    .field-row {
+        display: flex;
+        margin-bottom: 8px;
+    }
+    
+    .field-label {
+        background-color: #D2B48C;
+        padding: 8px;
+        width: 120px;
+        border-radius: 4px;
+        text-align: center;
+        color: rgba(100, 100, 100, 1);
+    }
+    
+    .field-input {
+        flex-grow: 1;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-left: 5px;
+        background-color: #fff;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* メモ欄のスタイル */
+    /* ------------------------------------------------------------------- */
+    .memo-field {
+        height: 200px;
+        color: rgba(0, 90, 60, 1);
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* 画像コンテナのスタイル */
+    /* ------------------------------------------------------------------- */
+    .image-container {
+        width: 100%;
+        text-align: center;
+        margin: 15px 0;
+    }
+    
+    .image-item {
+        width: 100%;
+        max-width: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: bold;
+        border: 1px solid #ddd;
+        margin: 0 auto;
+    }
+    .image-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border: 2px solid #ddd;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* 味わい評価部分のスタイル (taste-field, taste-label, taste-input) */
+    /* ------------------------------------------------------------------- */
+    .taste-field {
+        display: flex;
+        margin-bottom: 8px;
+    }
+    
+    .container-wrap {
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 8px;
+    }
+    
+    .taste-label {
+        background-color: #D2B48C;
+        padding: 8px;
+        width: 50%;
+        border-radius: 4px;
+        text-align: center;
+        color: #000;
+    }
+    
+    .taste-input {
         width: auto;
-            flex-grow: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-left: 5px;
-            background-color: #fff;
+        flex-grow: 1;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-left: 5px;
+        background-color: #fff;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* レーダーチャートのスタイル */
+    /* ------------------------------------------------------------------- */
+    .radar-chart {
+        width: 100%;
+        max-width: 300px;
+        height: auto;
+        margin: 15px auto;
+        position: relative;
+    }
+    .radar-chart-image {
+        width: 100%;
+        max-width: 300px;
+        height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: bold;
+        border: 1px solid #ddd;
+        margin: 0 auto;
+        padding: 10px 0;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* 評価テキストのスタイル */
+    /* ------------------------------------------------------------------- */
+    .rating-text {
+        color: rgba(0, 80, 150, 1);
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    /* ------------------------------------------------------------------- */
+    /* レスポンシブ調整 */
+    /* ------------------------------------------------------------------- */
+    @media screen and (max-width: 768px) {
+        body {
+            width: 100%;
+            height: auto;
+            padding: 10px;
+        }
+        .container {
+            grid-template-columns: 1fr;
         }
         
-        .radar-chart {
-            width: 100%;
-            max-width: 300px;
-            height: auto;
-            margin: 15px auto;
-            position: relative;
+        .field-label, .taste-label {
+            width: 100px;
+            font-size: 14px;
         }
-        .radar-chart-image {
-            width: 100%;
-            max-width: 300px;
-            height: auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: bold;
-            border: 1px solid #ddd;
-            margin: 0 auto;
-            padding: 10px 0;
-        }
-       
-        
-        /* Responsive adjustments */
-        @media screen and (max-width: 768px) {
-            body {
-                width: 100%;
-                height: auto;
-                padding: 10px;
-            }
-            .container {
-                grid-template-columns: 1fr;
-            }
-            
-            .field-label, .taste-label {
-                width: 100px;
-                font-size: 14px;
-            }
-        }
-        </style>
+    }
+</style>
       </head>
       <body>
 <div class="page">
-         <h1>${coffeeRecord.name}</h1>
+         <h1 class="title">${coffeeRecord.name}</h1>
     
     <div class="container">
         <div class="left-column">
-            <div class="section-title">豆の情報</div>
-            
-            <div class="field-row">
-                <div class="field-label">種類</div>
-                <div class="field-input">${
-                  coffeeRecord.variety || "未記入"
-                }</div>
+            <h2 class="section-title">豆の情報</h2>
+            <div class="container-wrap"> 
+                <div class="field-row">
+                    <div class="field-label">種類</div>
+                    <div class="field-input">${
+                      coffeeRecord.variety || "未記入"
+                    }</div>
+                </div>
+                
+                <div class="field-row">
+                    <div class="field-label">産地</div>
+                    <div class="field-input">${
+                      coffeeRecord.productionArea || "未記入"
+                    }</div>
+                </div>
+                
+                <div class="field-row">
+                    <div class="field-label">焙煎度</div>
+                    <div class="field-input">${
+                      coffeeRecord.roastingDegree || "未記入"
+                    }</div>
+                </div>
             </div>
-            
-            <div class="field-row">
-                <div class="field-label">産地</div>
-                <div class="field-input">${
-                  coffeeRecord.productionArea || "未記入"
-                }</div>
-            </div>
-            
-            <div class="field-row">
-                <div class="field-label">焙煎度</div>
-                <div class="field-input">${
-                  coffeeRecord.roastingDegree || "未記入"
-                }</div>
-            </div>
-            
-            <div class="section-title">抽出情報</div>
-            
+            <h2 class="section-title">抽出情報</h2>
+            <div class="container-wrap">
             <div class="field-row">
                 <div class="field-label">抽出器具</div>
                 <div class="field-input">${
@@ -620,26 +667,28 @@ export default function CoffeeItemScreen() {
                   coffeeRecord.memo || "未記入"
                 }</div>
             </div>
+            </div>
         </div>
         
         <div class="right-column">
             <div class="image-container">
-                <div class="image-item">${imageHtml}</div>
+                <div class="image-item container-wrap">${imageHtml}</div>
             </div>
             
-            <div class="section-title">味わいの評価（５点満点）</div>
+            <h2 class="section-title">味わいの評価（５点満点）</h2>
+           <div class="container-wrap"> 
             ${acidityHtml}
             ${sweetnessHtml}
             ${bitternessHtml}
             ${bodyHtml}
             ${aromaHtml}
             ${aftertasteHtml}
-            
-            
+            </div>
+
             <div class="radar-chart">
                 <!-- Placeholder for radar chart -->
               
-                <div class="radar-chart-image">${svgChart}</div>
+                <div class="radar-chart-image container-wrap">${svgChart}</div>
             
             </div>
         </div>
