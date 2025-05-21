@@ -223,7 +223,7 @@ const CoffeeItemScreen = () => {
                       </Text>
                     </View>
                     <View style={styles.infoItem}>
-                      <Text style={styles.label}>抽出メーカー:</Text>
+                      <Text style={styles.label}>抽出器具:</Text>
                       <Text style={styles.value}>
                         {coffeeRecord.extractionMaker || "未記入"}
                       </Text>

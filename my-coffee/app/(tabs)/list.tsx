@@ -210,7 +210,7 @@ export default function ListScreen() {
                 <InfoRow label="産地" value={record.productionArea} />
                 <InfoRow label="焙煎度" value={record.roastingDegree} />
                 <InfoRow label="抽出器具" value={record.extractionMethod} />
-                <InfoRow label="抽出メーカー" value={record.extractionMaker} />
+                <InfoRow label="抽出器具" value={record.extractionMaker} />
               </View>
 
               <View style={styles.infoColumn}>

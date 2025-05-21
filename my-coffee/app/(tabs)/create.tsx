@@ -94,7 +94,7 @@ export default function CreateScreen() {
   });
   const [SelectLabel, setSelectLabel] = useState({
     roastingDegree: "焙煎度",
-    extractionMaker: "抽出メーカー",
+    extractionMaker: "抽出器具",
     extractionMethod: "抽出方法",
     grindSize: "挽き目",
     variety: "品種",
@@ -310,7 +310,7 @@ export default function CreateScreen() {
             />
             <HierarchicalCoffeeSelect
               primaryTitle="抽出方法"
-              secondaryTitle="抽出メーカー"
+              secondaryTitle="抽出器具"
               onPrimaryChange={(value) =>
                 handleSelectChange("extractionMethod", value)
               }

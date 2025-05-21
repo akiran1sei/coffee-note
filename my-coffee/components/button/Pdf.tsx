@@ -525,7 +525,7 @@ const PdfButtonComponent: React.FC<PdfItemProps> = () => {
                         }</span>
                       </div>
                       <div class="detail-item">
-                        <span class="detail-label">抽出メーカー:</span>
+                        <span class="detail-label">抽出器具:</span>
                         <span class="detail-value">${
                           coffeeRecord.extractionMaker || "未記入"
                         }</span>

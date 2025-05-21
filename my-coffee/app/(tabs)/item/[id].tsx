@@ -605,7 +605,7 @@ export default function CoffeeItemScreen() {
             </div>
             
             <div class="field-row">
-                <div class="field-label">抽出メーカー</div>
+                <div class="field-label">抽出器具</div>
                 <div class="field-input">${
                   coffeeRecord.extractionMaker || "未記入"
                 }</div>
@@ -795,7 +795,7 @@ export default function CoffeeItemScreen() {
                 </Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.labelText}>抽出メーカー</Text>
+                <Text style={styles.labelText}>抽出器具</Text>
                 <Text style={styles.valueText}>
                   {coffeeRecord.extractionMaker}
                 </Text>
