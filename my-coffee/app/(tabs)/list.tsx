@@ -11,6 +11,7 @@ import {
   Alert,
   ScrollView,
   FlatList,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import HeaderComponent from "../../components/HeaderComponent";
@@ -22,6 +23,9 @@ import RadarChart from "../../components/RadarChart/RadarChart";
 import Checkbox from "expo-checkbox";
 import SearchComponent from "../../components/button/Search";
 import SortComponent from "@/components/button/Sort";
+
+// 画面サイズを取得
+const { width: screenWidth } = Dimensions.get("window");
 
 export default function ListScreen() {
   const router = useRouter();
@@ -37,48 +41,44 @@ export default function ListScreen() {
   const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
   // プルツーリフレッシュの状態
   const [refreshing, setRefreshing] = useState(false);
-  // 不要な State を削除: const [coffeeRecords, setCoffeeRecords] = useState<CoffeeRecord[]>([]);
 
   // データの取得と State 更新
   const fetchData = useCallback(async () => {
     try {
-      setLoading(true); // データ取得開始時にローディングを true に
+      setLoading(true);
       const records = await CoffeeStorageService.getAllCoffeeRecords();
       setAllCoffeeRecords(records);
-      setDisplayedCoffeeRecords(records); // 最初はすべてのデータを表示
+      setDisplayedCoffeeRecords(records);
     } catch (error) {
       console.error("データの取得に失敗しました:", error);
     } finally {
-      setLoading(false); // データ取得完了後にローディングを解除
+      setLoading(false);
     }
-  }, []); // useCallback を使用して関数をメモ化
+  }, []);
 
   // コンポーネントマウント時にデータを読み込む
   useEffect(() => {
-    fetchData(); // useCallback でメモ化した関数を呼び出す
-  }, [fetchData]); // 依存配列に fetchData を追加 (useCallback を使っているので実質的には初回のみ実行)
+    fetchData();
+  }, [fetchData]);
 
   // SearchComponent から検索結果を受け取るハンドラー
-  const handleSearch = useCallback(
-    (results: CoffeeRecord[]) => {
-      console.log("検索結果:", results);
-      setDisplayedCoffeeRecords(results); // 検索結果で表示するデータを更新
-    },
-    [] // useCallback を使用して関数をメモ化
-  );
+  const handleSearch = useCallback((results: CoffeeRecord[]) => {
+    console.log("検索結果:", results);
+    setDisplayedCoffeeRecords(results);
+  }, []);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchData(); // fetchData は既に loading を制御するのでここでは不要
+    await fetchData();
     setRefreshing(false);
-  }, [fetchData]); // 依存配列に fetchData を追加
+  }, [fetchData]);
 
   // チェックボックスの選択状態を管理
   const toggleSelection = useCallback((id: string) => {
     setSelectedRecords((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
-  }, []); // useCallback を使用して関数をメモ化
+  }, []);
 
   // 選択されたレコードを削除
   const handleDeleteSelected = useCallback(async () => {
@@ -91,37 +91,37 @@ export default function ListScreen() {
 
     confirmDelete(message, async () => {
       try {
-        setLoading(true); // 削除処理開始時にローディング
+        setLoading(true);
         for (const id of selectedRecords) {
           await CoffeeStorageService.deleteCoffeeRecord(id);
         }
         setSelectedRecords([]);
-        await fetchData(); // データ再取得
+        await fetchData();
       } catch (error) {
         console.error("レコードの削除に失敗しました:", error);
       } finally {
-        setLoading(false); // 削除処理完了後にローディング解除
+        setLoading(false);
       }
     });
-  }, [selectedRecords, fetchData]); // 依存配列に selectedRecords と fetchData を追加
+  }, [selectedRecords, fetchData]);
 
   // 単一レコードの削除
   const handleDeleteRecord = useCallback(
     async (id: string) => {
       confirmDelete("このレコードを削除しますか？", async () => {
         try {
-          setLoading(true); // 削除処理開始時にローディング
+          setLoading(true);
           await CoffeeStorageService.deleteCoffeeRecord(id);
-          await fetchData(); // データ再取得
+          await fetchData();
         } catch (error) {
           console.error("レコードの削除に失敗しました:", error);
         } finally {
-          setLoading(false); // 削除処理完了後にローディング解除
+          setLoading(false);
         }
       });
     },
     [fetchData]
-  ); // 依存配列に fetchData を追加
+  );
 
   // 削除確認ダイアログを表示
   const confirmDelete = useCallback(
@@ -146,34 +146,27 @@ export default function ListScreen() {
         );
       }
     },
-    [] // useCallback を使用して関数をメモ化
+    []
   );
 
   // 画像URIを環境に応じて適切に処理する関数
   const getImageSource = useCallback(
     (uri?: string | null): ImageSourcePropType => {
       if (!uri || (Platform.OS === "web" && !uri.startsWith("data:image"))) {
-        // URI がないか、Web 環境で Base64 形式でない場合はデフォルト画像
         return require("../../assets/images/no-image.png");
       }
       if (Platform.OS !== "web" && !uri.startsWith("file://")) {
-        // モバイル環境で file:// が付いていなければ追加
         return { uri: `file://${uri}` };
       }
 
-      return { uri }; // その他の場合はそのまま URI を使用
+      return { uri };
     },
     []
-  ); // useCallback を使用して関数をメモ化
+  );
 
   // レコードアイテムをレンダリングする関数
-  // この関数自体は useCallback で囲む必要はないが、
-  // FlatList の renderItem に渡す場合は、FlatList の最適化のために
-  // ItemSeparatorComponent など他の要素との組み合わせで検討する
   const renderCoffeeRecord = ({ item: record }: { item: CoffeeRecord }) => {
-    // 各アイテムのレンダリングロジックはほぼそのまま
     return (
-      // key は FlatList が自動で付与するため、ここでは不要
       <View style={styles.wrapContainer}>
         <Checkbox
           value={selectedRecords.includes(record.id)}
@@ -186,7 +179,6 @@ export default function ListScreen() {
             const isWeb = Platform.OS === "web";
             const pathname = isWeb ? "/item/web/[id]" : "/item/[id]";
 
-            // router オブジェクトが変更されない限り useCallback は不要だが、念のため
             router.replace({ pathname: pathname, params: { id: record.id } });
           }}
           style={styles.recordItemTouchable}
@@ -195,7 +187,6 @@ export default function ListScreen() {
             {/* ヘッダー情報 */}
             <View style={styles.recordHeader}>
               <Text style={styles.recordTitle}>{record.name}</Text>
-              {/* Image コンポーネントの source を getImageSource で取得 */}
               <Image
                 source={getImageSource(record.imageUri)}
                 style={styles.recordImagePreview}
@@ -235,8 +226,7 @@ export default function ListScreen() {
               </View>
             </View>
 
-            {/* レーダーチャート - パフォーマンスへの影響が大きい可能性 */}
-            {/* 検討: アイテム数が多い場合、一覧では非表示にするか、軽量な表示にする */}
+            {/* レーダーチャート */}
             <View style={styles.radarChartContainer}>
               <Text style={styles.sectionTitle}>フレーバープロファイル</Text>
               <View style={styles.recordRadarChart}>
@@ -276,13 +266,10 @@ export default function ListScreen() {
 
   // handleSort 関数
   const handleSort = useCallback((sortedRecords: CoffeeRecord[]) => {
-    // 表示用のデータを更新
     setDisplayedCoffeeRecords(sortedRecords);
-  }, []); // useCallback を使用して関数をメモ化
+  }, []);
 
-  // 不要な loadCoffeeRecords 関数とその State を削除
-
-  // 情報行を表示するサブコンポーネント (Memo化してパフォーマンス向上を試みる)
+  // 情報行を表示するサブコンポーネント
   const InfoRow = React.memo(
     ({ label, value }: { label: string; value: string | number }) => (
       <View style={styles.infoRow}>
@@ -292,7 +279,7 @@ export default function ListScreen() {
     )
   );
 
-  // テイスティング値を表示するサブコンポーネント (Memo化してパフォーマンス向上を試みる)
+  // テイスティング値を表示するサブコンポーネント
   const TastingValue = React.memo(
     ({ label, value }: { label: string; value: string | number }) => (
       <View style={styles.tastingItem}>
@@ -305,10 +292,8 @@ export default function ListScreen() {
   );
 
   if (loading) {
-    // ローディング中は LoadingComponent を表示
     return <LoadingComponent />;
   } else {
-    // ローディング完了後にメインコンテンツを表示
     return (
       <View style={styles.container}>
         <View style={styles.contents}>
@@ -317,55 +302,53 @@ export default function ListScreen() {
 
           <View style={[styles.absoluteBox, styles.mainContents]}>
             <View style={styles.subMenuBox}>
-              {/* SearchComponent には allCoffeeRecords を渡す */}
               <SearchComponent
                 initialData={allCoffeeRecords}
                 onSearch={handleSearch}
               />
-              {/* SortComponent には allCoffeeRecords を渡して、ソート結果を handleSort で受け取る */}
-              <SortComponent
-                onSort={handleSort}
-                records={allCoffeeRecords} // ソートは常に元の全データに対して行う
-              />
+              <SortComponent onSort={handleSort} records={allCoffeeRecords} />
             </View>
-            {/* FlatList に置き換え */}
-            <ScrollView>
-              {/* 一括削除ボタン */}
-              {selectedRecords.length > 0 && (
-                <TouchableOpacity
-                  style={styles.batchDeleteButton}
-                  onPress={handleDeleteSelected}
-                >
-                  <Text style={styles.deleteButtonText}>
-                    {selectedRecords.length === 1
-                      ? "1件のレコードを削除"
-                      : `選択した ${selectedRecords.length} 件を削除`}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              <FlatList
-                data={displayedCoffeeRecords}
-                renderItem={renderCoffeeRecord}
-                keyExtractor={(item) => item.id}
-                horizontal={true}
-                style={styles.horizontalList} // 専用のスタイルを適用
-                contentContainerStyle={styles.flatListContentContainer}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                  />
-                }
-                removeClippedSubviews={true}
-                maxToRenderPerBatch={5}
-                updateCellsBatchingPeriod={50}
-                windowSize={5}
-                showsHorizontalScrollIndicator={false}
-                snapToAlignment="start" // スナップ効果を追加（オプション）
-                decelerationRate="fast" // 速い減速率（オプション）
-                snapToInterval={370} // カードの幅+マージン（オプション）
-              />
-            </ScrollView>
+
+            {/* 中央配置のためのコンテナを追加 */}
+            <View style={styles.centeredContainer}>
+              <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+                {/* 一括削除ボタン */}
+                {selectedRecords.length > 0 && (
+                  <TouchableOpacity
+                    style={styles.batchDeleteButton}
+                    onPress={handleDeleteSelected}
+                  >
+                    <Text style={styles.deleteButtonText}>
+                      {selectedRecords.length === 1
+                        ? "1件のレコードを削除"
+                        : `選択した ${selectedRecords.length} 件を削除`}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                <FlatList
+                  data={displayedCoffeeRecords}
+                  renderItem={renderCoffeeRecord}
+                  keyExtractor={(item) => item.id}
+                  horizontal={true}
+                  style={styles.horizontalList}
+                  contentContainerStyle={styles.flatListContentContainer}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={handleRefresh}
+                    />
+                  }
+                  removeClippedSubviews={true}
+                  maxToRenderPerBatch={5}
+                  updateCellsBatchingPeriod={50}
+                  windowSize={5}
+                  showsHorizontalScrollIndicator={false}
+                  snapToAlignment="center"
+                  decelerationRate="fast"
+                  snapToInterval={370}
+                />
+              </ScrollView>
+            </View>
           </View>
         </View>
       </View>
@@ -394,22 +377,35 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     alignItems: "center",
     height: "100%",
-    maxHeight: 120, // 一定の高さを設定
-    // 必要に応じて paddingHorizontal などを調整
+    maxHeight: 120,
   },
   mainContents: {
     flex: 1,
-    width: "100%",
-    maxWidth: 500, // Web での最大幅を適用したい場合など
-    marginHorizontal: "auto",
-    top: 210, // HeaderComponent + PageTitleComponent の高さ分 + マージン
+    top: 210,
     bottom: 0,
+    // 中央配置のための設定を削除し、子要素で制御
+  },
+
+  // 中央配置のための新しいコンテナ
+  centeredContainer: {
+    flex: 1,
+    alignItems: "center", // 水平方向の中央配置
+    justifyContent: "center", // 垂直方向の中央配置（必要に応じて）
+    width: "100%",
+  },
+
+  // ScrollViewのコンテナスタイル
+  scrollViewContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: "100%", // 最小高さを100%に設定
+    width: screenWidth > 768 ? Math.min(screenWidth * 0.8, 1200) : screenWidth, // タブレット以上の画面では80%、最大1200px
   },
 
   // 横スクロールリスト専用スタイル
   horizontalList: {
     flexGrow: 0,
-    height: "100%", // カードの高さに合わせて調整
+    height: "100%",
     width: "100%",
   },
 
@@ -418,7 +414,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 15,
     paddingBottom: 10,
-    alignItems: "center", // 各カードを縦方向中央揃え
+    alignItems: "center",
+    // タブレット以上の画面では最初のアイテムを中央から開始
+    ...(screenWidth > 768 && {
+      paddingLeft: Math.max((screenWidth - 370) / 2, 15),
+    }),
   },
 
   // カードのコンテナスタイル
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 350,
     marginHorizontal: 10,
-    height: "100%", // カードの高さを固定
+    height: "100%",
   },
 
   // カード自体のスタイル
@@ -441,73 +441,66 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    height: "auto", // 最大高さを設定
+    height: "auto",
   },
 
-  // 画像のサイズを調整
   recordImagePreview: {
-    width: 150, // 小さくする
-    height: 150, // 小さくする
+    width: 150,
+    height: 150,
     borderRadius: 10,
     marginVertical: 5,
     backgroundColor: "#F0F0F0",
   },
 
-  // メイン情報領域をコンパクトに
   recordMainInfo: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 5, // 余白を減らす
-    paddingBottom: 5, // 余白を減らす
+    marginBottom: 5,
+    paddingBottom: 5,
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
   },
 
-  // セクションタイトルをコンパクトに
   sectionTitle: {
-    fontSize: 16, // 小さくする
+    fontSize: 16,
     fontWeight: "600",
     color: "#5D4037",
-    marginBottom: 5, // 余白を減らす
+    marginBottom: 5,
     textAlign: "center",
   },
 
-  // レーダーチャートのコンテナ
   radarChartContainer: {
     alignItems: "center",
-    marginBottom: 5, // 余白を減らす
-    paddingBottom: 5, // 余白を減らす
+    marginBottom: 5,
+    paddingBottom: 5,
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
-    height: "auto", // 高さを固定
+    height: "auto",
   },
 
-  // レーダーチャート自体
   recordRadarChart: {
     width: "100%",
-    height: "auto", // 高さを固定
+    height: "auto",
     alignSelf: "center",
   },
 
-  // メモコンテナ
   memoContainer: {
-    marginBottom: 5, // 余白を減らす
+    marginBottom: 5,
     width: "100%",
-    height: 150, // 最大高さを制限
+    height: 150,
   },
 
-  // メモテキスト
   memoText: {
-    fontSize: 14, // 小さくする
+    fontSize: 14,
     color: "#333",
     backgroundColor: "#F5F5F5",
-    padding: 5, // パディングを減らす
+    padding: 5,
     borderRadius: 8,
-    lineHeight: 20, // 行間を詰める
+    lineHeight: 20,
   },
 
   recordItemTouchable: {
-    width: "100%", // wrapContainer の幅いっぱいに広げる
+    width: "100%",
     flexDirection: "column",
   },
   recordHeader: {
@@ -550,7 +543,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   tastingItem: {
-    width: "30%", // 3列表示
+    width: "30%",
     marginBottom: 10,
     alignItems: "center",
   },
@@ -565,7 +558,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 5, // ラベルとの間に少し余白
+    marginTop: 5,
   },
   tastingValue: {
     fontSize: 18,
@@ -574,16 +567,16 @@ const styles = StyleSheet.create({
   },
   checkbox: {
     marginBottom: 5,
-    alignSelf: "flex-start", // wrapContainer 内で左寄せ
+    alignSelf: "flex-start",
     marginLeft: 5,
     width: 20,
     height: 20,
   },
   deleteButton: {
-    width: "100%", // wrapContainer の幅に合わせる
+    width: "100%",
     backgroundColor: "#D32F2F",
     borderRadius: 8,
-    marginTop: 10, // アイテムの他の部分との間に余白
+    marginTop: 10,
     alignItems: "center",
     marginHorizontal: "auto",
     paddingVertical: 10,
@@ -596,7 +589,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     width: "80%",
     alignSelf: "center",
-    alignItems: "center", // テキスト中央揃え
+    alignItems: "center",
   },
   deleteButtonText: {
     color: "white",
@@ -605,6 +598,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-// Memo化されたサブコンポーネントをエクスポート (もし別のファイルにある場合)
-// export { InfoRow, TastingValue };
