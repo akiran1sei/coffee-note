@@ -164,10 +164,13 @@ export default function CoffeeItemScreen() {
           imageHtml = `<img src="data:image/jpeg;base64,${base64}" alt="Coffee Image" />`;
         } catch (err) {
           console.error("画像の読み込みエラー:", err);
-          imageHtml = `<div class="no-image-placeholder">No Image</div>`;
+          const noImageBase64 = await getBase64ImageByKey("no_image"); // no_imageもAssetとしてキャッシュから取得
+          imageHtml = `<img src="${noImageBase64}" alt="No Image" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #ddd;" />`;
         }
       } else {
-        imageHtml = `<div class="no-image-placeholder">No Image</div>`;
+        // coffeeRecord.imageUri が null または空文字列の場合
+        const noImageBase64 = await getBase64ImageByKey("no_image"); // no_imageをBase64で取得
+        imageHtml = `<img src="${noImageBase64}" alt="No Image" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #ddd;" />`;
       }
 
       // レーダーチャートのデータ

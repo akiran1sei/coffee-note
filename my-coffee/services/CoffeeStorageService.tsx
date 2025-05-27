@@ -181,10 +181,29 @@ class CoffeeStorageService {
       const filteredRecords = records.filter((record) => record.id !== id);
 
       // 関連する画像があれば削除（モバイル環境のみ）
-      if (!this.isWeb && recordToDelete?.imageUri) {
-        await FileSystem.deleteAsync(recordToDelete.imageUri, {
-          idempotent: true,
-        });
+      if (
+        !this.isWeb && // Web環境ではない
+        recordToDelete?.imageUri && // imageUri が存在し
+        recordToDelete.imageUri !== "default_image_path" && // デフォルトパスではない
+        !recordToDelete.imageUri.startsWith("file://assets/")
+      ) {
+        try {
+          // FileSystem.deleteAsync は 'file://' スキームを期待するので、必要なら付与
+          const uriToDelete = recordToDelete.imageUri.startsWith("file://")
+            ? recordToDelete.imageUri
+            : `file://${recordToDelete.imageUri}`; // 例えば、file:// を付与する場合
+
+          await FileSystem.deleteAsync(uriToDelete, {
+            idempotent: true,
+          });
+          console.log(`画像を削除しました: ${uriToDelete}`);
+        } catch (imageDeleteError) {
+          // 画像の削除に失敗しても、レコードの削除は続行できるようにエラーをログに記録するだけにする
+          console.warn(
+            `画像の削除に失敗しました (${recordToDelete.imageUri}):`,
+            imageDeleteError
+          );
+        }
       }
 
       if (this.isWeb) {
