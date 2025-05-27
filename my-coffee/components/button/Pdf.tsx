@@ -710,7 +710,6 @@ const styles = StyleSheet.create({
     borderRadius: 8, // 角丸
     marginTop: 20, // 上マージン
     width: "90%", // 幅
-    maxWidth: 300, // 最大幅
     alignSelf: "center", // 親要素内で中央寄せ
     alignItems: "center", // テキストを中央寄せ
     justifyContent: "center", // コンテンツを中央寄せ

@@ -8,6 +8,7 @@ import {
   Text,
   Alert,
   Platform,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useRoute } from "@react-navigation/native";
@@ -34,7 +35,8 @@ import {
   LoadingComponent,
   NoRecordComponent,
 } from "@/components/MessageComponent";
-
+// 画面サイズを取得
+const { width: screenWidth } = Dimensions.get("window");
 type RouteParams = {
   id: string;
 };
@@ -601,7 +603,7 @@ const styles = StyleSheet.create({
   },
   mainContents: {
     width: "100%",
-    maxWidth: 600,
+    maxWidth: screenWidth > 768 ? 700 : "100%", // 例: タブレット以上で最大幅を設定
     marginHorizontal: "auto",
     top: 160, // ヘッダーとタイトルに合わせて調整
     bottom: 0,
@@ -614,7 +616,6 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: "90%",
-    maxWidth: 500,
     padding: 20,
     borderRadius: 10,
     backgroundColor: "#fff",

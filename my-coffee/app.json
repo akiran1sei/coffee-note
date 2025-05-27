@@ -39,9 +39,7 @@
       [
         "expo-font",
         {
-          "fonts": [
-            "./assets/fonts/Caveat-VariableFont_wght.ttf"
-          ]
+          "fonts": ["./assets/fonts/Caveat-VariableFont_wght.ttf"]
         }
       ],
       "expo-asset"
