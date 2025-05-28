@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 15,
     paddingBottom: 10,
-    alignItems: "center", // 各カードを縦方向中央揃え
+    alignItems: "flex-start",
   },
 
   // カードのコンテナスタイル
