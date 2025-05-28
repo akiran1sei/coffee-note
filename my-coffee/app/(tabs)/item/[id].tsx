@@ -152,27 +152,47 @@ export default function CoffeeItemScreen() {
 
       // 画像処理
       let imageHtml = "";
-      if (coffeeRecord.imageUri) {
+      // coffeeRecord.imageUri が 'default_image_path' または falsy の場合、デフォルト画像を使用
+      if (
+        !coffeeRecord.imageUri ||
+        coffeeRecord.imageUri === "default_image_path"
+      ) {
+        const noImageBase64 = await getBase64ImageByKey("no_image");
+        // getBase64ImageByKeyは既に "data:image/png;base64,..." 形式で返すのでそのまま使用
+        imageHtml = `<img src="${noImageBase64}" alt="No Image" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #ddd;" />`;
+      } else {
+        // それ以外の場合（ユーザーが画像を指定）
         try {
-          // モバイル環境ではBase64に変換
           const base64 = await FileSystem.readAsStringAsync(
             coffeeRecord.imageUri,
             {
               encoding: FileSystem.EncodingType.Base64,
             }
           );
-          imageHtml = `<img src="data:image/jpeg;base64,${base64}" alt="Coffee Image" />`;
+
+          // ファイル拡張子からMIMEタイプを決定
+          let mimeType = "image/jpeg"; // デフォルトはJPEGと仮定
+          const fileExtension = coffeeRecord.imageUri
+            .split(".")
+            .pop()
+            ?.toLowerCase();
+
+          if (fileExtension === "png") {
+            mimeType = "image/png";
+          } else if (fileExtension === "gif") {
+            mimeType = "image/gif";
+          } // 必要に応じて他の画像形式（webpなど）の条件も追加できます
+
+          imageHtml = `<img src="data:${mimeType};base64,${base64}" alt="Coffee Image" />`;
         } catch (err) {
-          console.error("画像の読み込みエラー:", err);
-          const noImageBase64 = await getBase64ImageByKey("no_image"); // no_imageもAssetとしてキャッシュから取得
+          console.error(
+            "画像の読み込みエラー (uri: " + coffeeRecord.imageUri + "):",
+            err
+          );
+          const noImageBase64 = await getBase64ImageByKey("no_image");
           imageHtml = `<img src="${noImageBase64}" alt="No Image" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #ddd;" />`;
         }
-      } else {
-        // coffeeRecord.imageUri が null または空文字列の場合
-        const noImageBase64 = await getBase64ImageByKey("no_image"); // no_imageをBase64で取得
-        imageHtml = `<img src="${noImageBase64}" alt="No Image" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #ddd;" />`;
       }
-
       // レーダーチャートのデータ
       const radarDataValues = [
         Number(coffeeRecord.acidity) || 0,
