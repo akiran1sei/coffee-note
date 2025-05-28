@@ -256,12 +256,13 @@ export default function ListScreen() {
             </View>
 
             {/* メモ */}
-            {record.memo && (
-              <View style={styles.memoContainer}>
-                <Text style={styles.sectionTitle}>メモ</Text>
+
+            <View style={styles.memoContainer}>
+              <Text style={styles.sectionTitle}>メモ</Text>
+              {record.memo && (
                 <Text style={styles.memoText}>{record.memo}</Text>
-              </View>
-            )}
+              )}
+            </View>
 
             {/* 削除ボタン */}
             <TouchableOpacity
@@ -438,6 +439,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF",
     borderRadius: 12,
     padding: 10,
+    marginBottom: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
