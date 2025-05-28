@@ -34,19 +34,19 @@ type RouteParams = {
   id: string;
 };
 const STAR_ASSET_MODULES = {
-  Star0: require("../../../assets/images/Star0.png"),
-  Star0_5: require("../../../assets/images/Star0.5.png"), // 0.5はファイル名としてハイフンやアンダースコアを使うのが一般的
-  Star1: require("../../../assets/images/Star1.png"),
-  Star1_5: require("../../../assets/images/Star1.5.png"),
-  Star2: require("../../../assets/images/Star2.png"),
-  Star2_5: require("../../../assets/images/Star2.5.png"),
-  Star3: require("../../../assets/images/Star3.png"),
-  Star3_5: require("../../../assets/images/Star3.5.png"),
-  Star4: require("../../../assets/images/Star4.png"),
-  Star4_5: require("../../../assets/images/Star4.5.png"),
-  Star5: require("../../../assets/images/Star5.png"),
+  Star0: require("@/assets/images/Star0.png"), // 0はファイル名としてハイフンやアンダースコアを使うのが一般的
+  Star0_5: require("@/assets/images/Star0_5.png"), // 0_5はファイル名としてハイフンやアンダースコアを使うのが一般的
+  Star1: require("@/assets/images/Star1.png"),
+  Star1_5: require("@/assets/images/Star1_5.png"),
+  Star2: require("@/assets/images/Star2.png"),
+  Star2_5: require("@/assets/images/Star2_5.png"),
+  Star3: require("@/assets/images/Star3.png"),
+  Star3_5: require("@/assets/images/Star3_5.png"),
+  Star4: require("@/assets/images/Star4.png"),
+  Star4_5: require("@/assets/images/Star4_5.png"),
+  Star5: require("@/assets/images/Star5.png"),
   // 他の単一の星画像やNo Image画像などもここに追加
-  no_image: require("../../../assets/images/no-image.png"), // 例: no-image.png
+  no_image: require("@/assets/images/no-image.png"), // 例: no-image.png
 };
 let Base64Cache: string | null = null;
 
