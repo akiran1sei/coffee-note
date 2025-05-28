@@ -4,27 +4,22 @@ module.exports = function (api) {
 
   return {
     presets: [
-      // Expo を使っている場合、通常は 'babel-preset-expo' を使います
-      "babel-preset-expo",
-      // もし Expo を使っておらず、React Native CLI のみの場合、
-      // 'module:metro-react-native-babel-preset' を使うかもしれません
+      "babel-preset-expo", // Expo アプリの基本的なBabel設定
     ],
     plugins: [
-      // ここに 'module-resolver' プラグインを追加します
+      // 他のプラグインがあればここに追加
+
+      // ======== ここから expo-router/babel の設定 ========
+      "expo-router/babel",
+      // ======== ここまで expo-router/babel の設定 ========
+
+      // もし module-resolver を使っている場合はここに追加
       [
         "module-resolver",
         {
           alias: {
-            // ここでエイリアスのマッピングを定義します
-            // あなたの tsconfig.json の設定に合わせてください
-            // tsconfig.json で "@/*": ["./*"] となっているので、
-            // "@" がプロジェクトのルートディレクトリを指すように設定します。
-            "@": "./",
-
-            // 例: もし src ディレクトリをエイリアスにしたい場合は以下のようになります
-            // '~': './src', // '~/' で src ディレクトリを参照
+            "@": "./", // あなたのエイリアス設定
           },
-          // 以下の拡張子も解決するように指定することが推奨されます
           extensions: [
             ".js",
             ".jsx",
@@ -37,8 +32,6 @@ module.exports = function (api) {
           ],
         },
       ],
-      // もし expo-router を使用している場合は、このプラグインも必要です
-      // 'expo-router/babel',
     ],
   };
 };
