@@ -65,10 +65,17 @@ const getBase64ImageByKey = async (
     console.error(`Asset module not found for key: ${imageKey}`);
     return "";
   }
-
+  let asset: Asset | null = null; // ここでassetを初期化
   try {
-    const asset = Asset.fromModule(assetModule);
+    asset = Asset.fromModule(assetModule); // assetを代入
+    console.log(
+      `[DEBUG] Asset ${imageKey} initialized: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
+    );
+
     await asset.downloadAsync();
+    console.log(
+      `[DEBUG] Asset ${imageKey} after download: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
+    );
 
     const base64 = await FileSystem.readAsStringAsync(
       asset.localUri || asset.uri,
@@ -76,12 +83,36 @@ const getBase64ImageByKey = async (
         encoding: FileSystem.EncodingType.Base64,
       }
     );
+    console.log(
+      `[DEBUG] Base64 for ${imageKey} generated. Length: ${base64.length}`
+    );
+    // ... 成功時の処理
+
     // 画像がPNGであることを想定しています。もしJPEGなら 'image/jpeg' に変更
     base64ImageCache[imageKey] = `data:image/png;base64,${base64}`;
     return base64ImageCache[imageKey];
   } catch (err) {
-    console.error(`Error loading asset ${imageKey}:`, err);
-    return "";
+    console.error(`[ERROR] Error loading asset ${imageKey}:`, err);
+    // errオブジェクト全体を出力して詳細を確認
+    console.error(
+      "[ERROR] Error details:",
+      JSON.stringify(err, Object.getOwnPropertyNames(err), 2)
+    );
+
+    if (asset) {
+      // assetが定義されている場合のみ、そのプロパティをログに出す
+      console.error(`[ERROR] Asset state at error for ${imageKey}:`);
+      console.error(`  uri=${asset.uri}`);
+      console.error(`  localUri=${asset.localUri}`);
+      console.error(`  downloaded=${asset.downloaded}`);
+      // さらに、assetの他のプロパティも必要に応じて出力
+      // console.error(`  type=${asset.type}, name=${asset.name}, hash=${asset.hash}`);
+    } else {
+      console.error(
+        `[ERROR] Asset object was not initialized for ${imageKey}.`
+      );
+    }
+    return ""; // ここで空文字列が返される
   }
 };
 
@@ -108,7 +139,7 @@ export default function CoffeeItemScreen() {
   // 画像URIを処理する関数
   const getImageSource = (uri?: string | null): ImageSourcePropType => {
     if (!uri) {
-      return require("../../../assets/images/no-image.png");
+      return require("@/assets/images/no-image.png");
     }
     // モバイル環境の場合
     return { uri: uri.startsWith("file://") ? uri : `file://${uri}` };
@@ -171,7 +202,7 @@ export default function CoffeeItemScreen() {
           );
 
           // ファイル拡張子からMIMEタイプを決定
-          let mimeType = "image/jpeg"; // デフォルトはJPEGと仮定
+          let mimeType = "application/octet-stream";
           const fileExtension = coffeeRecord.imageUri
             .split(".")
             .pop()
@@ -181,8 +212,12 @@ export default function CoffeeItemScreen() {
             mimeType = "image/png";
           } else if (fileExtension === "gif") {
             mimeType = "image/gif";
-          } // 必要に応じて他の画像形式（webpなど）の条件も追加できます
-
+          } else if (fileExtension === "jpg" || fileExtension === "jpeg") {
+            mimeType = "image/jpeg";
+          } else if (fileExtension === "webp") {
+            // もしwebpを使うなら
+            mimeType = "image/webp";
+          }
           imageHtml = `<img src="data:${mimeType};base64,${base64}" alt="Coffee Image" />`;
         } catch (err) {
           console.error(
