@@ -53,6 +53,9 @@
         "projectId": "52a20f50-a71c-45d3-8a07-276036beb534"
       }
     },
-    "owner": "akiran1sei"
+    "owner": "akiran1sei",
+    "assetBundlePatterns": [
+      "**/*" // この行を追加または変更
+    ]
   }
 }
