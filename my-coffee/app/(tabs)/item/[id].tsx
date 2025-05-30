@@ -55,7 +55,7 @@ let base64ImageCache: { [key: string]: string } = {};
 // 画像キー（例: 'Star3_5'）を受け取ってBase64形式で返す汎用関数
 const getBase64ImageByKey = async (
   imageKey: keyof typeof STAR_ASSET_MODULES
-): Promise<string> => {
+): Promise<string | null> => {
   if (base64ImageCache[imageKey]) {
     return base64ImageCache[imageKey];
   }
@@ -63,56 +63,60 @@ const getBase64ImageByKey = async (
   const assetModule = STAR_ASSET_MODULES[imageKey];
   if (!assetModule) {
     console.error(`Asset module not found for key: ${imageKey}`);
-    return "";
+    return null;
   }
   let asset: Asset | null = null; // ここでassetを初期化
   try {
-    asset = Asset.fromModule(assetModule); // assetを代入
+    asset = Asset.fromModule(assetModule);
     console.log(
-      `[DEBUG] Asset ${imageKey} initialized: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
+      `[DEBUG_PREVIEW] Asset <span class="math-inline">\{imageKey\} initialized\: uri\=</span>{asset.uri}, localUri=<span class="math-inline">\{asset\.localUri\}, downloaded\=</span>{asset.downloaded}`
     );
 
-    await asset.downloadAsync();
-    console.log(
-      `[DEBUG] Asset ${imageKey} after download: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
-    );
+    if (!asset.downloaded) {
+      await asset.downloadAsync();
+      console.log(
+        `[DEBUG_PREVIEW] Asset <span class="math-inline">\{imageKey\} after download\: uri\=</span>{asset.uri}, localUri=<span class="math-inline">\{asset\.localUri\}, downloaded\=</span>{asset.downloaded}`
+      );
+    }
 
-    const base64 = await FileSystem.readAsStringAsync(
-      asset.localUri || asset.uri,
-      {
-        encoding: FileSystem.EncodingType.Base64,
-      }
+    if (!asset.localUri) {
+      console.error(
+        `[ERROR_PREVIEW] localUri is null for ${imageKey} after download. URI was: ${asset.uri}`
+      );
+      return null;
+    }
+
+    const base64 = await FileSystem.readAsStringAsync(asset.localUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    console.log(
+      `[DEBUG_PREVIEW] Base64 for ${imageKey} generated. Length: ${base64.length}`
     );
     console.log(
-      `[DEBUG] Base64 for ${imageKey} generated. Length: ${base64.length}`
-    );
-    // ... 成功時の処理
+      `[DEBUG_PREVIEW] Base64 snippet for ${imageKey}: ${base64.substring(
+        0,
+        50
+      )}...`
+    ); // Base64文字列の冒頭50文字
 
-    // 画像がPNGであることを想定しています。もしJPEGなら 'image/jpeg' に変更
-    base64ImageCache[imageKey] = `data:image/png;base64,${base64}`;
-    return base64ImageCache[imageKey];
-  } catch (err) {
-    console.error(`[ERROR] Error loading asset ${imageKey}:`, err);
-    // errオブジェクト全体を出力して詳細を確認
+    return `data:image/png;base64,${base64}`;
+  } catch (error) {
     console.error(
-      "[ERROR] Error details:",
-      JSON.stringify(err, Object.getOwnPropertyNames(err), 2)
+      `[ERROR_PREVIEW] Failed to load base64 image for ${imageKey}:`,
+      error
     );
-
     if (asset) {
-      // assetが定義されている場合のみ、そのプロパティをログに出す
-      console.error(`[ERROR] Asset state at error for ${imageKey}:`);
+      console.error(`[ERROR_PREVIEW] Asset state at error for ${imageKey}:`);
       console.error(`  uri=${asset.uri}`);
       console.error(`  localUri=${asset.localUri}`);
       console.error(`  downloaded=${asset.downloaded}`);
-      // さらに、assetの他のプロパティも必要に応じて出力
-      // console.error(`  type=${asset.type}, name=${asset.name}, hash=${asset.hash}`);
     } else {
       console.error(
-        `[ERROR] Asset object was not initialized for ${imageKey}.`
+        `[ERROR_PREVIEW] Asset object was not initialized for ${imageKey}.`
       );
     }
-    return ""; // ここで空文字列が返される
+    return null;
   }
 };
 
