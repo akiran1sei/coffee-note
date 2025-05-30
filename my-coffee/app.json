@@ -39,7 +39,9 @@
       [
         "expo-font",
         {
-          "fonts": ["./assets/fonts/Caveat-VariableFont_wght.ttf"]
+          "fonts": [
+            "./assets/fonts/Caveat-VariableFont_wght.ttf"
+          ]
         }
       ],
       "expo-asset"
@@ -50,12 +52,12 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "52a20f50-a71c-45d3-8a07-276036beb534"
+        "projectId": "d3e46d64-3394-4b8a-946f-11965405fee4"
       }
     },
-    "owner": "akiran1sei",
+    "owner": "nakamori",
     "assetBundlePatterns": [
-      "**/*" // この行を追加または変更
+      "**/*"
     ]
   }
 }
