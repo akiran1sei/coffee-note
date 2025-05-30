@@ -1,5 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Modal } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  ScrollView,
+} from "react-native";
 import { CoffeeRecord } from "../../types/CoffeeTypes"; // パスは実際の構造に合わせて調整してください
 
 type SortCriteria =
@@ -119,22 +126,22 @@ const SortComponent: React.FC<SortComponentProps> = ({ onSort, records }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>並び替え基準を選択</Text>
-
-            {sortOptions.map((option, index) => (
-              <TouchableOpacity
-                key={`${option.value}-${option.order}`}
-                style={[
-                  styles.optionButton,
-                  currentCriteria === option.value &&
-                    currentOrder === option.order &&
-                    styles.selectedOption,
-                ]}
-                onPress={() => handleSort(option.value, option.order)}
-              >
-                <Text style={styles.optionText}>{option.label}</Text>
-              </TouchableOpacity>
-            ))}
-
+            <ScrollView>
+              {sortOptions.map((option, index) => (
+                <TouchableOpacity
+                  key={`${option.value}-${option.order}`}
+                  style={[
+                    styles.optionButton,
+                    currentCriteria === option.value &&
+                      currentOrder === option.order &&
+                      styles.selectedOption,
+                  ]}
+                  onPress={() => handleSort(option.value, option.order)}
+                >
+                  <Text style={styles.optionText}>{option.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={() => setModalVisible(false)}

@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "422996855295",
+    "firebase_url": "https://coffeenote-1152d-default-rtdb.firebaseio.com",
+    "project_id": "coffeenote-1152d",
+    "storage_bucket": "coffeenote-1152d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:422996855295:android:6cfe9e081524413122ffca",
+        "android_client_info": {
+          "package_name": "com.akiran1sei.coffee_note"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPzh-qD0K5Eg8U160NaM9ZhcBBDIPvMoU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

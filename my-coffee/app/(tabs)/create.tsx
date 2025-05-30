@@ -8,6 +8,7 @@ import {
   Text,
   Alert,
   Platform,
+  Dimensions,
 } from "react-native";
 import HeaderComponent from "../../components/HeaderComponent";
 import PageTitleComponent from "../../components/PageTitleComponent";
@@ -28,7 +29,8 @@ import ImageUploadComponent from "../../components/ImageUploadComponent";
 
 import RadarChart from "../../components/RadarChart/RadarChart";
 import CoffeeStorageService from "../../services/CoffeeStorageService"; // ストレージサービスをインポート
-
+// 画面サイズを取得
+const { width: screenWidth } = Dimensions.get("window");
 interface CoffeeRecord {
   id: string;
   name: string;
@@ -94,7 +96,7 @@ export default function CreateScreen() {
   });
   const [SelectLabel, setSelectLabel] = useState({
     roastingDegree: "焙煎度",
-    extractionMaker: "抽出メーカー",
+    extractionMaker: "抽出器具",
     extractionMethod: "抽出方法",
     grindSize: "挽き目",
     variety: "品種",
@@ -310,7 +312,7 @@ export default function CreateScreen() {
             />
             <HierarchicalCoffeeSelect
               primaryTitle="抽出方法"
-              secondaryTitle="抽出メーカー"
+              secondaryTitle="抽出器具"
               onPrimaryChange={(value) =>
                 handleSelectChange("extractionMethod", value)
               }
@@ -433,7 +435,7 @@ const styles = StyleSheet.create({
   },
   contents: {
     flex: 1,
-    justifyContent: "center", // 縦方向の中心に配置
+
     alignItems: "center", // 横方向の中心に配置
   },
   absoluteBox: {
@@ -444,17 +446,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   mainContents: {
-    width: "100%",
-    maxWidth: 500,
-    marginHorizontal: "auto",
+    maxWidth: screenWidth > 768 ? 700 : "100%", // 例: タブレット以上で最大幅を設定
+    marginHorizontal: "auto", // これが水平方向の中央寄せの肝
     top: 210,
-    bottom: 0, // 画面の下部まで拡張
+    bottom: 0,
   },
   scrollContainer: {
-    alignItems: "center", // 子要素を中央揃え
+    alignItems: "center", // ScrollView内の子要素を中央揃え
     paddingVertical: 20,
-    paddingBottom: 40, // スクロール時の下部余白を追加
+    paddingBottom: 40,
   },
+
   text: {
     color: "#000",
     fontSize: 18,

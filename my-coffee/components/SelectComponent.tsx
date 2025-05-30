@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Text, TextInput } from "react-native";
+import { View, StyleSheet, Text, TextInput, Platform } from "react-native"; // Platformをインポート
 import { Picker } from "@react-native-picker/picker";
 
 // 階層的選択のためのインターフェース
 interface HierarchicalSelectProps {
   primaryTitle: string; // 最初の選択肢のタイトル（例：抽出方法）
-  secondaryTitle: string; // 二番目の選択肢のタイトル（例：抽出メーカー）
+  secondaryTitle: string; // 二番目の選択肢のタイトル（例：抽出器具）
   onPrimaryChange: (value: string) => void; // 最初の選択肢の変更ハンドラ
   onSecondaryChange: (value: string) => void; // 二番目の選択肢の変更ハンドラ
   primaryValue: string; // 最初の選択肢の値
   secondaryValue: string; // 二番目の選択肢の値
   primaryOptions?: { label: string; value: string }[]; // 最初の選択肢のオプション
-  secondaryOptions?: { label: string; value: string }[]; // 二番目の選択肢のオプション
 }
 
 // 抽出方法のデータ構造
 const extractionMethodsData = [
   { label: "ペーパードリップ", value: "ペーパードリップ" },
   { label: "ネルドリップ", value: "ネルドリップ" },
-  { label: "金属フィルタードリップ", value: "金属フィルタードリップ" },
+  { label: "ペーパーレスドリッパー", value: "ペーパーレスドリッパー" },
   { label: "フレンチプレス", value: "フレンチプレス" },
   { label: "エアロプレス", value: "エアロプレス" },
   {
@@ -31,75 +30,65 @@ const extractionMethodsData = [
   { label: "水出し", value: "水出し" },
 ];
 
-// メーカーデータの型定義
-interface ManufacturerData {
-  [key: string]: { label: string; value: string }[];
-}
-
-// 抽出方法ごとのメーカーデータ
-const manufacturerData: ManufacturerData = {
+// 抽出方法ごとの器具データ
+const equipmentData: { [key: string]: { label: string; value: string }[] } = {
   ペーパードリップ: [
-    { label: "ハリオ", value: "ハリオ" },
-    { label: "カリタ", value: "カリタ" },
-    { label: "メリタ", value: "メリタ" },
-    { label: "キントー", value: "キントー" },
-    { label: "オリガミ", value: "オリガミ" },
-    { label: "カフェック", value: "カフェック" },
+    { label: "ハリオ V60", value: "ハリオ V60" },
+    { label: "ハリオ ペガサス", value: "ハリオ ペガサス" },
+    { label: "カリタ ウェーブ", value: "カリタ ウェーブ" },
+    { label: "カリタ 3つ穴", value: "カリタ 3つ穴" },
+    { label: "メリタ 1つ穴", value: "メリタ 1つ穴" },
+    { label: "コーノ式", value: "コーノ式" },
+    { label: "ORIGAMI", value: "ORIGAMI" },
+    { label: "CAFEC フラワー", value: "CAFEC フラワー" },
+    { label: "その他", value: "その他" },
   ],
-  ネルドリップ: [
-    { label: "ハリオ", value: "ハリオ" },
-    { label: "カリタ", value: "カリタ" },
-    { label: "コーノ", value: "コーノ" },
-  ],
-  金属フィルタードリップ: [
-    { label: "コレス", value: "コレス" },
-    { label: "キントー", value: "キントー" },
-    { label: "エイブル ブリューイング", value: "エイブル ブリューイング" },
-    { label: "フリリング", value: "フリリング" },
+  ネルドリップ: [{ label: "ネルドリップ", value: "ネルドリップ" }],
+  ペーパーレスドリッパー: [
+    { label: "金属フィルター", value: "金属フィルター" },
+    { label: "セラミックフィルター", value: "セラミックフィルター" },
+    { label: "その他", value: "その他" },
   ],
   フレンチプレス: [
-    { label: "ボダム", value: "ボダム" },
-    { label: "ハリオ", value: "ハリオ" },
-    { label: "キントー", value: "キントー" },
-    { label: "フリリング", value: "フリリング" },
+    { label: "フレンチプレス", value: "フレンチプレス" },
+    { label: "その他", value: "その他" },
   ],
   エアロプレス: [{ label: "エアロプレス", value: "エアロプレス" }],
   "コーヒーメーカー(ドリップ式)": [
-    { label: "デロンギ", value: "デロンギ" },
-    { label: "メリタ", value: "メリタ" },
-    { label: "カリタ", value: "カリタ" },
+    { label: "デロンギ ドリップ", value: "デロンギ ドリップ" },
+    { label: "メリタ ドリップ", value: "メリタ ドリップ" },
+    { label: "カリタ ドリップ", value: "カリタ ドリップ" },
     { label: "象印", value: "象印" },
     { label: "タイガー", value: "タイガー" },
-    { label: "バルミューダ", value: "バルミューダ" },
+    { label: "バルミューダ The Pot", value: "バルミューダ The Pot" },
+    { label: "その他", value: "その他" },
   ],
   サイフォン: [
     { label: "ハリオ", value: "ハリオ" },
     { label: "コーノ", value: "コーノ" },
     { label: "ヤマグラス", value: "ヤマグラス" },
-    { label: "ボダム", value: "ボダム" },
+    { label: "その他", value: "その他" },
   ],
   エスプレッソ: [
     { label: "デロンギ", value: "デロンギ" },
     { label: "ガジア", value: "ガジア" },
     { label: "ランチリオ", value: "ランチリオ" },
     { label: "ブレビル", value: "ブレビル" },
-    { label: "ラ・パヴォーニ", value: "ラ・パヴォーニ" },
+    { label: "ラ・パヴォーニ レバー", value: "ラ・パヴォーニ レバー" },
+    { label: "その他", value: "その他" },
   ],
-  モカポット抽出: [
-    { label: "ビアレッティ", value: "ビアレッティ" },
-    { label: "イリー", value: "イリー" },
-  ],
+  モカポット抽出: [{ label: "マキネッタ", value: "マキネッタ" }],
   水出し: [
     { label: "ハリオ", value: "ハリオ" },
-    { label: "カリタ", value: "カリタ" },
+    { label: "キントー", value: "キントー" },
     { label: "ボダム", value: "ボダム" },
     { label: "オクソー", value: "オクソー" },
-    { label: "ヤマグラス", value: "ヤマグラス" },
+    { label: "その他", value: "その他" },
   ],
 };
 
 /**
- * 階層的選択が可能なコーヒー抽出方法と関連メーカーの選択コンポーネント
+ * 階層的選択が可能なコーヒー抽出方法と関連器具の選択コンポーネント
  */
 export const HierarchicalCoffeeSelect: React.FC<HierarchicalSelectProps> = ({
   primaryTitle,
@@ -110,37 +99,34 @@ export const HierarchicalCoffeeSelect: React.FC<HierarchicalSelectProps> = ({
   secondaryValue,
   primaryOptions = extractionMethodsData, // デフォルトで抽出方法データを設定
 }) => {
-  // 選択された抽出方法に基づいて利用可能なメーカーを取得
+  // 選択された抽出方法に基づいて利用可能な器具を取得
   const getSecondaryOptions = (primaryValue: string) => {
     if (!primaryValue) return [];
-    return (
-      manufacturerData[primaryValue as keyof typeof manufacturerData] || []
-    );
+    return equipmentData[primaryValue] || [];
   };
 
   // 最初の選択肢変更ハンドラ（抽出方法）
   const handlePrimaryChange = (value: string) => {
     onPrimaryChange(value);
-    // 抽出方法が変更されたら、必ずメーカー選択をリセット
+    // 抽出方法が変更されたら、必ず器具選択をリセット
     onSecondaryChange("");
   };
 
   // primaryValueが変更された時に、secondaryValueが有効かどうかを確認し
   // 無効な場合はリセットする
   useEffect(() => {
-    const availableManufacturers = getSecondaryOptions(primaryValue);
-    const isCurrentManufacturerValid =
+    const availableEquipment = getSecondaryOptions(primaryValue);
+    const isCurrentEquipmentValid =
       secondaryValue === "" ||
-      availableManufacturers.some(
-        (manufacturer) => manufacturer.value === secondaryValue
+      availableEquipment.some(
+        (equipment) => equipment.value === secondaryValue
       );
 
-    if (secondaryValue && !isCurrentManufacturerValid) {
+    if (secondaryValue && !isCurrentEquipmentValid) {
       onSecondaryChange("");
     }
   }, [primaryValue, secondaryValue, onSecondaryChange]);
 
-  // secondaryOptions をローカルステートとして管理しないように修正
   const secondaryOptions = getSecondaryOptions(primaryValue);
 
   return (
@@ -148,40 +134,48 @@ export const HierarchicalCoffeeSelect: React.FC<HierarchicalSelectProps> = ({
       {/* 最初の選択肢（抽出方法） */}
       <View style={styles.selectContainer}>
         <Text style={styles.label}>{primaryTitle}</Text>
-        <Picker
-          selectedValue={primaryValue}
-          onValueChange={handlePrimaryChange}
-          style={styles.select}
-        >
-          <Picker.Item label="選択してください" value="" />
-          {primaryOptions.map((method) => (
-            <Picker.Item
-              key={method.value}
-              label={method.label}
-              value={method.value}
-            />
-          ))}
-        </Picker>
-      </View>
-
-      {/* 二番目の選択肢（メーカー）- 最初の選択がある場合のみ表示 */}
-      {primaryValue && (
-        <View style={styles.selectContainer}>
-          <Text style={styles.label}>{secondaryTitle}</Text>
+        <View style={styles.pickerWrapper}>
+          {/* Pickerを囲む新しいView */}
           <Picker
-            selectedValue={secondaryValue}
-            onValueChange={onSecondaryChange}
-            style={styles.select}
+            selectedValue={primaryValue}
+            onValueChange={handlePrimaryChange}
+            style={styles.picker} // style.selectから変更
+            itemStyle={styles.pickerItem} // iOSのテキストスタイル調整
           >
             <Picker.Item label="選択してください" value="" />
-            {secondaryOptions.map((manufacturer) => (
+            {primaryOptions.map((method) => (
               <Picker.Item
-                key={manufacturer.value}
-                label={manufacturer.label}
-                value={manufacturer.value}
+                key={method.value}
+                label={method.label}
+                value={method.value}
               />
             ))}
           </Picker>
+        </View>
+      </View>
+
+      {/* 二番目の選択肢（器具）- 最初の選択がある場合のみ表示 */}
+      {primaryValue && (
+        <View style={styles.selectContainer}>
+          <Text style={styles.label}>{secondaryTitle}</Text>
+          <View style={styles.pickerWrapper}>
+            {/* Pickerを囲む新しいView */}
+            <Picker
+              selectedValue={secondaryValue}
+              onValueChange={onSecondaryChange}
+              style={styles.picker} // style.selectから変更
+              itemStyle={styles.pickerItem} // iOSのテキストスタイル調整
+            >
+              <Picker.Item label="選択してください" value="" />
+              {secondaryOptions.map((equipment) => (
+                <Picker.Item
+                  key={equipment.value}
+                  label={equipment.label}
+                  value={equipment.value}
+                />
+              ))}
+            </Picker>
+          </View>
         </View>
       )}
     </View>
@@ -201,31 +195,31 @@ export const CoffeeProcessingSelect: React.FC<SelectProps> = ({
   const methods = () => {
     if (dataTitle === "焙煎度") {
       return [
-        { label: "ライトロースト (浅煎り)", value: "ライトロースト (浅煎り)" },
+        { label: "ライト (浅)", value: "ライト (浅)" },
         {
-          label: "シナモンロースト (浅煎り)",
-          value: "シナモンロースト (浅煎り)",
+          label: "シナモン (浅)",
+          value: "シナモン (浅)",
         },
         {
-          label: "ミディアムロースト (中浅煎り)",
-          value: "ミディアムロースト (中浅煎り)",
+          label: "ミディアム (中浅)",
+          value: "ミディアム (中浅)",
         },
-        { label: "ハイロースト (中煎り)", value: "ハイロースト (中煎り)" },
+        { label: "ハイ (中)", value: "ハイ (中)" },
         {
-          label: "シティロースト (中深煎り)",
-          value: "シティロースト (中深煎り)",
-        },
-        {
-          label: "フルシティロースト (深煎り)",
-          value: "フルシティロースト (深煎り)",
+          label: "シティ (中深)",
+          value: "シティ (中深)",
         },
         {
-          label: "フレンチロースト (深煎り)",
-          value: "フレンチロースト (深煎り)",
+          label: "フルシティ (深)",
+          value: "フルシティ (深)",
         },
         {
-          label: "イタリアンロースト (深煎り)",
-          value: "イタリアンロースト (深煎り)",
+          label: "フレンチ (深)",
+          value: "フレンチ (深)",
+        },
+        {
+          label: "イタリアン (深)",
+          value: "イタリアン (深)",
         },
       ];
     } else if (dataTitle === "挽き目") {
@@ -244,22 +238,26 @@ export const CoffeeProcessingSelect: React.FC<SelectProps> = ({
   return (
     <View style={styles.selectContainer}>
       <Text style={styles.label}>{dataTitle}</Text>
-      <Picker
-        selectedValue={value}
-        onValueChange={(itemValue) => {
-          onChange(itemValue); // 選択された値を親コンポーネントに渡す
-        }}
-        style={styles.select}
-      >
-        <Picker.Item label="選択してください" value="" />
-        {methods().map((method) => (
-          <Picker.Item
-            key={method.value}
-            label={method.label}
-            value={method.value}
-          />
-        ))}
-      </Picker>
+      <View style={styles.pickerWrapper}>
+        {/* Pickerを囲む新しいView */}
+        <Picker
+          selectedValue={value}
+          onValueChange={(itemValue) => {
+            onChange(itemValue); // 選択された値を親コンポーネントに渡す
+          }}
+          style={styles.picker} // style.selectから変更
+          itemStyle={styles.pickerItem} // iOSのテキストスタイル調整
+        >
+          <Picker.Item label="選択してください" value="" />
+          {methods().map((method) => (
+            <Picker.Item
+              key={method.value}
+              label={method.label}
+              value={method.value}
+            />
+          ))}
+        </Picker>
+      </View>
     </View>
   );
 };
@@ -320,22 +318,22 @@ export const CoffeeTypesSelect: React.FC<SelectProps> = ({
   return (
     <View style={styles.inputContainer}>
       <Text style={styles.label}>{dataTitle}</Text>
-      <Picker
-        selectedValue={selectedValue}
-        onValueChange={handlePickerChange}
-        style={styles.select}
-      >
-        <Picker.Item label="選択してください" value="" />
-        {options.map((option) => (
-          <Picker.Item
-            key={option.value}
-            label={option.label}
-            value={option.value}
-          />
-        ))}
-        <Picker.Item label="その他" value="その他" />
-      </Picker>
-
+      <View style={styles.pickerWrapper}>
+        <Picker
+          selectedValue={selectedValue}
+          onValueChange={handlePickerChange}
+        >
+          <Picker.Item label="選択してください" value="" />
+          {options.map((option) => (
+            <Picker.Item
+              key={option.value}
+              label={option.label}
+              value={option.value}
+            />
+          ))}
+          <Picker.Item label="その他" value="その他" />
+        </Picker>
+      </View>
       {showOtherInput && (
         <TextInput
           style={styles.otherInput}
@@ -367,7 +365,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 10,
     textAlign: "center",
   },
-  select: {
+  // Picker を囲む新しいラッパーのスタイル
+  pickerWrapper: {
     width: "100%",
     backgroundColor: "#FFF",
     borderBottomLeftRadius: 10,
@@ -375,10 +374,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#D2B48C",
     marginTop: -1,
+    overflow: "hidden", // iOSでborder-radiusとborderが効かない場合に対処
+  },
+  // Picker 自体にはボーダーを設定しない
+  picker: {
+    width: "100%",
+    backgroundColor: "transparent", // ラッパーの背景色を使う
+    // borderWidth や borderColor はここでは設定しない
     paddingVertical: 16,
     paddingHorizontal: 0,
     fontSize: 18,
   },
+  // iOSのPickerのテキストスタイルを調整
+  pickerItem: {
+    fontSize: 18,
+    textAlign: "center", // 必要に応じてテキストを中央寄せに
+  },
+  // selectスタイルはもう使用しないか、既存のコンポーネントに合わせて調整
+  // select: { ... },
+
   inputContainer: {
     width: "90%",
     marginBottom: 20,

@@ -95,7 +95,7 @@ app.post("/api/generate-pdf", async (req, res) => {
               ["産地", coffeeRecord.productionArea || "未記入"],
               ["焙煎度", coffeeRecord.roastingDegree || "未記入"],
               ["抽出器具", coffeeRecord.extractionMethod || "未記入"],
-              ["抽出メーカー", coffeeRecord.extractionMaker || "未記入"],
+              ["抽出器具", coffeeRecord.extractionMaker || "未記入"],
               ["挽き目", coffeeRecord.grindSize || "未記入"],
               ["注湯温度", coffeeRecord.temperature || "未記入"],
               ["粉量", coffeeRecord.coffeeAmount || "未記入"],

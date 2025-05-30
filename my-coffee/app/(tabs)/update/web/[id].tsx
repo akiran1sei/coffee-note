@@ -49,7 +49,7 @@ export default function CoffeeItemWebScreen() {
   });
   const [SelectLabel, setSelectLabel] = useState({
     roastingDegree: "焙煎度",
-    extractionMaker: "抽出メーカー",
+    extractionMaker: "抽出器具",
     extractionMethod: "抽出方法",
     grindSize: "挽き目",
     variety: "品種",
@@ -83,12 +83,12 @@ export default function CoffeeItemWebScreen() {
   };
 
   const handleSelectChange = (field: FormField, value: string) => {
-    // 抽出方法が変更された場合は、抽出メーカーもリセットする
+    // 抽出方法が変更された場合は、抽出器具もリセットする
     if (field === "extractionMethod") {
       setFormData((prevData) => ({
         ...prevData,
         [field]: value,
-        extractionMaker: "", // 抽出メーカーをリセット
+        extractionMaker: "", // 抽出器具をリセット
       }));
     } else {
       // 他のフィールドの場合は通常の更新
@@ -260,7 +260,7 @@ export default function CoffeeItemWebScreen() {
       if (window.confirm("このレコードを削除しますか？")) {
         try {
           await CoffeeStorageService.deleteCoffeeRecord(id);
-          router.push("/list");
+          router.replace("/list");
         } catch (error) {
           console.error("レコードの削除に失敗しました:", error);
         }
@@ -281,7 +281,7 @@ export default function CoffeeItemWebScreen() {
             onPress: async () => {
               try {
                 await CoffeeStorageService.deleteCoffeeRecord(id);
-                router.push("/list");
+                router.replace("/list");
               } catch (error) {
                 console.error("レコードの削除に失敗しました:", error);
               }
@@ -570,7 +570,7 @@ export default function CoffeeItemWebScreen() {
               {/* Return to List Button */}
               <TouchableOpacity
                 style={styles.returnButton}
-                onPress={() => router.push("/list")}
+                onPress={() => router.replace("/list")}
               >
                 <Text style={styles.returnButtonText}>リストに戻る</Text>
               </TouchableOpacity>

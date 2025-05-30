@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import * as FileSystem from "expo-file-system";
+import { Asset } from "expo-asset"; // Expo環境の場合
 import * as Sharing from "expo-sharing";
 import * as Print from "expo-print";
 import {
@@ -14,6 +15,7 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
@@ -26,11 +28,99 @@ import {
   LoadingComponent,
   NoRecordComponent,
 } from "@/components/MessageComponent";
-
+// 画面サイズを取得
+const { width: screenWidth } = Dimensions.get("window");
 type RouteParams = {
   id: string;
 };
+const STAR_ASSET_MODULES = {
+  Star0: require("@/assets/images/Star0.png"), // 0はファイル名としてハイフンやアンダースコアを使うのが一般的
+  Star0_5: require("@/assets/images/Star0_5.png"), // 0_5はファイル名としてハイフンやアンダースコアを使うのが一般的
+  Star1: require("@/assets/images/Star1.png"),
+  Star1_5: require("@/assets/images/Star1_5.png"),
+  Star2: require("@/assets/images/Star2.png"),
+  Star2_5: require("@/assets/images/Star2_5.png"),
+  Star3: require("@/assets/images/Star3.png"),
+  Star3_5: require("@/assets/images/Star3_5.png"),
+  Star4: require("@/assets/images/Star4.png"),
+  Star4_5: require("@/assets/images/Star4_5.png"),
+  Star5: require("@/assets/images/Star5.png"),
+  // 他の単一の星画像やNo Image画像などもここに追加
+  no_image: require("@/assets/images/no-image.png"), // 例: no-image.png
+};
+let Base64Cache: string | null = null;
 
+let base64ImageCache: { [key: string]: string } = {};
+
+// 画像キー（例: 'Star3_5'）を受け取ってBase64形式で返す汎用関数
+const getBase64ImageByKey = async (
+  imageKey: keyof typeof STAR_ASSET_MODULES
+): Promise<string> => {
+  if (base64ImageCache[imageKey]) {
+    return base64ImageCache[imageKey];
+  }
+
+  const assetModule = STAR_ASSET_MODULES[imageKey];
+  if (!assetModule) {
+    console.error(`Asset module not found for key: ${imageKey}`);
+    return "";
+  }
+  let asset: Asset | null = null; // ここでassetを初期化
+  try {
+    asset = Asset.fromModule(assetModule); // assetを代入
+    console.log(
+      `[DEBUG] Asset ${imageKey} initialized: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
+    );
+
+    await asset.downloadAsync();
+    console.log(
+      `[DEBUG] Asset ${imageKey} after download: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
+    );
+
+    const base64 = await FileSystem.readAsStringAsync(
+      asset.localUri || asset.uri,
+      {
+        encoding: FileSystem.EncodingType.Base64,
+      }
+    );
+    console.log(
+      `[DEBUG] Base64 for ${imageKey} generated. Length: ${base64.length}`
+    );
+    // ... 成功時の処理
+
+    // 画像がPNGであることを想定しています。もしJPEGなら 'image/jpeg' に変更
+    base64ImageCache[imageKey] = `data:image/png;base64,${base64}`;
+    return base64ImageCache[imageKey];
+  } catch (err) {
+    console.error(`[ERROR] Error loading asset ${imageKey}:`, err);
+    // errオブジェクト全体を出力して詳細を確認
+    console.error(
+      "[ERROR] Error details:",
+      JSON.stringify(err, Object.getOwnPropertyNames(err), 2)
+    );
+
+    if (asset) {
+      // assetが定義されている場合のみ、そのプロパティをログに出す
+      console.error(`[ERROR] Asset state at error for ${imageKey}:`);
+      console.error(`  uri=${asset.uri}`);
+      console.error(`  localUri=${asset.localUri}`);
+      console.error(`  downloaded=${asset.downloaded}`);
+      // さらに、assetの他のプロパティも必要に応じて出力
+      // console.error(`  type=${asset.type}, name=${asset.name}, hash=${asset.hash}`);
+    } else {
+      console.error(
+        `[ERROR] Asset object was not initialized for ${imageKey}.`
+      );
+    }
+    return ""; // ここで空文字列が返される
+  }
+};
+
+// この関数は、アプリ起動時やコンポーネントのマウント時などに一度だけ呼び出すことを推奨します
+// 例:
+// useEffect(() => {
+//   getStarGaugeBase64();
+// }, []);
 export default function CoffeeItemScreen() {
   const route = useRoute();
   const router = useRouter();
@@ -49,7 +139,7 @@ export default function CoffeeItemScreen() {
   // 画像URIを処理する関数
   const getImageSource = (uri?: string | null): ImageSourcePropType => {
     if (!uri) {
-      return require("../../../assets/images/no-image.png");
+      return require("@/assets/images/no-image.png");
     }
     // モバイル環境の場合
     return { uri: uri.startsWith("file://") ? uri : `file://${uri}` };
@@ -71,7 +161,7 @@ export default function CoffeeItemScreen() {
           onPress: async () => {
             try {
               await CoffeeStorageService.deleteCoffeeRecord(id);
-              router.push("/list");
+              router.replace("/list");
             } catch (error) {
               console.error("レコードの削除に失敗しました:", error);
             }
@@ -93,24 +183,51 @@ export default function CoffeeItemScreen() {
 
       // 画像処理
       let imageHtml = "";
-      if (coffeeRecord.imageUri) {
+      // coffeeRecord.imageUri が 'default_image_path' または falsy の場合、デフォルト画像を使用
+      if (
+        !coffeeRecord.imageUri ||
+        coffeeRecord.imageUri === "default_image_path"
+      ) {
+        const noImageBase64 = await getBase64ImageByKey("no_image");
+        // getBase64ImageByKeyは既に "data:image/png;base64,..." 形式で返すのでそのまま使用
+        imageHtml = `<img src="${noImageBase64}" alt="No Image" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #ddd;" />`;
+      } else {
+        // それ以外の場合（ユーザーが画像を指定）
         try {
-          // モバイル環境ではBase64に変換
           const base64 = await FileSystem.readAsStringAsync(
             coffeeRecord.imageUri,
             {
               encoding: FileSystem.EncodingType.Base64,
             }
           );
-          imageHtml = `<img src="data:image/jpeg;base64,${base64}" alt="Coffee Image" />`;
-        } catch (err) {
-          console.error("画像の読み込みエラー:", err);
-          imageHtml = `<div class="no-image-placeholder">No Image</div>`;
-        }
-      } else {
-        imageHtml = `<div class="no-image-placeholder">No Image</div>`;
-      }
 
+          // ファイル拡張子からMIMEタイプを決定
+          let mimeType = "application/octet-stream";
+          const fileExtension = coffeeRecord.imageUri
+            .split(".")
+            .pop()
+            ?.toLowerCase();
+
+          if (fileExtension === "png") {
+            mimeType = "image/png";
+          } else if (fileExtension === "gif") {
+            mimeType = "image/gif";
+          } else if (fileExtension === "jpg" || fileExtension === "jpeg") {
+            mimeType = "image/jpeg";
+          } else if (fileExtension === "webp") {
+            // もしwebpを使うなら
+            mimeType = "image/webp";
+          }
+          imageHtml = `<img src="data:${mimeType};base64,${base64}" alt="Coffee Image" />`;
+        } catch (err) {
+          console.error(
+            "画像の読み込みエラー (uri: " + coffeeRecord.imageUri + "):",
+            err
+          );
+          const noImageBase64 = await getBase64ImageByKey("no_image");
+          imageHtml = `<img src="${noImageBase64}" alt="No Image" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #ddd;" />`;
+        }
+      }
       // レーダーチャートのデータ
       const radarDataValues = [
         Number(coffeeRecord.acidity) || 0,
@@ -209,7 +326,7 @@ export default function CoffeeItemScreen() {
       }
 
       const svgChart = `
-        <svg width="150" height="150" viewBox="0 0 120 120">
+        <svg width="200" height="200" viewBox="0 0 120 120">
           ${scaleCirclesHtml.join("\n")}
           ${axisLinesHtml.join("\n")}
           <polygon
@@ -222,20 +339,49 @@ export default function CoffeeItemScreen() {
         </svg>`;
 
       // 評価バーを直接HTMLで生成する関数
-      const createRatingBarHtml = (label: string, value: number) => {
-        const maxRating = 5;
-        const percentage = (value / maxRating) * 100;
-        return `
-          <div class="rating-item">
-            <span class="rating-label">${label}:</span>
-            <div class="rating-value">
-              <span class="rating-bar" style="width: ${percentage}%;"></span>
-              <span class="rating-text">${value}</span>
-            </div>
-          </div>
-        `;
-      };
+      const createRatingBarHtml = async (label: string, value: number) => {
+        // value を基に適切な星画像キーを生成
+        const roundedValue = Math.round(value * 2) / 2; // 0.5刻みに丸める
+        const imageKey = `Star${roundedValue
+          .toString()
+          .replace(".", "_")}` as keyof typeof STAR_ASSET_MODULES;
 
+        const starBase64 = await getBase64ImageByKey(imageKey);
+
+        return `
+        <div class="taste-field">
+          <div class="taste-label">${label}</div>
+          <div class="taste-input">
+            <img src="${starBase64}" alt="Star Rating" style="width: 80%; height: auto; vertical-align: middle;" />
+            <span class="rating-text">${value}</span>
+          </div>
+        </div>
+      `;
+      };
+      const acidityHtml = await createRatingBarHtml(
+        "酸味",
+        Number(coffeeRecord.acidity) || 0
+      );
+      const sweetnessHtml = await createRatingBarHtml(
+        "甘味",
+        Number(coffeeRecord.sweetness) || 0
+      );
+      const bitternessHtml = await createRatingBarHtml(
+        "苦味",
+        Number(coffeeRecord.bitterness) || 0
+      );
+      const bodyHtml = await createRatingBarHtml(
+        "コク",
+        Number(coffeeRecord.body) || 0
+      );
+      const aromaHtml = await createRatingBarHtml(
+        "香り",
+        Number(coffeeRecord.aroma) || 0
+      );
+      const aftertasteHtml = await createRatingBarHtml(
+        "後味",
+        Number(coffeeRecord.aftertaste) || 0
+      );
       // HTML生成
       const htmlContent = `
       <!DOCTYPE html>
@@ -243,308 +389,371 @@ export default function CoffeeItemScreen() {
       <head>
         <meta charset="utf-8">
         <title>${coffeeRecord.name}</title>
-        <style>
-          /* リセットとベース設定 */
-          * {
-            box-sizing: border-box;
+   <style>
+    /* ------------------------------------------------------------------- */
+    /* リセットとベース設定 */
+    /* ------------------------------------------------------------------- */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* ページ設定 (A4サイズ指定 210mm × 297mm) */
+    /* ------------------------------------------------------------------- */
+    @page {
+        size: A4;
+        margin: 0;
+    }
+    
+    @media print {
+        html, body {
+            width: 210mm;
+            height: 297mm;
             margin: 0;
             padding: 0;
-          }
-      
-          /* ページ設定 */
-          @page {
-            size: A4 portrait;
-            margin: 15mm; /* 統一された余白設定 */
-          }
-          
-          body {
+        }
+                        
+        .page {
+            margin: 0;
+            border: initial;
+            border-radius: initial;
+            width: initial;
+            min-height: initial;
+            box-shadow: initial;
+            background: initial;
+            page-break-after: always;
+        }
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* Bodyの基本スタイル */
+    /* ------------------------------------------------------------------- */
+    body {
+        font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+        width: 210mm;
+        height: 297mm;
+        margin: 0 auto;
+        padding: 15mm;
+        color: #333;
+        background-color: rgba(250, 245, 240, 1);
+        box-sizing: border-box;
+    }
+
+    /* ------------------------------------------------------------------- */
+    /* タイトルとカラムレイアウト */
+    /* ------------------------------------------------------------------- */
+    .title {
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 24px;
+    }
+    
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    
+    .left-column {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .right-column {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* セクションタイトル */
+    /* ------------------------------------------------------------------- */
+    .section-title {
+        font-weight: bold;
+        margin: 10px 0 5px;
+        text-align: center;
+        color: rgba(70, 70, 70, 1);
+        font-size: 20px;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* 項目行のスタイル (field-row, field-label, field-input) */
+    /* ------------------------------------------------------------------- */
+    .field-row {
+        display: flex;
+        margin-bottom: 8px;
+    }
+    
+    .field-label {
+        background-color: #D2B48C;
+        padding: 8px;
+        width: 120px;
+        border-radius: 4px;
+        text-align: center;
+        color: rgba(100, 100, 100, 1);
+    }
+    
+    .field-input {
+        flex-grow: 1;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-left: 5px;
+        background-color: #fff;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* メモ欄のスタイル */
+    /* ------------------------------------------------------------------- */
+    .memo-field {
+        height: 200px;
+        color: rgba(0, 90, 60, 1);
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* 画像コンテナのスタイル */
+    /* ------------------------------------------------------------------- */
+    .image-container {
+        width: 100%;
+        text-align: center;
+        margin: 15px 0;
+    }
+    
+    .image-item {
+        width: 100%;
+        max-width: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: bold;
+        border: 1px solid #ddd;
+        margin: 0 auto;
+    }
+    .image-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border: 2px solid #ddd;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* 味わい評価部分のスタイル (taste-field, taste-label, taste-input) */
+    /* ------------------------------------------------------------------- */
+    .taste-field {
+        display: flex;
+        margin-bottom: 8px;
+    }
+    
+    .container-wrap {
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 8px;
+    }
+    
+    .taste-label {
+        background-color: #D2B48C;
+        padding: 8px;
+        width: 50%;
+        border-radius: 4px;
+        text-align: center;
+        color: #000;
+    }
+    
+    .taste-input {
+        width: auto;
+        flex-grow: 1;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-left: 5px;
+        background-color: #fff;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* レーダーチャートのスタイル */
+    /* ------------------------------------------------------------------- */
+    .radar-chart {
+        width: 100%;
+        max-width: 300px;
+        height: auto;
+        margin: 15px auto;
+        position: relative;
+    }
+    .radar-chart-image {
+        width: 100%;
+        max-width: 300px;
+        height: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: bold;
+        border: 1px solid #ddd;
+        margin: 0 auto;
+        padding: 10px 0;
+    }
+    
+    /* ------------------------------------------------------------------- */
+    /* 評価テキストのスタイル */
+    /* ------------------------------------------------------------------- */
+    .rating-text {
+        color: rgba(0, 80, 150, 1);
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    /* ------------------------------------------------------------------- */
+    /* レスポンシブ調整 */
+    /* ------------------------------------------------------------------- */
+    @media screen and (max-width: 768px) {
+        body {
             width: 100%;
-            font-family: "Helvetica", "Arial", "Hiragino Sans", sans-serif;
-            font-size: 11pt;
-            line-height: 1.4;
-            color: #333;
-            background-color: #fff;
-          }
-          
-          /* コンテンツコンテナ */
-          .main-contents {
-            max-width: 210mm; /* A4の幅 */
-            margin: 0 auto;
-            padding: 0;
-          }
-      
-          /* 見出し */
-          h1 {
-            font-size: 18pt;
-            color: #222;
-            margin-bottom: 15px;
-            padding-bottom: 8px;
-            text-align: center;
-            border-bottom: 2px solid #555;
-          }
-      
-          h2 {
-            font-size: 14pt;
-            color: #444;
-            margin-top: 15px;
-            margin-bottom: 10px;
-            padding-left: 5px;
-            border-left: 4px solid #666;
-          }
-      
-          /* セクションコンテナ */
-          .section-container {
-            margin-bottom: 20px;
+            height: auto;
             padding: 10px;
-            background-color: #fafafa;
-            border-radius: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          }
-      
-          /* 豆情報セクション */
-          .bean-info-contents {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 15px;
-          }
-      
-          .bean-txt {
-            flex: 1;
-          }
-      
-          /* 画像スタイル */
-          .image-container {
-            width: 120px;
-            height: 120px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-          }
-      
-          .image-container img {
-            width: 110px;
-            height: 110px;
-            border-radius: 55px;
-            object-fit: cover;
-            border: 2px solid #ddd;
-          }
-      
-          .no-image-placeholder {
-            width: 110px;
-            height: 110px;
-            border-radius: 55px;
-            background-color: #eee;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 9pt;
-            color: #777;
-            text-align: center;
-            border: 1px dashed #ccc;
-          }
-      
-          /* 詳細情報項目 */
-          .detail-item {
-            margin-bottom: 8px;
-            font-size: 12pt;
-            display: flex;
-          }
-      
-          .detail-label {
-            font-weight: bold;
-            color: #555;
-            min-width: 90px;
-            padding-right: 10px;
-          }
-      
-          /* 抽出情報レイアウト */
-          .extraction-info-contents {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-          }
-      
-          /* フレーバーチャートセクション */
-          .flavor-chart-contents {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-          }
-      
-          .flavor-rating {
-            flex: 1;
-          }
-      
-          .chart-container {
-            width: 180px;
-            height: 180px;
-            background-color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 1px solid #eaeaea;
-            border-radius: 5px;
-          }
-      
-          /* 評価項目 */
-          .rating-item {
-            margin-bottom: 8px;
-            font-size: 12pt;
-            display: flex;
-            align-items: center;
-          }
-      
-          .rating-label {
-            font-weight: bold;
-            color: #555;
-            width: 70px;
-          }
-      
-          .rating-value {
-            flex: 1;
-            display: flex;
-            align-items: center;
-          }
-      
-          /* 評価バー表示 */
-          .rating-bar {
-            display: inline-block;
-            height: 10px;
-            background-color: #4a86e8;
-            border-radius: 2px;
-            margin-right: 5px;
-          }
-      
-          .rating-text {
-            display: inline-block;
-            vertical-align: middle;
-          }
-      
-          /* メモセクション */
-          .memo-section {
-            margin-top: 25px;
-          }
-      
-          .memo-content {
-            font-size: 11pt;
-            white-space: pre-wrap;
-            padding: 12px;
-            background-color: #f5f5f5;
-            border: 1px solid #e0e0e0;
-            border-radius: 5px;
-            min-height: 100px;
-          }
-        </style>
+        }
+        .container {
+            grid-template-columns: 1fr;
+        }
+        
+        .field-label, .taste-label {
+            width: 100px;
+            font-size: 14px;
+        }
+    }
+</style>
       </head>
       <body>
-      <div class="main-contents">
-        <h1>${coffeeRecord.name}</h1>
-      
-        <div class="section-container">
-          <h2>豆の情報</h2>
-          <div class="bean-info-contents">
-            <div class="bean-txt">
-              <div class="detail-item">
-                <span class="detail-label">種類:</span> 
-                <span>${coffeeRecord.variety || "未記入"}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">産地:</span> 
-                <span>${coffeeRecord.productionArea || "未記入"}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">焙煎度:</span> 
-                <span>${coffeeRecord.roastingDegree || "未記入"}</span>
-              </div>
+<div class="page">
+         <h1 class="title">${coffeeRecord.name}</h1>
+    
+    <div class="container">
+        <div class="left-column">
+            <h2 class="section-title">豆の情報</h2>
+            <div class="container-wrap"> 
+                <div class="field-row">
+                    <div class="field-label">種類</div>
+                    <div class="field-input">${
+                      coffeeRecord.variety || "未記入"
+                    }</div>
+                </div>
+                
+                <div class="field-row">
+                    <div class="field-label">産地</div>
+                    <div class="field-input">${
+                      coffeeRecord.productionArea || "未記入"
+                    }</div>
+                </div>
+                
+                <div class="field-row">
+                    <div class="field-label">焙煎度</div>
+                    <div class="field-input">${
+                      coffeeRecord.roastingDegree || "未記入"
+                    }</div>
+                </div>
             </div>
+            <h2 class="section-title">抽出情報</h2>
+            <div class="container-wrap">
+            <div class="field-row">
+                <div class="field-label">抽出器具</div>
+                <div class="field-input">${
+                  coffeeRecord.extractionMethod || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">抽出器具</div>
+                <div class="field-input">${
+                  coffeeRecord.extractionMaker || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">挽き目</div>
+                <div class="field-input">${
+                  coffeeRecord.grindSize || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">注出温度</div>
+                <div class="field-input">${
+                  coffeeRecord.temperature || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">粉量</div>
+                <div class="field-input">${
+                  coffeeRecord.coffeeAmount || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">水量</div>
+                <div class="field-input">${
+                  coffeeRecord.waterAmount || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">抽出時間</div>
+                <div class="field-input">${
+                  coffeeRecord.extractionTime || "未記入"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">豆/水比率</div>
+                <div class="field-input">${
+                  coffeeRecord.coffeeAmount && coffeeRecord.waterAmount
+                    ? `1:${
+                        Math.round(
+                          (coffeeRecord.waterAmount /
+                            coffeeRecord.coffeeAmount) *
+                            10
+                        ) / 10
+                      }`
+                    : "計算不可"
+                }</div>
+            </div>
+            
+            <div class="field-row">
+                <div class="field-label">メモ</div>
+                <div class="field-input memo-field"> ${
+                  coffeeRecord.memo || "未記入"
+                }</div>
+            </div>
+            </div>
+        </div>
+        
+        <div class="right-column">
             <div class="image-container">
-              ${imageHtml}
+                <div class="image-item container-wrap">${imageHtml}</div>
             </div>
-          </div>
+            
+            <h2 class="section-title">味わいの評価（５点満点）</h2>
+           <div class="container-wrap"> 
+            ${acidityHtml}
+            ${sweetnessHtml}
+            ${bitternessHtml}
+            ${bodyHtml}
+            ${aromaHtml}
+            ${aftertasteHtml}
+            </div>
+
+            <div class="radar-chart">
+                <!-- Placeholder for radar chart -->
+              
+                <div class="radar-chart-image container-wrap">${svgChart}</div>
+            
+            </div>
         </div>
-      
-        <div class="section-container">
-          <h2>抽出情報</h2>
-          <div class="extraction-info-contents">
-            <div class="detail-item">
-              <span class="detail-label">抽出器具:</span> 
-              <span>${coffeeRecord.extractionMethod || "未記入"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">抽出メーカー:</span> 
-              <span>${coffeeRecord.extractionMaker || "未記入"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">挽き目:</span> 
-              <span>${coffeeRecord.grindSize || "未記入"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">注湯温度:</span> 
-              <span>${coffeeRecord.temperature || "未記入"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">粉量:</span> 
-              <span>${coffeeRecord.coffeeAmount || "未記入"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">水量:</span> 
-              <span>${coffeeRecord.waterAmount || "未記入"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">抽出時間:</span> 
-              <span>${coffeeRecord.extractionTime || "未記入"}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">豆/水比率:</span> 
-              <span>${
-                coffeeRecord.coffeeAmount && coffeeRecord.waterAmount
-                  ? `1:${
-                      Math.round(
-                        (coffeeRecord.waterAmount / coffeeRecord.coffeeAmount) *
-                          10
-                      ) / 10
-                    }`
-                  : "計算不可"
-              }</span>
-            </div>
-          </div>
-        </div>
-      
-        <div class="section-container">
-          <h2>味わいの評価</h2>
-          <div class="flavor-chart-contents">
-            <div class="flavor-rating">
-              ${createRatingBarHtml("酸味", Number(coffeeRecord.acidity) || 0)}
-              ${createRatingBarHtml(
-                "甘味",
-                Number(coffeeRecord.sweetness) || 0
-              )}
-              ${createRatingBarHtml(
-                "苦味",
-                Number(coffeeRecord.bitterness) || 0
-              )}
-              ${createRatingBarHtml("コク", Number(coffeeRecord.body) || 0)}
-              ${createRatingBarHtml("香り", Number(coffeeRecord.aroma) || 0)}
-              ${createRatingBarHtml(
-                "後味",
-                Number(coffeeRecord.aftertaste) || 0
-              )}
-            </div>
-            <div class="chart-container">
-              ${svgChart}
-            </div>
-          </div>
-        </div>
-      
-        <div class="section-container memo-section">
-          <h2>MEMO</h2>
-          <div class="memo-content">
-      ${coffeeRecord.memo || "未記入"}
-          </div>
-        </div>
-      </div>
+    </div>
+</div>
       </body>
       </html>
       `;
@@ -646,7 +855,7 @@ export default function CoffeeItemScreen() {
                 </Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.labelText}>抽出メーカー</Text>
+                <Text style={styles.labelText}>抽出器具</Text>
                 <Text style={styles.valueText}>
                   {coffeeRecord.extractionMaker}
                 </Text>
@@ -724,7 +933,7 @@ export default function CoffeeItemScreen() {
               <TouchableOpacity
                 style={styles.updateButton}
                 onPress={() =>
-                  router.push({ pathname: `../update/${coffeeRecord.id}` })
+                  router.replace({ pathname: `../update/${coffeeRecord.id}` })
                 }
               >
                 <Text style={styles.buttonText}>編集</Text>
@@ -768,7 +977,8 @@ const styles = StyleSheet.create({
   },
   mainContents: {
     width: "100%",
-    maxWidth: 600,
+    maxWidth: screenWidth > 768 ? 700 : "100%", // 例: タブレット以上で最大幅を設定
+
     marginHorizontal: "auto",
     top: 160,
     bottom: 0,
@@ -781,7 +991,6 @@ const styles = StyleSheet.create({
   },
   itemContainer: {
     width: "90%",
-    maxWidth: 500,
     padding: 20,
     borderRadius: 10,
     backgroundColor: "#fff",
@@ -830,11 +1039,12 @@ const styles = StyleSheet.create({
   radarChartContainer: {
     width: "100%",
     alignItems: "center",
-    marginTop: 20,
+    marginVertical: 20,
   },
   recordRadarChart: {
     width: 250,
     height: 250,
+    marginVertical: 20,
   },
   memoContainer: {
     width: "100%",

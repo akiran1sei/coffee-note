@@ -8,6 +8,7 @@ import {
   Text,
   Alert,
   Platform,
+  Dimensions,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useRoute } from "@react-navigation/native";
@@ -34,7 +35,8 @@ import {
   LoadingComponent,
   NoRecordComponent,
 } from "@/components/MessageComponent";
-
+// 画面サイズを取得
+const { width: screenWidth } = Dimensions.get("window");
 type RouteParams = {
   id: string;
 };
@@ -49,7 +51,7 @@ export default function CoffeeItemScreen() {
   });
   const [SelectLabel, setSelectLabel] = useState({
     roastingDegree: "焙煎度",
-    extractionMaker: "抽出メーカー",
+    extractionMaker: "抽出器具",
     extractionMethod: "抽出方法",
     grindSize: "挽き目",
     variety: "品種",
@@ -83,12 +85,12 @@ export default function CoffeeItemScreen() {
   };
 
   const handleSelectChange = (field: FormField, value: string) => {
-    // 抽出方法が変更された場合は、抽出メーカーもリセットする
+    // 抽出方法が変更された場合は、抽出器具もリセットする
     if (field === "extractionMethod") {
       setFormData((prevData) => ({
         ...prevData,
         [field]: value,
-        extractionMaker: "", // 抽出メーカーをリセット
+        extractionMaker: "", // 抽出器具をリセット
       }));
     } else {
       // 他のフィールドの場合は通常の更新
@@ -260,7 +262,7 @@ export default function CoffeeItemScreen() {
       if (window.confirm("このレコードを削除しますか？")) {
         try {
           await CoffeeStorageService.deleteCoffeeRecord(id);
-          router.push("/list");
+          router.replace("/list");
         } catch (error) {
           console.error("レコードの削除に失敗しました:", error);
         }
@@ -281,7 +283,7 @@ export default function CoffeeItemScreen() {
             onPress: async () => {
               try {
                 await CoffeeStorageService.deleteCoffeeRecord(id);
-                router.push("/list");
+                router.replace("/list");
               } catch (error) {
                 console.error("レコードの削除に失敗しました:", error);
               }
@@ -570,7 +572,7 @@ export default function CoffeeItemScreen() {
               {/* Return to List Button */}
               <TouchableOpacity
                 style={styles.returnButton}
-                onPress={() => router.push("/list")}
+                onPress={() => router.replace("/list")}
               >
                 <Text style={styles.returnButtonText}>リストに戻る</Text>
               </TouchableOpacity>
@@ -601,7 +603,7 @@ const styles = StyleSheet.create({
   },
   mainContents: {
     width: "100%",
-    maxWidth: 600,
+    maxWidth: screenWidth > 768 ? 700 : "100%", // 例: タブレット以上で最大幅を設定
     marginHorizontal: "auto",
     top: 160, // ヘッダーとタイトルに合わせて調整
     bottom: 0,
@@ -614,7 +616,6 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: "90%",
-    maxWidth: 500,
     padding: 20,
     borderRadius: 10,
     backgroundColor: "#fff",

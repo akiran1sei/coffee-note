@@ -66,3 +66,7 @@ Thumbs.db
 
 # 特定のフォルダ (例として残しましたが必要なければ削除してください)
 app-example
+
+firebase_keys/service-account.json
+# または、ディレクトリ全体を除外する場合
+firebase_keys/
