@@ -54,6 +54,6 @@
       }
     },
     "owner": "nakamori",
-    "assetBundlePatterns": ["assets/images/**/*"]
+    "assetBundlePatterns": ["**/*", "assets/**/*", "assets/images/**/*"]
   }
 }
