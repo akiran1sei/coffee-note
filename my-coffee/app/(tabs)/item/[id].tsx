@@ -17,6 +17,7 @@ import {
   ActivityIndicator,
   Dimensions,
 } from "react-native";
+import Constants from "expo-constants";
 import { useRoute } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import HeaderComponent from "../../../components/HeaderComponent";
@@ -28,11 +29,16 @@ import {
   LoadingComponent,
   NoRecordComponent,
 } from "@/components/MessageComponent";
+const isPreviewBuild = Constants.executionEnvironment === "storeClient";
+if (isPreviewBuild) {
+  console.log("[DEBUG] Running in preview/production environment");
+}
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
 type RouteParams = {
   id: string;
 };
+let imageHtml = "";
 const STAR_ASSET_MODULES = {
   Star0: require("@/assets/images/Star0.png"), // 0はファイル名としてハイフンやアンダースコアを使うのが一般的
   Star0_5: require("@/assets/images/Star0_5.png"), // 0_5はファイル名としてハイフンやアンダースコアを使うのが一般的
@@ -52,11 +58,13 @@ let Base64Cache: string | null = null;
 
 let base64ImageCache: { [key: string]: string } = {};
 
-// 画像キー（例: 'Star3_5'）を受け取ってBase64形式で返す汎用関数
+// 修正版のgetBase64ImageByKey関数
 const getBase64ImageByKey = async (
   imageKey: keyof typeof STAR_ASSET_MODULES
 ): Promise<string | null> => {
+  // キャッシュから取得
   if (base64ImageCache[imageKey]) {
+    console.log(`[DEBUG_PREVIEW] Using cached base64 for ${imageKey}`);
     return base64ImageCache[imageKey];
   }
 
@@ -65,59 +73,215 @@ const getBase64ImageByKey = async (
     console.error(`Asset module not found for key: ${imageKey}`);
     return null;
   }
-  let asset: Asset | null = null; // ここでassetを初期化
+
   try {
-    asset = Asset.fromModule(assetModule);
+    let asset = Asset.fromModule(assetModule);
     console.log(
-      `[DEBUG_PREVIEW] Asset <span class="math-inline">\{imageKey\} initialized\: uri\=</span>{asset.uri}, localUri=<span class="math-inline">\{asset\.localUri\}, downloaded\=</span>{asset.downloaded}`
+      `[DEBUG_PREVIEW] Asset ${imageKey} initialized: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
     );
 
+    // アセットのダウンロード確認・実行
     if (!asset.downloaded) {
+      console.log(`[DEBUG_PREVIEW] Downloading asset ${imageKey}...`);
       await asset.downloadAsync();
       console.log(
-        `[DEBUG_PREVIEW] Asset <span class="math-inline">\{imageKey\} after download\: uri\=</span>{asset.uri}, localUri=<span class="math-inline">\{asset\.localUri\}, downloaded\=</span>{asset.downloaded}`
+        `[DEBUG_PREVIEW] Asset ${imageKey} after download: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
       );
     }
 
-    if (!asset.localUri) {
+    // localUriの確認と代替手段の試行
+    let fileUri = asset.localUri;
+
+    if (!fileUri) {
+      console.warn(
+        `[WARNING_PREVIEW] localUri is null for ${imageKey}, trying asset.uri`
+      );
+      fileUri = asset.uri;
+    }
+
+    if (!fileUri) {
       console.error(
-        `[ERROR_PREVIEW] localUri is null for ${imageKey} after download. URI was: ${asset.uri}`
+        `[ERROR_PREVIEW] Both localUri and uri are null for ${imageKey}`
       );
       return null;
     }
 
-    const base64 = await FileSystem.readAsStringAsync(asset.localUri, {
+    // ファイル存在確認（preview環境では重要）
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+      if (!fileInfo.exists) {
+        console.error(
+          `[ERROR_PREVIEW] File does not exist at ${fileUri} for ${imageKey}`
+        );
+
+        // 代替として、asset.uriを試行
+        if (asset.uri && asset.uri !== fileUri) {
+          console.log(
+            `[DEBUG_PREVIEW] Trying asset.uri as fallback: ${asset.uri}`
+          );
+          const fallbackInfo = await FileSystem.getInfoAsync(asset.uri);
+          if (fallbackInfo.exists) {
+            fileUri = asset.uri;
+          } else {
+            console.error(
+              `[ERROR_PREVIEW] Fallback URI also doesn't exist for ${imageKey}`
+            );
+            return null;
+          }
+        } else {
+          return null;
+        }
+      }
+    } catch (infoError) {
+      console.error(
+        `[ERROR_PREVIEW] Error checking file info for ${imageKey}:`,
+        infoError
+      );
+      // ファイル情報取得に失敗しても、読み込みを試行する
+    }
+
+    // Base64エンコード実行
+    console.log(`[DEBUG_PREVIEW] Reading file as base64 from: ${fileUri}`);
+    const base64 = await FileSystem.readAsStringAsync(fileUri, {
       encoding: FileSystem.EncodingType.Base64,
     });
 
+    if (!base64 || base64.length === 0) {
+      console.error(`[ERROR_PREVIEW] Empty base64 result for ${imageKey}`);
+      return null;
+    }
+
     console.log(
-      `[DEBUG_PREVIEW] Base64 for ${imageKey} generated. Length: ${base64.length}`
+      `[DEBUG_PREVIEW] Base64 for ${imageKey} generated successfully. Length: ${base64.length}`
     );
     console.log(
       `[DEBUG_PREVIEW] Base64 snippet for ${imageKey}: ${base64.substring(
         0,
         50
       )}...`
-    ); // Base64文字列の冒頭50文字
+    );
 
-    return `data:image/png;base64,${base64}`;
+    const dataUri = `data:image/png;base64,${base64}`;
+
+    // キャッシュに保存
+    base64ImageCache[imageKey] = dataUri;
+
+    return dataUri;
   } catch (error) {
     console.error(
       `[ERROR_PREVIEW] Failed to load base64 image for ${imageKey}:`,
       error
     );
-    if (asset) {
-      console.error(`[ERROR_PREVIEW] Asset state at error for ${imageKey}:`);
-      console.error(`  uri=${asset.uri}`);
-      console.error(`  localUri=${asset.localUri}`);
-      console.error(`  downloaded=${asset.downloaded}`);
-    } else {
-      console.error(
-        `[ERROR_PREVIEW] Asset object was not initialized for ${imageKey}.`
-      );
+
+    // エラーの詳細ログ
+    if (error instanceof Error) {
+      console.error(`[ERROR_PREVIEW] Error message: ${error.message}`);
+      console.error(`[ERROR_PREVIEW] Error stack: ${error.stack}`);
     }
+
     return null;
   }
+};
+
+// 代替案: より安全なアセット読み込み関数
+const getBase64ImageByKeyWithFallback = async (
+  imageKey: keyof typeof STAR_ASSET_MODULES
+): Promise<string | null> => {
+  try {
+    // 最初に通常の方法を試行
+    const result = await getBase64ImageByKey(imageKey);
+    if (result) {
+      return result;
+    }
+  } catch (error) {
+    console.warn(
+      `[WARNING_PREVIEW] Primary method failed for ${imageKey}, trying fallback`
+    );
+  }
+
+  // フォールバック: 事前にBase64文字列を定義しておく方法
+  // 重要なアセットについては、ビルド時にBase64文字列を生成して定数として定義
+  const fallbackBase64Assets: Partial<
+    Record<keyof typeof STAR_ASSET_MODULES, string>
+  > = {
+    // 例: no_image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+    // 実際の運用では、ビルドスクリプトでBase64文字列を生成してここに設定
+  };
+
+  if (fallbackBase64Assets[imageKey]) {
+    console.log(`[DEBUG_PREVIEW] Using fallback base64 for ${imageKey}`);
+    return fallbackBase64Assets[imageKey] as string;
+  }
+
+  console.error(`[ERROR_PREVIEW] No fallback available for ${imageKey}`);
+  return null;
+};
+
+// アプリ初期化時にアセットを事前ロード（推奨）
+export const preloadAssets = async (): Promise<void> => {
+  console.log("[DEBUG_PREVIEW] Starting asset preload...");
+
+  const assetKeys = Object.keys(STAR_ASSET_MODULES) as Array<
+    keyof typeof STAR_ASSET_MODULES
+  >;
+
+  // 並列でアセットを事前ダウンロード
+  const downloadPromises = assetKeys.map(async (key) => {
+    try {
+      const asset = Asset.fromModule(STAR_ASSET_MODULES[key]);
+      if (!asset.downloaded) {
+        await asset.downloadAsync();
+        console.log(`[DEBUG_PREVIEW] Preloaded asset: ${key}`);
+      }
+    } catch (error) {
+      console.error(`[ERROR_PREVIEW] Failed to preload asset ${key}:`, error);
+    }
+  });
+
+  await Promise.all(downloadPromises);
+  console.log("[DEBUG_PREVIEW] Asset preload completed");
+};
+
+// 使用例: App.tsxやメインコンポーネントで呼び出し
+// useEffect(() => {
+//   preloadAssets();
+// }, []);
+
+// PDFでのイメージ生成部分も修正
+const createRatingBarHtml = async (label: string, value: number) => {
+  const roundedValue = Math.round(value * 2) / 2;
+  const imageKey = `Star${roundedValue
+    .toString()
+    .replace(".", "_")}` as keyof typeof STAR_ASSET_MODULES;
+
+  // 修正版の関数を使用
+  const starBase64 = await getBase64ImageByKeyWithFallback(imageKey);
+
+  // エラーハンドリングを改善
+  if (!starBase64) {
+    console.error(
+      `[ERROR_PREVIEW] Could not load star image for ${imageKey}, using fallback`
+    );
+    // テキストベースのフォールバック
+    return `
+      <div class="taste-field">
+        <div class="taste-label">${label}</div>
+        <div class="taste-input">
+          <span class="rating-text">★ ${value}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="taste-field">
+      <div class="taste-label">${label}</div>
+      <div class="taste-input">
+        <img src="${starBase64}" alt="Star Rating" style="width: 80%; height: auto; vertical-align: middle;" />
+        <span class="rating-text">${value}</span>
+      </div>
+    </div>
+  `;
 };
 
 // この関数は、アプリ起動時やコンポーネントのマウント時などに一度だけ呼び出すことを推奨します
@@ -192,9 +356,14 @@ export default function CoffeeItemScreen() {
         !coffeeRecord.imageUri ||
         coffeeRecord.imageUri === "default_image_path"
       ) {
-        const noImageBase64 = await getBase64ImageByKey("no_image");
-        // getBase64ImageByKeyは既に "data:image/png;base64,..." 形式で返すのでそのまま使用
-        imageHtml = `<img src="${noImageBase64}" alt="No Image" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #ddd;" />`;
+        const noImageBase64 = await getBase64ImageByKeyWithFallback("no_image");
+
+        if (noImageBase64) {
+          imageHtml = `<img src="${noImageBase64}" alt="No Image" style="width: 100%; height: 100%; object-fit: cover; border: 2px solid #ddd;" />`;
+        } else {
+          // Base64取得に失敗した場合のフォールバック
+          imageHtml = `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border: 2px solid #ddd; background-color: #f0f0f0;">画像なし</div>`;
+        }
       } else {
         // それ以外の場合（ユーザーが画像を指定）
         try {
