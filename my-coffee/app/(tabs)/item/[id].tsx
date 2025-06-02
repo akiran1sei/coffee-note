@@ -513,24 +513,37 @@ export default function CoffeeItemScreen() {
 
       // 評価バーを直接HTMLで生成する関数
       const createRatingBarHtml = async (label: string, value: number) => {
-        // value を基に適切な星画像キーを生成
-        const roundedValue = Math.round(value * 2) / 2; // 0.5刻みに丸める
-        const imageKey = `Star${roundedValue
-          .toString()
-          .replace(".", "_")}` as keyof typeof STAR_ASSET_MODULES;
-
-        const starBase64 = await getBase64ImageByKey(imageKey);
-
         return `
         <div class="taste-field">
           <div class="taste-label">${label}</div>
           <div class="taste-input">
-            <img src="${starBase64}" alt="Star Rating" style="width: 80%; height: auto; vertical-align: middle;" />
+        
             <span class="rating-text">${value}</span>
           </div>
         </div>
       `;
       };
+
+      /*----------PDF画像出力表示（作成途中で本番環境ではエラーになる）-----------------*/
+      // const createRatingBarHtml = async (label: string, value: number) => {
+      //   // value を基に適切な星画像キーを生成
+      //   const roundedValue = Math.round(value * 2) / 2; // 0.5刻みに丸める
+      //   const imageKey = `Star${roundedValue
+      //     .toString()
+      //     .replace(".", "_")}` as keyof typeof STAR_ASSET_MODULES;
+
+      //   const starBase64 = await getBase64ImageByKey(imageKey);
+
+      //   return `
+      //   <div class="taste-field">
+      //     <div class="taste-label">${label}</div>
+      //     <div class="taste-input">
+      //       <img src="${starBase64}" alt="Star Rating" style="width: 80%; height: auto; vertical-align: middle;" />
+      //       <span class="rating-text">${value}</span>
+      //     </div>
+      //   </div>
+      // `;
+      // };
       const acidityHtml = await createRatingBarHtml(
         "酸味",
         Number(coffeeRecord.acidity) || 0
@@ -742,8 +755,9 @@ export default function CoffeeItemScreen() {
         padding: 8px;
         border: 1px solid #ccc;
         border-radius: 4px;
-        margin-left: 5px;
+        margin: 0 auto;
         background-color: #fff;
+        text-align: center;
     }
     
     /* ------------------------------------------------------------------- */
@@ -777,6 +791,7 @@ export default function CoffeeItemScreen() {
         color: rgba(0, 80, 150, 1);
         font-weight: bold;
         font-size: 18px;
+        
     }
 
     /* ------------------------------------------------------------------- */
