@@ -26,7 +26,7 @@ const RadarChart: React.FC<RadarChartProps> = ({ data }) => {
     { x: "甘味", y: data.sweetness },
     { x: "コク", y: data.body },
     { x: "香り", y: data.aroma },
-    { x: "後味", y: data.aftertaste },
+    { x: "キレ", y: data.aftertaste },
     { x: "酸味", y: data.acidity },
   ];
 

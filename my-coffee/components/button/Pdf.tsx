@@ -136,7 +136,7 @@ const PdfButtonComponent: React.FC<PdfItemProps> = () => {
         { angle: 120, value: radarData.bitterness, label: "苦味" }, // 120度 (右下) - 苦味は通常下側
         { angle: 180, value: radarData.body, label: "コク" }, // 180度 (下)
         { angle: 240, value: radarData.aroma, label: "香り" }, // 240度 (左下) - 香りは左下
-        { angle: 300, value: radarData.aftertaste, label: "後味" }, // 300度 (左上) - 後味は左上
+        { angle: 300, value: radarData.aftertaste, label: "キレ" }, // 300度 (左上) - キレは左上
       ];
 
       // SVGポリゴンのポイント文字列を生成
@@ -616,7 +616,7 @@ const PdfButtonComponent: React.FC<PdfItemProps> = () => {
                           }/5</span>
                         </div>
                         <div class="rating-item">
-                          <span class="rating-label">後味:</span>
+                          <span class="rating-label">キレ:</span>
                           <span class="rating-value">${
                             coffeeRecord.aftertaste || "0"
                           }/5</span>

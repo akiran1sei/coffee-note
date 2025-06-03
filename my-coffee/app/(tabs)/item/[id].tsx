@@ -298,7 +298,7 @@ export default function CoffeeItemScreen() {
   const [loading, setLoading] = useState(true);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   // 以下の labels と angles は RadarChart コンポーネント用で、SVG生成には直接関係しないため変更不要です。
-  const labels = ["酸味", "甘味", "苦味", "コク", "香り", "後味"];
+  const labels = ["酸味", "甘味", "苦味", "コク", "香り", "キレ"];
   const angles = [0, 60, 120, 180, 240, 300].map(
     (angle) => (angle * Math.PI) / 180
   );
@@ -444,7 +444,7 @@ export default function CoffeeItemScreen() {
         polygonPoints += `${x},${y} `;
       });
 
-      const labelsSvg = ["酸味", "甘味", "苦味", "コク", "香り", "後味"];
+      const labelsSvg = ["酸味", "甘味", "苦味", "コク", "香り", "キレ"];
       const axisLinesHtml: string[] = [];
       const labelTextsHtml: string[] = [];
 
@@ -565,7 +565,7 @@ export default function CoffeeItemScreen() {
         Number(coffeeRecord.aroma) || 0
       );
       const aftertasteHtml = await createRatingBarHtml(
-        "後味",
+        "キレ",
         Number(coffeeRecord.aftertaste) || 0
       );
       // HTML生成
@@ -1093,7 +1093,7 @@ export default function CoffeeItemScreen() {
                 <Text style={styles.valueText}>{coffeeRecord.aroma}</Text>
               </View>
               <View style={styles.detailItem}>
-                <Text style={styles.labelText}>後味</Text>
+                <Text style={styles.labelText}>キレ</Text>
                 <Text style={styles.valueText}>{coffeeRecord.aftertaste}</Text>
               </View>
 

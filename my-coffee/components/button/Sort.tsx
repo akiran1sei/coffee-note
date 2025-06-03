@@ -46,8 +46,8 @@ const SortComponent: React.FC<SortComponentProps> = ({ onSort, records }) => {
     { label: "コク 降順", value: "body", order: "desc" },
     { label: "香り 昇順", value: "aroma", order: "asc" },
     { label: "香り 降順", value: "aroma", order: "desc" },
-    { label: "後味 昇順", value: "aftertaste", order: "asc" },
-    { label: "後味 降順", value: "aftertaste", order: "desc" },
+    { label: "キレ 昇順", value: "aftertaste", order: "asc" },
+    { label: "キレ 降順", value: "aftertaste", order: "desc" },
     { label: "作成日時 (古い順)", value: "createdAt", order: "asc" },
     { label: "作成日時 (新しい順)", value: "createdAt", order: "desc" },
   ];

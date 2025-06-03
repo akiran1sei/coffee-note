@@ -28,7 +28,7 @@ app.post("/api/generate-pdf", async (req, res) => {
 
     // レーダーチャートのデータ
     const radarData = {
-      labels: ["酸味", "甘味", "苦味", "コク", "香り", "後味"],
+      labels: ["酸味", "甘味", "苦味", "コク", "香り", "キレ"],
       datasets: [
         {
           label: coffeeRecord.name,
@@ -106,7 +106,7 @@ app.post("/api/generate-pdf", async (req, res) => {
               ["苦味", coffeeRecord.bitterness || "0"],
               ["コク", coffeeRecord.body || "0"],
               ["香り", coffeeRecord.aroma || "0"],
-              ["後味", coffeeRecord.aftertaste || "0"],
+              ["キレ", coffeeRecord.aftertaste || "0"],
               ["MEMO", coffeeRecord.memo || "未記入"],
             ],
           },

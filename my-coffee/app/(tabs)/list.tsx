@@ -233,7 +233,7 @@ export default function ListScreen() {
                 <TastingValue label="苦味" value={record.bitterness} />
                 <TastingValue label="コク" value={record.body} />
                 <TastingValue label="香り" value={record.aroma} />
-                <TastingValue label="後味" value={record.aftertaste} />
+                <TastingValue label="キレ" value={record.aftertaste} />
               </View>
             </View>
 

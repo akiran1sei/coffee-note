@@ -17,7 +17,7 @@ export interface CoffeeRecord {
   sweetness: number; // 甘味（1-10）
   body: number; // コク（1-10）
   aroma: number; // 香り（1-10）
-  aftertaste: number; // 後味（1-10）
+  aftertaste: number; // キレ（1-10）
   memo: string; // メモ
   imageUri: string; // 画像のパス
   createdAt: Date; // 追加

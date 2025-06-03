@@ -312,7 +312,7 @@ const CoffeeItemScreen = () => {
                       </Text>
                     </View>
                     <View style={styles.infoItem}>
-                      <Text style={styles.label}>後味:</Text>
+                      <Text style={styles.label}>キレ:</Text>
                       <Text style={styles.value}>
                         {coffeeRecord.aftertaste || "0"}/5
                       </Text>

@@ -60,7 +60,7 @@ export default function CoffeeItemWebScreen() {
     sweetness: "甘味",
     body: "コク",
     aroma: "香り",
-    aftertaste: "後味",
+    aftertaste: "キレ",
   });
   const [NumberLabel, setNumberLabel] = useState({
     temperature: "温度（℃）",

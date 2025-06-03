@@ -351,7 +351,7 @@ const CoffeePdfDisplayScreen = () => {
                       </Text>
                     </View>
                     <View style={styles.pdfInfoItem}>
-                      <Text style={styles.pdfLabel}>後味:</Text>
+                      <Text style={styles.pdfLabel}>キレ:</Text>
                       <Text style={styles.pdfValue}>
                         {coffeeRecord.aftertaste || "0"}
                       </Text>
