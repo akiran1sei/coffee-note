@@ -229,11 +229,11 @@ export default function ListScreen() {
               <Text style={styles.sectionTitle}>テイスティングノート</Text>
               <View style={styles.tastingGrid}>
                 <TastingValue label="酸味" value={record.acidity} />
-                <TastingValue label="甘味" value={record.sweetness} />
-                <TastingValue label="苦味" value={record.bitterness} />
                 <TastingValue label="コク" value={record.body} />
                 <TastingValue label="香り" value={record.aroma} />
+                <TastingValue label="苦味" value={record.bitterness} />
                 <TastingValue label="キレ" value={record.aftertaste} />
+                <TastingValue label="全体の好み" value={record.overall} />
               </View>
             </View>
 
@@ -246,7 +246,6 @@ export default function ListScreen() {
                   data={{
                     acidity: Number(record.acidity) || 0,
                     bitterness: Number(record.bitterness) || 0,
-                    sweetness: Number(record.sweetness) || 0,
                     body: Number(record.body) || 0,
                     aroma: Number(record.aroma) || 0,
                     aftertaste: Number(record.aftertaste) || 0,
@@ -551,7 +550,7 @@ const styles = StyleSheet.create({
   tastingGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: "center",
   },
   tastingItem: {
     width: "30%", // 3列表示

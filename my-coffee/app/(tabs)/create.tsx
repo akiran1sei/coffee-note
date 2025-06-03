@@ -29,6 +29,7 @@ import ImageUploadComponent from "../../components/ImageUploadComponent";
 
 import RadarChart from "../../components/RadarChart/RadarChart";
 import CoffeeStorageService from "../../services/CoffeeStorageService"; // ストレージサービスをインポート
+import OverallPreferenceRangeComponent from "../../components/OverallComponent";
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
 interface CoffeeRecord {
@@ -46,7 +47,7 @@ interface CoffeeRecord {
   extractionTime: string;
   acidity: number;
   bitterness: number;
-  sweetness: number;
+  overall: number;
   body: number;
   aroma: number;
   aftertaste: number;
@@ -69,7 +70,7 @@ const initialFormData = {
   extractionTime: "",
   acidity: 0,
   bitterness: 0,
-  sweetness: 0,
+  overall: 1,
   body: 0,
   aroma: 0,
   aftertaste: 0,
@@ -79,10 +80,10 @@ const initialFormData = {
 const initialRangeValues = {
   acidity: 0,
   bitterness: 0,
-  sweetness: 0,
   body: 0,
   aroma: 0,
   aftertaste: 0,
+  overall: 1,
 };
 
 export default function CreateScreen() {
@@ -104,10 +105,10 @@ export default function CreateScreen() {
   const [RangeLabel, setRangeLabel] = useState({
     acidity: "酸味",
     bitterness: "苦味",
-    sweetness: "甘味",
     body: "コク",
     aroma: "香り",
     aftertaste: "キレ",
+    overall: "全体の好み",
   });
   const [NumberLabel, setNumberLabel] = useState({
     temperature: "温度（℃）",
@@ -144,6 +145,10 @@ export default function CreateScreen() {
     setFormData((prevFormData) => ({ ...prevFormData, [label]: value }));
   };
   const handleRangeChange = (label: string, value: number) => {
+    setFormData({ ...formData, [label]: value });
+    setRangeValues({ ...rangeValues, [label]: value });
+  };
+  const handleOverallPreferenceChange = (label: string, value: number) => {
     setFormData({ ...formData, [label]: value });
     setRangeValues({ ...rangeValues, [label]: value });
   };
@@ -212,7 +217,7 @@ export default function CreateScreen() {
         extractionTime: formData.extractionTime,
         acidity: formData.acidity,
         bitterness: formData.bitterness,
-        sweetness: formData.sweetness,
+        overall: formData.overall,
         body: formData.body,
         aroma: formData.aroma,
         aftertaste: formData.aftertaste,
@@ -293,7 +298,6 @@ export default function CreateScreen() {
               onChange={(value: string) => handleSelectChange("variety", value)}
               value={formData.variety}
             />
-
             <InputComponent
               key={`productionArea-${resetKey}`}
               dataTitle={InputLabel.productionArea}
@@ -374,14 +378,6 @@ export default function CreateScreen() {
               value={rangeValues.bitterness}
             />
             <RangeComponent
-              key={`sweetness-${resetKey}`}
-              dataTitle={RangeLabel.sweetness}
-              onChange={(value: number) =>
-                handleRangeChange("sweetness", value)
-              }
-              value={rangeValues.sweetness}
-            />
-            <RangeComponent
               key={`body-${resetKey}`}
               dataTitle={RangeLabel.body}
               onChange={(value: number) => handleRangeChange("body", value)}
@@ -402,11 +398,19 @@ export default function CreateScreen() {
               value={rangeValues.aftertaste}
             />
             <RadarChart data={rangeValues} />
+            <OverallPreferenceRangeComponent
+              key={`overall-${resetKey}`}
+              onChange={(value: number) =>
+                handleOverallPreferenceChange("overall", value)
+              }
+              value={rangeValues.overall}
+            />
             <TextAreaComponent
               key={`textArea-${resetKey}`}
               onChange={handleTextAreaChange}
               value={formData.textArea}
             />
+
             <TouchableOpacity
               style={styles.submitButton}
               onPress={handleSubmit}

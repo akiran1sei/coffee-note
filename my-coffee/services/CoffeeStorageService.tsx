@@ -241,7 +241,7 @@ class CoffeeStorageService {
     criteria:
       | "acidity"
       | "bitterness"
-      | "sweetness"
+      // | "sweetness"
       | "body"
       | "aroma"
       | "aftertaste"
@@ -261,9 +261,9 @@ class CoffeeStorageService {
           case "bitterness":
             comparison = (a.bitterness || 0) - (b.bitterness || 0);
             break;
-          case "sweetness":
-            comparison = (a.sweetness || 0) - (b.sweetness || 0);
-            break;
+          // case "sweetness":
+          //   comparison = (a.sweetness || 0) - (b.sweetness || 0);
+          //   break;
           case "body":
             comparison = (a.body || 0) - (b.body || 0);
             break;
@@ -296,7 +296,7 @@ class CoffeeStorageService {
     sortCriteria?:
       | "acidity"
       | "bitterness"
-      | "sweetness"
+      // | "sweetness"
       | "body"
       | "aroma"
       | "aftertaste"
@@ -322,9 +322,9 @@ class CoffeeStorageService {
             case "bitterness":
               comparison = (a.bitterness || 0) - (b.bitterness || 0);
               break;
-            case "sweetness":
-              comparison = (a.sweetness || 0) - (b.sweetness || 0);
-              break;
+            // case "sweetness":
+            //   comparison = (a.sweetness || 0) - (b.sweetness || 0);
+            //   break;
             case "body":
               comparison = (a.body || 0) - (b.body || 0);
               break;

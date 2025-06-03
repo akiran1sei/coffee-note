@@ -14,7 +14,7 @@ export interface CoffeeRecord {
   extractionTime: string; // 抽出時間
   acidity: number; // 酸味（1-10）
   bitterness: number; // 苦味（1-10）
-  sweetness: number; // 甘味（1-10）
+  overall: number; // 全体の好み（1-55）
   body: number; // コク（1-10）
   aroma: number; // 香り（1-10）
   aftertaste: number; // キレ（1-10）

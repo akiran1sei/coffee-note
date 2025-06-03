@@ -35,6 +35,7 @@ import {
   LoadingComponent,
   NoRecordComponent,
 } from "@/components/MessageComponent";
+import OverallPreferenceRangeComponent from "@/components/OverallComponent";
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
 type RouteParams = {
@@ -107,6 +108,13 @@ export default function CoffeeItemScreen() {
       [label]: value,
     });
   };
+  const handleOverallPreferenceChange = (label: string, value: number) => {
+    setFormData({ ...formData, [label]: value });
+    setRangeValues({
+      ...rangeValues,
+      [label]: value,
+    });
+  };
 
   const handleTextAreaChange = (value: string) => {
     setFormData({ ...formData, memo: value });
@@ -171,10 +179,10 @@ export default function CoffeeItemScreen() {
           formData.bitterness !== undefined
             ? formData.bitterness
             : coffeeRecord?.bitterness,
-        sweetness:
-          formData.sweetness !== undefined
-            ? formData.sweetness
-            : coffeeRecord?.sweetness,
+        overall:
+          formData.overall !== undefined
+            ? formData.overall
+            : coffeeRecord?.overall,
         body: formData.body !== undefined ? formData.body : coffeeRecord?.body,
         aroma:
           formData.aroma !== undefined ? formData.aroma : coffeeRecord?.aroma,
@@ -221,7 +229,7 @@ export default function CoffeeItemScreen() {
             extractionTime: updatedRecord.extractionTime,
             acidity: updatedRecord.acidity,
             bitterness: updatedRecord.bitterness,
-            sweetness: updatedRecord.sweetness,
+            overall: updatedRecord.overall,
             body: updatedRecord.body,
             aroma: updatedRecord.aroma,
             aftertaste: updatedRecord.aftertaste,
@@ -232,7 +240,7 @@ export default function CoffeeItemScreen() {
           setRangeValues({
             acidity: updatedRecord.acidity,
             bitterness: updatedRecord.bitterness,
-            sweetness: updatedRecord.sweetness,
+            overall: updatedRecord.overall,
             body: updatedRecord.body,
             aroma: updatedRecord.aroma,
             aftertaste: updatedRecord.aftertaste,
@@ -315,7 +323,7 @@ export default function CoffeeItemScreen() {
             extractionTime: record.extractionTime,
             acidity: record.acidity,
             bitterness: record.bitterness,
-            sweetness: record.sweetness,
+            overall: record.overall,
             body: record.body,
             aroma: record.aroma,
             aftertaste: record.aftertaste,
@@ -326,7 +334,7 @@ export default function CoffeeItemScreen() {
           setRangeValues({
             acidity: record.acidity,
             bitterness: record.bitterness,
-            sweetness: record.sweetness,
+            overall: record.overall,
             body: record.body,
             aroma: record.aroma,
             aftertaste: record.aftertaste,
@@ -487,17 +495,7 @@ export default function CoffeeItemScreen() {
                     : 0
                 }
               />
-              <RangeComponent
-                dataTitle={RangeLabel.sweetness}
-                onChange={(value: number) =>
-                  handleRangeChange("sweetness", value)
-                }
-                value={
-                  rangeValues.sweetness !== undefined
-                    ? rangeValues.sweetness
-                    : 0
-                }
-              />
+
               <RangeComponent
                 dataTitle={RangeLabel.body}
                 onChange={(value: number) => handleRangeChange("body", value)}
@@ -531,10 +529,7 @@ export default function CoffeeItemScreen() {
                       rangeValues.bitterness !== undefined
                         ? rangeValues.bitterness
                         : 0,
-                    sweetness:
-                      rangeValues.sweetness !== undefined
-                        ? rangeValues.sweetness
-                        : 0,
+
                     body: rangeValues.body !== undefined ? rangeValues.body : 0,
                     aroma:
                       rangeValues.aroma !== undefined ? rangeValues.aroma : 0,
@@ -545,6 +540,12 @@ export default function CoffeeItemScreen() {
                   }}
                 />
               </View>
+              <OverallPreferenceRangeComponent
+                onChange={(value: number) =>
+                  handleOverallPreferenceChange("overall", value)
+                }
+                value={formData.overall !== undefined ? formData.overall : 1}
+              />
               <TextAreaComponent
                 onChange={handleTextAreaChange}
                 value={formData.memo !== undefined ? formData.memo : ""}

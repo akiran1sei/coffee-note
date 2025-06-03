@@ -298,11 +298,11 @@ export default function CoffeeItemScreen() {
   const [loading, setLoading] = useState(true);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   // 以下の labels と angles は RadarChart コンポーネント用で、SVG生成には直接関係しないため変更不要です。
-  const labels = ["酸味", "甘味", "苦味", "コク", "香り", "キレ"];
-  const angles = [0, 60, 120, 180, 240, 300].map(
-    (angle) => (angle * Math.PI) / 180
-  );
-  const radius = 40;
+  // const labels = ["酸味", "甘味", "苦味", "コク", "香り", "キレ"];
+  // const angles = [0, 60, 120, 180, 240, 300].map(
+  //   (angle) => (angle * Math.PI) / 180
+  // );
+  // const radius = 40;
 
   // 画像URIを処理する関数
   const getImageSource = (uri?: string | null): ImageSourcePropType => {
@@ -404,7 +404,7 @@ export default function CoffeeItemScreen() {
       // レーダーチャートのデータ
       const radarDataValues = [
         Number(coffeeRecord.acidity) || 0,
-        Number(coffeeRecord.sweetness) || 0,
+        // Number(coffeeRecord.sweetness) || 0,
         Number(coffeeRecord.bitterness) || 0,
         Number(coffeeRecord.body) || 0,
         Number(coffeeRecord.aroma) || 0,
@@ -427,8 +427,13 @@ export default function CoffeeItemScreen() {
       const centerY = 60;
       const maxDataRadius = 40; // データが最大値(5)の時のレーダーチャートの半径
       const labelRadius = 48; // ラベルを配置する半径 (maxDataRadiusより少し大きく)
-
-      const anglesDegrees = [270, 330, 30, 90, 150, 210];
+      const anglesDegrees = [
+        90, // 頂点の一つを上（Y軸正方向）に設定
+        90 + 72, // 162度
+        90 + 72 * 2, // 234度
+        90 + 72 * 3, // 306度
+        90 + 72 * 4, // 378度 (実質的には 18度)
+      ];
       const anglesRadians = anglesDegrees.map(
         (angle) => (angle * Math.PI) / 180
       );
@@ -444,7 +449,8 @@ export default function CoffeeItemScreen() {
         polygonPoints += `${x},${y} `;
       });
 
-      const labelsSvg = ["酸味", "甘味", "苦味", "コク", "香り", "キレ"];
+      const labelsSvg = ["酸味", "苦味", "コク", "香り", "キレ"];
+      // const labelsSvg = ["酸味", "甘味", "苦味", "コク", "香り", "キレ"];
       const axisLinesHtml: string[] = [];
       const labelTextsHtml: string[] = [];
 
@@ -524,33 +530,13 @@ export default function CoffeeItemScreen() {
       `;
       };
 
-      /*----------PDF画像出力表示（作成途中で本番環境ではエラーになる）-----------------*/
-      // const createRatingBarHtml = async (label: string, value: number) => {
-      //   // value を基に適切な星画像キーを生成
-      //   const roundedValue = Math.round(value * 2) / 2; // 0.5刻みに丸める
-      //   const imageKey = `Star${roundedValue
-      //     .toString()
-      //     .replace(".", "_")}` as keyof typeof STAR_ASSET_MODULES;
-
-      //   const starBase64 = await getBase64ImageByKey(imageKey);
-
-      //   return `
-      //   <div class="taste-field">
-      //     <div class="taste-label">${label}</div>
-      //     <div class="taste-input">
-      //       <img src="${starBase64}" alt="Star Rating" style="width: 80%; height: auto; vertical-align: middle;" />
-      //       <span class="rating-text">${value}</span>
-      //     </div>
-      //   </div>
-      // `;
-      // };
       const acidityHtml = await createRatingBarHtml(
         "酸味",
         Number(coffeeRecord.acidity) || 0
       );
-      const sweetnessHtml = await createRatingBarHtml(
-        "甘味",
-        Number(coffeeRecord.sweetness) || 0
+      const overallHtml = await createRatingBarHtml(
+        "全体の好み",
+        Number(coffeeRecord.overall) || 0
       );
       const bitternessHtml = await createRatingBarHtml(
         "苦味",
@@ -924,11 +910,12 @@ export default function CoffeeItemScreen() {
             </div>
             
             <h2 class="section-title">味わいの評価（５点満点）</h2>
+            
            <div class="container-wrap"> 
             ${acidityHtml}
-            ${sweetnessHtml}
             ${bitternessHtml}
             ${bodyHtml}
+            ${overallHtml}
             ${aromaHtml}
             ${aftertasteHtml}
             </div>
@@ -1076,10 +1063,10 @@ export default function CoffeeItemScreen() {
                 <Text style={styles.labelText}>酸味</Text>
                 <Text style={styles.valueText}>{coffeeRecord.acidity}</Text>
               </View>
-              <View style={styles.detailItem}>
+              {/* <View style={styles.detailItem}>
                 <Text style={styles.labelText}>甘味</Text>
                 <Text style={styles.valueText}>{coffeeRecord.sweetness}</Text>
-              </View>
+              </View> */}
               <View style={styles.detailItem}>
                 <Text style={styles.labelText}>苦味</Text>
                 <Text style={styles.valueText}>{coffeeRecord.bitterness}</Text>
@@ -1104,7 +1091,7 @@ export default function CoffeeItemScreen() {
                     data={{
                       acidity: Number(coffeeRecord.acidity) || 0,
                       bitterness: Number(coffeeRecord.bitterness) || 0,
-                      sweetness: Number(coffeeRecord.sweetness) || 0,
+                      // sweetness: Number(coffeeRecord.sweetness) || 0,
                       body: Number(coffeeRecord.body) || 0,
                       aroma: Number(coffeeRecord.aroma) || 0,
                       aftertaste: Number(coffeeRecord.aftertaste) || 0,

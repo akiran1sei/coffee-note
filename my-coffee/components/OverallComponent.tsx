@@ -1,26 +1,24 @@
-import React, { useState, useEffect } from "react"; // useEffect をインポート
+// OverallComponent.tsx (修正後)
+import React, { useState, useEffect } from "react"; // <-- useEffect をインポート
 import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 import Slider from "@react-native-community/slider";
 import { FontAwesome } from "@expo/vector-icons";
 
-interface RangeComponentProps {
-  dataTitle: string;
+interface OverallPreferenceRangeComponentProps {
   onChange: (value: number) => void;
   value: number;
 }
 
-const RangeComponent: React.FC<RangeComponentProps> = ({
-  dataTitle,
-  onChange,
-  value,
-}) => {
+const OverallPreferenceRangeComponent: React.FC<
+  OverallPreferenceRangeComponentProps
+> = ({ onChange, value }) => {
   const [localValue, setLocalValue] = useState(value);
-  const tickValues = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+  const tickValues = [1, 2, 3, 4, 5];
 
   // =========================================================================
   // ここを修正します！
+  // value Prop の変更を localValue State に同期するために useEffect を使用します。
   useEffect(() => {
-    // 親から新しい値が渡されたらローカルステートも更新
     if (value !== localValue) {
       setLocalValue(value);
     }
@@ -32,20 +30,20 @@ const RangeComponent: React.FC<RangeComponentProps> = ({
   };
 
   const handleSlidingComplete = (newValue: number) => {
-    onChange(parseFloat(newValue.toFixed(1)));
+    onChange(newValue);
   };
 
   const incrementValue = () => {
-    if (value + 0.5 <= 5) {
-      const newValue = parseFloat((value + 0.5).toFixed(1));
+    if (value + 1 <= 5) {
+      const newValue = value + 1;
       onChange(newValue);
       setLocalValue(newValue);
     }
   };
 
   const decrementValue = () => {
-    if (value - 0.5 >= 0) {
-      const newValue = parseFloat((value - 0.5).toFixed(1));
+    if (value - 1 >= 0) {
+      const newValue = value - 1;
       onChange(newValue);
       setLocalValue(newValue);
     }
@@ -53,11 +51,9 @@ const RangeComponent: React.FC<RangeComponentProps> = ({
 
   return (
     <View style={styles.inputContainer}>
-      <Text style={styles.label}>{dataTitle}</Text>
-      {/* dataTitleはTextで囲まれているのでOK */}
+      <Text style={styles.label}>全体の好み</Text>
       <View style={styles.sliderContainer}>
-        <Text style={styles.valueText}>{value.toFixed(1)}</Text>
-        {/* valueもTextで囲まれているのでOK */}
+        <Text style={styles.valueText}>{value}</Text>
         <View style={styles.sliderAndButtons}>
           <TouchableOpacity
             onPress={decrementValue}
@@ -73,21 +69,19 @@ const RangeComponent: React.FC<RangeComponentProps> = ({
                   key={tick}
                   style={[
                     styles.tick,
-                    tick % 1 === 0 ? styles.majorTick : styles.minorTick,
+                    styles.majorTick,
                     value === tick && styles.activeTick,
                   ]}
                 >
-                  {tick % 1 === 0 && (
-                    <Text style={styles.tickLabel}>{tick}</Text> // tickもTextで囲まれているのでOK
-                  )}
+                  <Text style={styles.tickLabel}>{tick}</Text>
                 </View>
               ))}
             </View>
             <Slider
               style={styles.slider}
-              minimumValue={0}
+              minimumValue={1}
               maximumValue={5}
-              step={0.5}
+              step={1}
               value={localValue}
               onValueChange={handleSliderChange}
               onSlidingComplete={handleSlidingComplete}
@@ -174,9 +168,9 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center", //中央に変更
+    alignItems: "center",
     paddingHorizontal: 10,
-    marginBottom: 5, // スライダーとの間隔を追加
+    marginBottom: 5,
   },
   tick: {
     width: 6,
@@ -187,9 +181,6 @@ const styles = StyleSheet.create({
     height: 12,
     width: 6,
   },
-  minorTick: {
-    height: 6,
-  },
   activeTick: {
     backgroundColor: "#333",
     width: 6,
@@ -197,11 +188,11 @@ const styles = StyleSheet.create({
   tickLabel: {
     color: "#A67B5B",
     fontSize: 12,
-    marginBottom: 5, // ラベルとメモリの間隔を追加
+    marginBottom: 5,
     fontWeight: "500",
     position: "absolute",
     top: -20,
   },
 });
 
-export default RangeComponent;
+export default OverallPreferenceRangeComponent;
