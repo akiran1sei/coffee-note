@@ -44,17 +44,17 @@ type RouteParams = {
 
 // --- 画像アセットとBase64キャッシュ管理 ---
 const STAR_ASSET_MODULES = {
-  Star0: require("../../../assets/images/beans0.svg"),
-  Star0_5: require("../../../assets/images/beans0_5.svg"),
-  Star1: require("../../../assets/images/beans1.svg"),
-  Star1_5: require("../../../assets/images/beans1_5.svg"),
-  Star2: require("../../../assets/images/beans2.svg"),
-  Star2_5: require("../../../assets/images/beans2_5.svg"),
-  Star3: require("../../../assets/images/beans3.svg"),
-  Star3_5: require("../../../assets/images/beans3_5.svg"),
-  Star4: require("../../../assets/images/beans4.svg"),
-  Star4_5: require("../../../assets/images/beans4_5.svg"),
-  Star5: require("../../../assets/images/beans5.svg"),
+  Star0: require("../../../assets/images/pdf/beans0.png"),
+  Star0_5: require("../../../assets/images/pdf/beans0_5.png"),
+  Star1: require("../../../assets/images/pdf/beans1.png"),
+  Star1_5: require("../../../assets/images/pdf/beans1_5.png"),
+  Star2: require("../../../assets/images/pdf/beans2.png"),
+  Star2_5: require("../../../assets/images/pdf/beans2_5.png"),
+  Star3: require("../../../assets/images/pdf/beans3.png"),
+  Star3_5: require("../../../assets/images/pdf/beans3_5.png"),
+  Star4: require("../../../assets/images/pdf/beans4.png"),
+  Star4_5: require("../../../assets/images/pdf/beans4_5.png"),
+  Star5: require("../../../assets/images/pdf/beans5.png"),
   no_image: require("@/assets/images/no-image.png"),
 };
 
@@ -501,6 +501,16 @@ export default function CoffeeItemScreen() {
       </div>
 `;
         }
+        if (label === "全体の好み") {
+          return `
+        <div class="taste-field-overall">
+          <div class="taste-label-overall"><span class="math-inline">${label}</span></div>
+          <div class="taste-rating">
+            <img src="${ratingImageBase64}" alt="labelRating" class="rating-image"/><span class="rating-number">${value}</span>
+          </div>
+        </div>
+      `;
+        }
 
         return `
         <div class="taste-field">
@@ -768,9 +778,9 @@ export default function CoffeeItemScreen() {
             align-items: center;
             margin: 10px 0;
             padding: 10px;
-            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            background: #EEEEEE;
             border-radius: 12px;
-            border: 2px solid #ff9800;
+            border: 2px solid #CFAA2A;
             box-shadow: 0 4px 8px rgba(255, 152, 0, 0.2);
           }
           
