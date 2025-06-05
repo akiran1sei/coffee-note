@@ -55,7 +55,7 @@ const STAR_ASSET_MODULES = {
   Star4: require("../../../assets/images/pdf/beans4.png"),
   Star4_5: require("../../../assets/images/pdf/beans4_5.png"),
   Star5: require("../../../assets/images/pdf/beans5.png"),
-  no_image: require("@/assets/images/no-image.png"),
+  no_image: require("../../../assets/images/no-image.png"),
 };
 
 let base64ImageCache: { [key: string]: string } = {};
@@ -778,7 +778,7 @@ export default function CoffeeItemScreen() {
             align-items: center;
             margin: 10px 0;
             padding: 10px;
-            background: #EEEEEE;
+            background: #fafafa;
             border-radius: 12px;
             border: 2px solid #CFAA2A;
             box-shadow: 0 4px 8px rgba(255, 152, 0, 0.2);
