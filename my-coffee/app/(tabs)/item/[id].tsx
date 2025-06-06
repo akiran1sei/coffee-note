@@ -82,6 +82,7 @@ const getBase64ImageByKey = async (
 
   try {
     let asset = Asset.fromModule(assetModule);
+    console.log("assetでーす：", asset);
     console.log(
       `[DEBUG_PREVIEW] Asset ${imageKey} initialized: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
     );
@@ -95,11 +96,12 @@ const getBase64ImageByKey = async (
     }
 
     let fileUri = asset.localUri;
+    console.log("fileUriでーす", fileUri);
     if (!fileUri) {
       console.warn(
         `[WARNING_PREVIEW] localUri is null for ${imageKey}, trying asset.uri`
       );
-      fileUri = asset.uri;
+      fileUri = asset.localUri;
     }
 
     if (!fileUri) {
