@@ -70,81 +70,128 @@ const getBase64ImageByKey = async (
   imageKey: keyof typeof STAR_ASSET_MODULES
 ): Promise<string | null> => {
   if (base64ImageCache[imageKey]) {
-    console.log(`[DEBUG_PREVIEW] Using cached base64 for ${imageKey}`);
+    // if (isPreviewBuild) Alert.alert("DEBUG", `キャッシュ使用: ${imageKey}`);
     return base64ImageCache[imageKey];
   }
-
   const assetModule = STAR_ASSET_MODULES[imageKey];
+
   if (!assetModule) {
-    console.error(`Asset module not found for key: ${imageKey}`);
+    if (isPreviewBuild)
+      Alert.alert("エラー", `アセットモジュールが見つかりません: ${imageKey}`);
     return null;
   }
 
   try {
     let asset = Asset.fromModule(assetModule);
-    console.log("assetでーす：", asset);
-    console.log(
-      `[DEBUG_PREVIEW] Asset ${imageKey} initialized: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
-    );
+
+    // 1. 初期状態の確認
+    if (isPreviewBuild) {
+      Alert.alert(
+        "DEBUG 1",
+        `初期状態: ${imageKey}\nURI: ${asset.uri}\nlocalUri: ${asset.localUri}\nダウンロード済み: ${asset.downloaded}`
+      );
+    }
 
     if (!asset.downloaded) {
-      console.log(`[DEBUG_PREVIEW] Downloading asset ${imageKey}...`);
+      if (isPreviewBuild)
+        Alert.alert("DEBUG 2", `${imageKey}をダウンロード中...`);
       await asset.downloadAsync();
-      console.log(
-        `[DEBUG_PREVIEW] Asset ${imageKey} after download: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
-      );
+      // 2. ダウンロード後の状態確認
+      if (isPreviewBuild) {
+        Alert.alert(
+          "DEBUG 3",
+          `DL後: ${imageKey}\nURI: ${asset.uri}\nlocalUri: ${asset.localUri}\nダウンロード済み: ${asset.downloaded}`
+        );
+      }
+    } else {
+      if (isPreviewBuild) Alert.alert("DEBUG 4", `${imageKey}は既にDL済み`);
     }
 
     let fileUri = asset.localUri;
-    console.log("fileUriでーす", fileUri);
+    // 3. localUri が null だった場合のフォールバック確認
     if (!fileUri) {
-      console.warn(
-        `[WARNING_PREVIEW] localUri is null for ${imageKey}, trying asset.uri`
-      );
-      fileUri = asset.localUri;
+      if (isPreviewBuild) {
+        Alert.alert(
+          "警告 5",
+          `localUriがnullです。asset.uriを試します: ${asset.uri}`
+        );
+      }
+      fileUri = asset.uri; // ここで asset.uri にフォールバックする
     }
-
+    // 4. 最終的な fileUri が有効かどうかの確認
     if (!fileUri) {
-      console.error(
-        `[ERROR_PREVIEW] Both localUri and uri are null for ${imageKey}`
-      );
+      if (isPreviewBuild)
+        Alert.alert("エラー 6", `localUriもURIもnullです: ${imageKey}`);
       return null;
     }
 
     try {
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
       if (!fileInfo.exists) {
-        console.error(
-          `[ERROR_PREVIEW] File does not exist at ${fileUri} for ${imageKey}`
-        );
-        if (asset.uri && asset.uri !== fileUri) {
-          console.log(
-            `[DEBUG_PREVIEW] Trying asset.uri as fallback: ${asset.uri}`
+        if (isPreviewBuild)
+          Alert.alert(
+            "エラー 7",
+            `ファイルが存在しません: ${fileUri} (${imageKey})`
           );
+        // フォールバックURIの存在確認（もしここに来るなら、ここもデバッグする）
+        if (asset.uri && asset.uri !== fileUri) {
+          if (isPreviewBuild)
+            Alert.alert("DEBUG 8", `フォールバックURIを試行: ${asset.uri}`);
           const fallbackInfo = await FileSystem.getInfoAsync(asset.uri);
           if (fallbackInfo.exists) {
             fileUri = asset.uri;
+            if (isPreviewBuild)
+              Alert.alert(
+                "DEBUG 9",
+                `フォールバックURIが見つかりました: ${fileUri}`
+              );
           } else {
-            console.error(
-              `[ERROR_PREVIEW] Fallback URI also doesn't exist for ${imageKey}`
-            );
+            if (isPreviewBuild)
+              Alert.alert(
+                "エラー 10",
+                `フォールバックURIも存在しません: ${imageKey}`
+              );
             return null;
           }
         } else {
-          return null;
+          return null; // フォールバックURIの試行も不可
         }
+      } else {
+        if (isPreviewBuild)
+          Alert.alert(
+            "DEBUG 11",
+            `ファイルは存在します: ${fileUri} (${imageKey})`
+          );
       }
-    } catch (infoError) {
-      console.error(
-        `[ERROR_PREVIEW] Error checking file info for ${imageKey}:`,
-        infoError
-      );
+    } catch (infoError: unknown) {
+      // 明示的に unknown を指定しても良い（指定しなくても推論される）
+      let errorMessage = "不明なエラーが発生しました。";
+      if (infoError instanceof Error) {
+        // infoError が Error オブジェクトのインスタンスであるか確認
+        errorMessage = infoError.message;
+      } else if (typeof infoError === "string") {
+        // 文字列として throw された場合
+        errorMessage = infoError;
+      }
+      if (isPreviewBuild)
+        Alert.alert(
+          "エラー 11",
+          `ファイル情報確認エラー: ${imageKey} - ${errorMessage}`
+        );
+      return null;
     }
-
-    console.log(`[DEBUG_PREVIEW] Reading file as base64 from: ${fileUri}`);
+    // 5. Base64読み込み直前
+    if (isPreviewBuild)
+      Alert.alert("DEBUG 13", `Base64読み込み試行: ${fileUri}`);
     const base64 = await FileSystem.readAsStringAsync(fileUri, {
       encoding: FileSystem.EncodingType.Base64,
     });
+    // 6. Base64結果の確認
+    if (!base64 || base64.length === 0) {
+      if (isPreviewBuild)
+        Alert.alert("エラー 14", `Base64結果が空です: ${imageKey}`);
+      return null;
+    }
 
     if (!base64 || base64.length === 0) {
       console.error(`[ERROR_PREVIEW] Empty base64 result for ${imageKey}`);
@@ -161,17 +208,29 @@ const getBase64ImageByKey = async (
       )}...`
     );
 
+    if (isPreviewBuild)
+      Alert.alert(
+        "成功 15",
+        `Base64生成成功: ${imageKey} (長さ: ${base64.length})`
+      );
     const dataUri = `data:image/png;base64,${base64}`;
     base64ImageCache[imageKey] = dataUri;
     return dataUri;
-  } catch (error) {
-    console.error(
-      `[ERROR_PREVIEW] Failed to load base64 image for ${imageKey}:`,
-      error
-    );
+  } catch (error: unknown) {
+    // 7. 最終的なエラー捕捉
+    let errorMessage = "不明なエラーが発生しました。";
     if (error instanceof Error) {
-      console.error(`[ERROR_PREVIEW] Error message: ${error.message}`);
-      console.error(`[ERROR_PREVIEW] Error stack: ${error.stack}`);
+      // error が Error オブジェクトのインスタンスであるか確認
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      // 文字列として throw された場合
+      errorMessage = error;
+    }
+    if (isPreviewBuild) {
+      Alert.alert(
+        "致命的なエラー 16",
+        `画像読み込み失敗: ${imageKey} - ${errorMessage}` // 修正済み
+      );
     }
     return null;
   }
@@ -487,6 +546,11 @@ export default function CoffeeItemScreen() {
         let ratingImageBase64: string | null = null;
         if (assetKey) {
           ratingImageBase64 = await getBase64ImageByKeyWithFallback(assetKey);
+          console.log(
+            "assetKey/ratingImageBase64",
+            assetKey,
+            ratingImageBase64
+          );
         }
 
         // 画像が取得できなかった場合のフォールバック（テキスト表示）
