@@ -70,128 +70,81 @@ const getBase64ImageByKey = async (
   imageKey: keyof typeof STAR_ASSET_MODULES
 ): Promise<string | null> => {
   if (base64ImageCache[imageKey]) {
-    // if (isPreviewBuild) Alert.alert("DEBUG", `キャッシュ使用: ${imageKey}`);
+    console.log(`[DEBUG_PREVIEW] Using cached base64 for ${imageKey}`);
     return base64ImageCache[imageKey];
   }
-  const assetModule = STAR_ASSET_MODULES[imageKey];
 
+  const assetModule = STAR_ASSET_MODULES[imageKey];
   if (!assetModule) {
-    if (isPreviewBuild)
-      Alert.alert("エラー", `アセットモジュールが見つかりません: ${imageKey}`);
+    console.error(`Asset module not found for key: ${imageKey}`);
     return null;
   }
 
   try {
     let asset = Asset.fromModule(assetModule);
+    console.log("assetでーす：", asset);
+    console.log(
+      `[DEBUG_PREVIEW] Asset ${imageKey} initialized: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
+    );
 
-    // 1. 初期状態の確認
-    if (isPreviewBuild) {
-      Alert.alert(
-        "DEBUG 1",
-        `初期状態: ${imageKey}\nURI: ${asset.uri}\nlocalUri: ${asset.localUri}\nダウンロード済み: ${asset.downloaded}`
+    if (!asset.downloaded) {
+      console.log(`[DEBUG_PREVIEW] Downloading asset ${imageKey}...`);
+      await asset.downloadAsync();
+      console.log(
+        `[DEBUG_PREVIEW] Asset ${imageKey} after download: uri=${asset.uri}, localUri=${asset.localUri}, downloaded=${asset.downloaded}`
       );
     }
 
-    if (!asset.downloaded) {
-      if (isPreviewBuild)
-        Alert.alert("DEBUG 2", `${imageKey}をダウンロード中...`);
-      await asset.downloadAsync();
-      // 2. ダウンロード後の状態確認
-      if (isPreviewBuild) {
-        Alert.alert(
-          "DEBUG 3",
-          `DL後: ${imageKey}\nURI: ${asset.uri}\nlocalUri: ${asset.localUri}\nダウンロード済み: ${asset.downloaded}`
-        );
-      }
-    } else {
-      if (isPreviewBuild) Alert.alert("DEBUG 4", `${imageKey}は既にDL済み`);
+    let fileUri = asset.localUri;
+    console.log("fileUriでーす", fileUri);
+    if (!fileUri) {
+      console.warn(
+        `[WARNING_PREVIEW] localUri is null for ${imageKey}, trying asset.uri`
+      );
+      fileUri = asset.localUri;
     }
 
-    let fileUri = asset.localUri;
-    // 3. localUri が null だった場合のフォールバック確認
     if (!fileUri) {
-      if (isPreviewBuild) {
-        Alert.alert(
-          "警告 5",
-          `localUriがnullです。asset.uriを試します: ${asset.uri}`
-        );
-      }
-      fileUri = asset.uri; // ここで asset.uri にフォールバックする
-    }
-    // 4. 最終的な fileUri が有効かどうかの確認
-    if (!fileUri) {
-      if (isPreviewBuild)
-        Alert.alert("エラー 6", `localUriもURIもnullです: ${imageKey}`);
+      console.error(
+        `[ERROR_PREVIEW] Both localUri and uri are null for ${imageKey}`
+      );
       return null;
     }
 
     try {
       const fileInfo = await FileSystem.getInfoAsync(fileUri);
       if (!fileInfo.exists) {
-        if (isPreviewBuild)
-          Alert.alert(
-            "エラー 7",
-            `ファイルが存在しません: ${fileUri} (${imageKey})`
-          );
-        // フォールバックURIの存在確認（もしここに来るなら、ここもデバッグする）
+        console.error(
+          `[ERROR_PREVIEW] File does not exist at ${fileUri} for ${imageKey}`
+        );
         if (asset.uri && asset.uri !== fileUri) {
-          if (isPreviewBuild)
-            Alert.alert("DEBUG 8", `フォールバックURIを試行: ${asset.uri}`);
+          console.log(
+            `[DEBUG_PREVIEW] Trying asset.uri as fallback: ${asset.uri}`
+          );
           const fallbackInfo = await FileSystem.getInfoAsync(asset.uri);
           if (fallbackInfo.exists) {
             fileUri = asset.uri;
-            if (isPreviewBuild)
-              Alert.alert(
-                "DEBUG 9",
-                `フォールバックURIが見つかりました: ${fileUri}`
-              );
           } else {
-            if (isPreviewBuild)
-              Alert.alert(
-                "エラー 10",
-                `フォールバックURIも存在しません: ${imageKey}`
-              );
+            console.error(
+              `[ERROR_PREVIEW] Fallback URI also doesn't exist for ${imageKey}`
+            );
             return null;
           }
         } else {
-          return null; // フォールバックURIの試行も不可
+          return null;
         }
-      } else {
-        if (isPreviewBuild)
-          Alert.alert(
-            "DEBUG 11",
-            `ファイルは存在します: ${fileUri} (${imageKey})`
-          );
       }
-    } catch (infoError: unknown) {
-      // 明示的に unknown を指定しても良い（指定しなくても推論される）
-      let errorMessage = "不明なエラーが発生しました。";
-      if (infoError instanceof Error) {
-        // infoError が Error オブジェクトのインスタンスであるか確認
-        errorMessage = infoError.message;
-      } else if (typeof infoError === "string") {
-        // 文字列として throw された場合
-        errorMessage = infoError;
-      }
-      if (isPreviewBuild)
-        Alert.alert(
-          "エラー 11",
-          `ファイル情報確認エラー: ${imageKey} - ${errorMessage}`
-        );
-      return null;
+    } catch (infoError) {
+      console.error(
+        `[ERROR_PREVIEW] Error checking file info for ${imageKey}:`,
+        infoError
+      );
     }
-    // 5. Base64読み込み直前
-    if (isPreviewBuild)
-      Alert.alert("DEBUG 13", `Base64読み込み試行: ${fileUri}`);
+
+    console.log(`[DEBUG_PREVIEW] Reading file as base64 from: ${fileUri}`);
     const base64 = await FileSystem.readAsStringAsync(fileUri, {
       encoding: FileSystem.EncodingType.Base64,
     });
-    // 6. Base64結果の確認
-    if (!base64 || base64.length === 0) {
-      if (isPreviewBuild)
-        Alert.alert("エラー 14", `Base64結果が空です: ${imageKey}`);
-      return null;
-    }
 
     if (!base64 || base64.length === 0) {
       console.error(`[ERROR_PREVIEW] Empty base64 result for ${imageKey}`);
@@ -208,29 +161,17 @@ const getBase64ImageByKey = async (
       )}...`
     );
 
-    if (isPreviewBuild)
-      Alert.alert(
-        "成功 15",
-        `Base64生成成功: ${imageKey} (長さ: ${base64.length})`
-      );
     const dataUri = `data:image/png;base64,${base64}`;
     base64ImageCache[imageKey] = dataUri;
     return dataUri;
-  } catch (error: unknown) {
-    // 7. 最終的なエラー捕捉
-    let errorMessage = "不明なエラーが発生しました。";
+  } catch (error) {
+    console.error(
+      `[ERROR_PREVIEW] Failed to load base64 image for ${imageKey}:`,
+      error
+    );
     if (error instanceof Error) {
-      // error が Error オブジェクトのインスタンスであるか確認
-      errorMessage = error.message;
-    } else if (typeof error === "string") {
-      // 文字列として throw された場合
-      errorMessage = error;
-    }
-    if (isPreviewBuild) {
-      Alert.alert(
-        "致命的なエラー 16",
-        `画像読み込み失敗: ${imageKey} - ${errorMessage}` // 修正済み
-      );
+      console.error(`[ERROR_PREVIEW] Error message: ${error.message}`);
+      console.error(`[ERROR_PREVIEW] Error stack: ${error.stack}`);
     }
     return null;
   }
@@ -546,11 +487,6 @@ export default function CoffeeItemScreen() {
         let ratingImageBase64: string | null = null;
         if (assetKey) {
           ratingImageBase64 = await getBase64ImageByKeyWithFallback(assetKey);
-          console.log(
-            "assetKey/ratingImageBase64",
-            assetKey,
-            ratingImageBase64
-          );
         }
 
         // 画像が取得できなかった場合のフォールバック（テキスト表示）
@@ -629,7 +565,7 @@ export default function CoffeeItemScreen() {
             margin: 0;
             padding: 0;
           }
-          
+
           /* ------------------------------------------------------------------- */
           /* ページ設定 (A4サイズ指定) */
           /* ------------------------------------------------------------------- */
@@ -637,7 +573,7 @@ export default function CoffeeItemScreen() {
             size: A4;
             margin: 0;
           }
-          
+
           @media print {
             html, body {
               width: 210mm;
@@ -645,7 +581,7 @@ export default function CoffeeItemScreen() {
               margin: 0;
               padding: 0;
             }
-            
+
             .page {
               margin: 0;
               border: initial;
@@ -657,7 +593,7 @@ export default function CoffeeItemScreen() {
               page-break-after: always;
             }
           }
-          
+
           /* ------------------------------------------------------------------- */
           /* Bodyの基本スタイル */
           /* ------------------------------------------------------------------- */
@@ -672,7 +608,7 @@ export default function CoffeeItemScreen() {
             box-sizing: border-box;
             line-height: 1.6;
           }
-  
+
           /* ------------------------------------------------------------------- */
           /* ヘッダー部分 */
           /* ------------------------------------------------------------------- */
@@ -683,9 +619,9 @@ export default function CoffeeItemScreen() {
             border-bottom: 3px solid #8b4513;
             position: relative;
           }
-          
-        
-          
+
+
+
           .title {
             font-size: 28px;
             font-weight: bold;
@@ -693,9 +629,9 @@ export default function CoffeeItemScreen() {
             margin-bottom: 8px;
             text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
           }
-          
-         
-          
+
+
+
           /* ------------------------------------------------------------------- */
           /* カラムレイアウト */
           /* ------------------------------------------------------------------- */
@@ -705,13 +641,13 @@ export default function CoffeeItemScreen() {
             gap: 25px;
             margin-top: 20px;
           }
-          
+
           .left-column, .right-column {
             display: flex;
             flex-direction: column;
             gap: 10px;
           }
-          
+
           /* ------------------------------------------------------------------- */
           /* セクションスタイル */
           /* ------------------------------------------------------------------- */
@@ -722,7 +658,7 @@ export default function CoffeeItemScreen() {
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             border: 1px solid rgba(139, 69, 19, 0.1);
           }
-          
+
           .section-title {
             font-weight: bold;
             font-size: 18px;
@@ -733,13 +669,13 @@ export default function CoffeeItemScreen() {
             border-bottom: 2px solid #d2b48c;
             position: relative;
           }
-          
+
           .section-title::before {
             content: '◆';
             color: #8b4513;
             margin-right: 8px;
           }
-          
+
           /* ------------------------------------------------------------------- */
           /* 項目行のスタイル */
           /* ------------------------------------------------------------------- */
@@ -750,12 +686,12 @@ export default function CoffeeItemScreen() {
             padding: 8px 0;
             border-bottom: 1px solid #f5f5f5;
           }
-          
+
           .field-row:last-child {
             border-bottom: none;
             margin-bottom: 0;
           }
-          
+
           .field-label {
             background: linear-gradient(135deg, #d2b48c 0%, #c19a6b 100%);
             color: white;
@@ -768,7 +704,7 @@ export default function CoffeeItemScreen() {
             text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
           }
-          
+
           .field-input {
             flex-grow: 1;
             padding: 8px 12px;
@@ -779,7 +715,7 @@ export default function CoffeeItemScreen() {
             color: #444;
             font-size: 14px;
           }
-          
+
           /* ------------------------------------------------------------------- */
           /* 計算比率の特別スタイル */
           /* ------------------------------------------------------------------- */
@@ -789,7 +725,7 @@ export default function CoffeeItemScreen() {
             font-weight: bold;
             color: #2e7d32 !important;
           }
-          
+
           /* ------------------------------------------------------------------- */
           /* メモ欄のスタイル */
           /* ------------------------------------------------------------------- */
@@ -805,7 +741,7 @@ export default function CoffeeItemScreen() {
             color: #e65100;
             line-height: 1.5;
           }
-          
+
           /* ------------------------------------------------------------------- */
           /* 画像コンテナのスタイル */
           /* ------------------------------------------------------------------- */
@@ -813,7 +749,7 @@ export default function CoffeeItemScreen() {
             text-align: center;
             margin-bottom: 10px;
           }
-          
+
           .image-item {
             width: 180px;
             height: 180px;
@@ -823,7 +759,7 @@ export default function CoffeeItemScreen() {
             box-shadow: 0 6px 16px rgba(0,0,0,0.15);
             border: 3px solid white;
           }
-          
+
           /* ------------------------------------------------------------------- */
           /* 味わい評価のスタイル */
           /* ------------------------------------------------------------------- */
@@ -837,7 +773,7 @@ export default function CoffeeItemScreen() {
             border-radius: 8px;
             border-left: 4px solid #8b4513;
           }
-          
+
           .taste-field-overall {
             display: flex;
             flex-direction: column;
@@ -849,33 +785,33 @@ export default function CoffeeItemScreen() {
             border: 2px solid #CFAA2A;
             box-shadow: 0 4px 8px rgba(255, 152, 0, 0.2);
           }
-          
+
           .taste-label {
             font-weight: 600;
             color: #5d4037;
             min-width: 50px;
             font-size: 14px;
           }
-          
+
           .taste-label-overall {
             font-weight: bold;
             color: #e65100;
             font-size: 16px;
             margin-bottom: 8px;
           }
-          
+
           .taste-rating {
             display: flex;
             align-items: center;
             gap: 8px;
           }
-          
+
           .stars {
             display: flex;
             gap: 2px;
           }
-          
-       
+
+
           /* 新しく追加する評価画像用スタイル */
   .rating-image {
       height: 25px; /* 画像の高さ。必要に応じて調整 */
@@ -898,7 +834,7 @@ export default function CoffeeItemScreen() {
             text-align: center;
             margin-top: 0px;
           }
-          
+
           .radar-chart {
             background: white;
             border-radius: 12px;
@@ -906,7 +842,7 @@ export default function CoffeeItemScreen() {
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             border: 2px solid #e0e0e0;
           }
-          
+
           /* ------------------------------------------------------------------- */
           /* レスポンシブ調整 */
           /* ------------------------------------------------------------------- */
@@ -916,16 +852,16 @@ export default function CoffeeItemScreen() {
               height: auto;
               padding: 10px;
             }
-            
+
             .container {
               grid-template-columns: 1fr;
             }
-            
+
             .field-label {
               min-width: 80px;
               font-size: 12px;
             }
-            
+
             .title {
               font-size: 24px;
             }
@@ -937,7 +873,7 @@ export default function CoffeeItemScreen() {
           <div class="header">
             <h1 class="title">${coffeeRecord.name}</h1>
           </div>
-          
+
           <div class="container">
             <div class="left-column">
               <div class="section">
@@ -961,7 +897,7 @@ export default function CoffeeItemScreen() {
                   }</div>
                 </div>
               </div>
-  
+
               <div class="section">
                 <h2 class="section-title">抽出情報</h2>
                 <div class="field-row">
@@ -1023,20 +959,20 @@ export default function CoffeeItemScreen() {
                   </div>
                 </div>
               </div>
-  
+
               <div class="section">
                 <h2 class="section-title">メモ</h2>
                 <div class="memo-field">${coffeeRecord.memo || "記録なし"}</div>
               </div>
             </div>
-            
+
             <div class="right-column">
               <div class="section">
                 <div class="image-container">
                   <div class="image-item">${imageHtml}</div>
                 </div>
               </div>
-              
+
               <div class="section">
                 <h2 class="section-title">味わいの評価</h2>
                 ${acidityHtml}
@@ -1046,9 +982,9 @@ export default function CoffeeItemScreen() {
                 ${aftertasteHtml}
                 ${overallHtml}
               </div>
-  
+
               <div class="section">
-                
+
                 <div class="radar-chart-container">
                   <div class="radar-chart">${svgChart}</div>
                 </div>
