@@ -326,12 +326,7 @@ const CoffeePdfDisplayScreen = () => {
                         {coffeeRecord.acidity || "0"}
                       </Text>
                     </View>
-                    <View style={styles.pdfInfoItem}>
-                      <Text style={styles.pdfLabel}>甘味:</Text>
-                      <Text style={styles.pdfValue}>
-                        {coffeeRecord.sweetness || "0"}
-                      </Text>
-                    </View>
+
                     <View style={styles.pdfInfoItem}>
                       <Text style={styles.pdfLabel}>苦味:</Text>
                       <Text style={styles.pdfValue}>
@@ -365,7 +360,6 @@ const CoffeePdfDisplayScreen = () => {
                         data={{
                           acidity: Number(coffeeRecord.acidity) || 0,
                           bitterness: Number(coffeeRecord.bitterness) || 0,
-                          sweetness: Number(coffeeRecord.sweetness) || 0,
                           body: Number(coffeeRecord.body) || 0,
                           aroma: Number(coffeeRecord.aroma) || 0,
                           aftertaste: Number(coffeeRecord.aftertaste) || 0,
