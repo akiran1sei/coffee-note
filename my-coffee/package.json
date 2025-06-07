@@ -71,7 +71,8 @@
     "typescript": "~5.8.3",
     "uuid": "^11.1.0",
     "victory": "^37.3.6",
-    "victory-native": "^37.3.6"
+    "victory-native": "^37.3.6",
+    "whatwg-fetch": "^3.6.20"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

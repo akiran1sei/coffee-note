@@ -663,7 +663,7 @@ export default function CoffeeItemScreen() {
             font-weight: bold;
             font-size: 18px;
             color: #5d4037;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             text-align: center;
             padding-bottom: 8px;
             border-bottom: 2px solid #d2b48c;
