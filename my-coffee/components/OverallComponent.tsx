@@ -13,7 +13,7 @@ const OverallPreferenceRangeComponent: React.FC<
   OverallPreferenceRangeComponentProps
 > = ({ onChange, value }) => {
   const [localValue, setLocalValue] = useState(value);
-  const tickValues = [1, 2, 3, 4, 5];
+  const tickValues = [0, 1, 2, 3, 4, 5];
 
   // =========================================================================
   // ここを修正します！
@@ -79,7 +79,7 @@ const OverallPreferenceRangeComponent: React.FC<
             </View>
             <Slider
               style={styles.slider}
-              minimumValue={1}
+              minimumValue={0}
               maximumValue={5}
               step={1}
               value={localValue}

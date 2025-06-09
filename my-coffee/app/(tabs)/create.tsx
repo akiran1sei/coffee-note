@@ -70,7 +70,7 @@ const initialFormData = {
   extractionTime: "",
   acidity: 0,
   bitterness: 0,
-  overall: 1,
+  overall: 0,
   body: 0,
   aroma: 0,
   aftertaste: 0,
@@ -83,7 +83,7 @@ const initialRangeValues = {
   body: 0,
   aroma: 0,
   aftertaste: 0,
-  overall: 1,
+  overall: 0,
 };
 
 export default function CreateScreen() {
