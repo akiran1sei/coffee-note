@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react"; // useCallback を追加
 import {
   View,
   StyleSheet,
@@ -140,30 +140,6 @@ const getBase64ImageByKey = async (
     );
   }
 
-  // 方法2: 直接ファイルシステムアクセス（SDK53対応）
-  // try {
-  //   console.log(`[DEBUG_PREVIEW] Attempting direct file access for ${imageKey}`);
-  //   const directPath = await getDirectAssetPath(imageKey);
-  //   if (directPath) {
-  //     const base64 = await readFileAsBase64Stable(directPath);
-  //     if (base64 && base64.length > 0) {
-  //       const dataUri = `data:image/png;base64,${base64}`;
-  //       base64ImageCache[imageKey] = dataUri;
-  //       return dataUri;
-  //     }
-  //   }
-  // } catch (error) {
-  //   console.error(`[ERROR_PREVIEW] Direct file access failed for ${imageKey}:`, error);
-  // }
-
-  // 方法3: ハードコードされたフォールバック
-  // const fallbackBase64 = getFallbackBase64(imageKey);
-  // if (fallbackBase64) {
-  //   console.log(`[DEBUG_PREVIEW] Using fallback base64 for ${imageKey}`);
-  //   base64ImageCache[imageKey] = fallbackBase64;
-  //   return fallbackBase64;
-  // }
-
   console.error(`[ERROR_PREVIEW] All methods failed for ${imageKey}`);
   return null;
 };
@@ -226,56 +202,6 @@ const readFileAsBase64Stable = async (
     console.error(`[ERROR] readFileAsBase64Stable failed:`, error);
     return null;
   }
-};
-
-/**
- * SDK53対応: 直接アセットパス取得
- */
-const getDirectAssetPath = async (
-  imageKey: keyof typeof STAR_ASSET_MODULES
-): Promise<string | null> => {
-  const assetPaths = {
-    Star0: "assets/images/pdf/beans0.png",
-    Star0_5: "assets/images/pdf/beans0_5.png",
-    Star1: "assets/images/pdf/beans1.png",
-    Star1_5: "assets/images/pdf/beans1_5.png",
-    Star2: "assets/images/pdf/beans2.png",
-    Star2_5: "assets/images/pdf/beans2_5.png",
-    Star3: "assets/images/pdf/beans3.png",
-    Star3_5: "assets/images/pdf/beans3_5.png",
-    Star4: "assets/images/pdf/beans4.png",
-    Star4_5: "assets/images/pdf/beans4_5.png",
-    Star5: "assets/images/pdf/beans5.png",
-    no_image: "assets/images/no-image.png",
-  };
-
-  const relativePath = assetPaths[imageKey];
-  if (!relativePath) return null;
-
-  // 複数のベースパスを試行
-  const basePaths = [
-    FileSystem.bundleDirectory,
-    FileSystem.documentDirectory,
-    FileSystem.cacheDirectory,
-    `${FileSystem.bundleDirectory}ExponentAsset-`,
-  ];
-
-  for (const basePath of basePaths) {
-    if (!basePath) continue;
-
-    const fullPath = `${basePath}${relativePath}`;
-    try {
-      const fileInfo = await FileSystem.getInfoAsync(fullPath);
-      if (fileInfo.exists) {
-        console.log(`[DEBUG] Found asset at: ${fullPath}`);
-        return fullPath;
-      }
-    } catch (error) {
-      // 無視してtry next path
-    }
-  }
-
-  return null;
 };
 
 /**
@@ -367,6 +293,7 @@ export default function CoffeeItemScreen() {
   const [coffeeRecord, setCoffeeRecord] = useState<CoffeeRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [triggerPdfDownload, setTriggerPdfDownload] = useState(false); // New state to trigger PDF download
 
   // 画像URIを処理する関数
   const getImageSource = (uri?: string | null): ImageSourcePropType => {
@@ -402,7 +329,9 @@ export default function CoffeeItemScreen() {
     );
   };
 
-  const downloadPdf = async () => {
+  // Memoize the PDF generation function
+  const generateAndDownloadPdf = useCallback(async () => {
+    // useCallback でラップ
     if (!coffeeRecord) {
       Alert.alert("エラー", "コーヒーデータがありません。");
       return;
@@ -425,38 +354,47 @@ export default function CoffeeItemScreen() {
         }
       } else {
         try {
-          const base64 = await FileSystem.readAsStringAsync(
-            coffeeRecord.imageUri,
-            {
-              encoding: FileSystem.EncodingType.Base64,
-            }
-          );
-          const fileExtension = coffeeRecord.imageUri
-            .split(".")
-            .pop()
-            ?.toLowerCase();
-          let mimeType = "application/octet-stream"; // デフォルト
-          if (fileExtension === "png") {
-            mimeType = "image/png";
-          } else if (fileExtension === "gif") {
-            mimeType = "image/gif";
-          } else if (fileExtension === "jpg" || fileExtension === "jpeg") {
-            mimeType = "image/jpeg";
-          } else if (fileExtension === "webp") {
-            mimeType = "image/webp";
-          } else if (fileExtension === "svg") {
-            // SVGを追加
-            mimeType = "image/svg+xml";
-          }
+          const base64 = await readFileAsBase64Stable(coffeeRecord.imageUri);
 
-          imageHtml = `<img src="data:${mimeType};base64,${base64}" alt="Coffee Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;" />`;
+          if (base64) {
+            const fileExtension = coffeeRecord.imageUri
+              .split(".")
+              .pop()
+              ?.toLowerCase();
+            let mimeType = "application/octet-stream"; // デフォルト
+            if (fileExtension === "png") {
+              mimeType = "image/png";
+            } else if (fileExtension === "gif") {
+              mimeType = "image/gif";
+            } else if (fileExtension === "jpg" || fileExtension === "jpeg") {
+              mimeType = "image/jpeg";
+            } else if (fileExtension === "webp") {
+              mimeType = "image/webp";
+            } else if (fileExtension === "svg") {
+              mimeType = "image/svg+xml";
+            }
+
+            imageHtml = `<img src="data:${mimeType};base64,${base64}" alt="Coffee Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;" />`;
+          } else {
+            // readFileAsBase64Stable が null を返した場合 (サイズ制限超過など)
+            console.warn(
+              "[WARNING] User image is too large or failed to convert, using no_image fallback."
+            );
+          }
         } catch (err) {
           console.error(
             "画像の読み込みエラー (uri: " + coffeeRecord.imageUri + "):",
             err
           );
-          const noImageBase64 = await getBase64ImageByKey("no_image");
-          imageHtml = `<img src="${noImageBase64}" alt="No Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;" />`;
+          const noImageBase64 = await getBase64ImageByKeyWithFallback(
+            "no_image"
+          );
+
+          if (noImageBase64) {
+            imageHtml = `<img src="${noImageBase64}" alt="No Image" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;" />`;
+          } else {
+            imageHtml = `<div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; border: 2px dashed #ccc; background-color: #f9f9f9; border-radius: 12px; color: #666;">画像なし</div>`;
+          }
         }
       }
 
@@ -620,7 +558,7 @@ export default function CoffeeItemScreen() {
           );
           return `
       <div class="taste-field">
-        <div class="taste-label"><span class="math-inline">${label}</span></div>
+        <div class="taste-label">${label}</div>
         <div class="taste-rating">
           <span class="rating-number">${value}</span>
         </div>
@@ -630,7 +568,7 @@ export default function CoffeeItemScreen() {
         if (label === "全体の好み") {
           return `
         <div class="taste-field-overall">
-          <div class="taste-label-overall"><span class="math-inline">${label}</span></div>
+          <div class="taste-label-overall">${label}</div>
           <div class="taste-rating">
             <img src="${ratingImageBase64}" alt="labelRating" class="rating-image"/><span class="rating-number">${value}</span>
           </div>
@@ -640,7 +578,7 @@ export default function CoffeeItemScreen() {
 
         return `
         <div class="taste-field">
-          <div class="taste-label"><span class="math-inline">${label}</span></div>
+          <div class="taste-label">${label}</div>
           <div class="taste-rating">
             <img src="${ratingImageBase64}" alt="labelRating" class="rating-image"/><span class="rating-number">${value}</span>
           </div>
@@ -1143,8 +1081,9 @@ export default function CoffeeItemScreen() {
     } finally {
       setIsGeneratingPdf(false);
     }
-  };
+  }, [coffeeRecord]); // coffeeRecord を依存関係に追加
 
+  // レコードをフェッチする useEffect
   useEffect(() => {
     const fetchCoffeeRecord = async () => {
       try {
@@ -1158,6 +1097,16 @@ export default function CoffeeItemScreen() {
     };
     fetchCoffeeRecord();
   }, [id]);
+
+  // PDFダウンロードをトリガーする useEffect
+  useEffect(() => {
+    if (triggerPdfDownload && coffeeRecord) {
+      generateAndDownloadPdf();
+      // generateAndDownloadPdf は完了時に isGeneratingPdf を false に設定するため、ここでは特にリセットは不要
+      // ただし、再度ダウンロードできるようにするため、triggerPdfDownload はここでリセットします
+      setTriggerPdfDownload(false);
+    }
+  }, [triggerPdfDownload, coffeeRecord, generateAndDownloadPdf]); // 依存関係に generateAndDownloadPdf を追加
 
   if (loading) {
     return <LoadingComponent />;
@@ -1300,11 +1249,17 @@ export default function CoffeeItemScreen() {
                 <Text style={styles.buttonText}>削除</Text>
               </TouchableOpacity>
             </View>
+            {/* PDFダウンロードボタンの onClick ハンドラを修正 */}
             <TouchableOpacity
               style={styles.downloadPdfButton}
-              onPress={downloadPdf}
+              onPress={() => setTriggerPdfDownload(true)} // useEffect でトリガーするように変更
+              disabled={isGeneratingPdf} // PDF生成中は無効にする
             >
-              <Text style={styles.buttonText}>PDF をダウンロード</Text>
+              {isGeneratingPdf ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text style={styles.buttonText}>PDF をダウンロード</Text>
+              )}
             </TouchableOpacity>
           </ScrollView>
         </View>
