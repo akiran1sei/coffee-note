@@ -296,14 +296,28 @@ export default function ListScreen() {
 
   // テイスティング値を表示するサブコンポーネント (Memo化してパフォーマンス向上を試みる)
   const TastingValue = React.memo(
-    ({ label, value }: { label: string; value: string | number }) => (
-      <View style={styles.tastingItem}>
-        <Text style={styles.tastingLabel}>{label}</Text>
-        <View style={styles.tastingValueContainer}>
-          <Text style={styles.tastingValue}>{value}</Text>
-        </View>
-      </View>
-    )
+    ({ label, value }: { label: string; value: string | number }) => {
+      if (!(label === "全体の好み")) {
+        return (
+          <View style={styles.tastingItem}>
+            <Text style={styles.tastingLabel}>{label}</Text>
+            <View style={styles.tastingValueContainer}>
+              <Text style={styles.tastingValue}>{value}</Text>
+            </View>
+          </View>
+        );
+      } else {
+        return (
+          <View style={styles.tastingItem}>
+            <Text style={styles.tastingLabel}>{label}</Text>
+            <View style={styles.tastingOverallValueContainer}>
+              <Text style={styles.tastingOverallValue}>{value}</Text>
+            </View>
+          </View>
+        );
+      }
+      return null;
+    }
   );
 
   if (loading) {
@@ -570,10 +584,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 5, // ラベルとの間に少し余白
   },
+  tastingOverallValueContainer: {
+    width: 40,
+    height: 40,
+    backgroundColor: "#D2B48C",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 5, // ラベルとの間に少し余白
+  },
   tastingValue: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#5D4037",
+  },
+  tastingOverallValue: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#f0f0f0",
   },
   checkbox: {
     marginBottom: 5,
