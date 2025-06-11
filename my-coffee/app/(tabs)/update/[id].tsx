@@ -36,6 +36,7 @@ import {
   NoRecordComponent,
 } from "@/components/MessageComponent";
 import OverallPreferenceRangeComponent from "@/components/OverallComponent";
+import { MeasurementSelector } from "@/components/RadioComponent";
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
 type RouteParams = {
@@ -70,6 +71,8 @@ export default function CoffeeItemScreen() {
     coffeeAmount: "粉量（g）",
     waterAmount: "湯量（g）",
   });
+  const [measurementLabel, setMeasurement] = useState("測定方法");
+
   const [coffeeRecord, setCoffeeRecord] = useState<CoffeeRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [imageData, setImageData] = useState<string | null>(null);
@@ -79,7 +82,9 @@ export default function CoffeeItemScreen() {
   const handleInputChange = (label: string, value: string | number) => {
     setFormData({ ...formData, [label]: value });
   };
-
+  const handleMeasurementSelect = (label: string, value: string) => {
+    setFormData({ ...formData, [label]: value });
+  };
   const handleImageChange = (value: string) => {
     setImageData(value);
     setFormData({ ...formData, imageUri: value });
@@ -163,6 +168,10 @@ export default function CoffeeItemScreen() {
           formData.coffeeAmount !== undefined
             ? formData.coffeeAmount
             : coffeeRecord?.coffeeAmount,
+        measurementMethod:
+          formData.measurementMethod !== undefined
+            ? formData.measurementMethod
+            : coffeeRecord?.measurementMethod,
         waterAmount:
           formData.waterAmount !== undefined
             ? formData.waterAmount
@@ -226,6 +235,7 @@ export default function CoffeeItemScreen() {
             temperature: updatedRecord.temperature,
             coffeeAmount: updatedRecord.coffeeAmount,
             waterAmount: updatedRecord.waterAmount,
+            measurementMethod: updatedRecord.measurementMethod,
             extractionTime: updatedRecord.extractionTime,
             acidity: updatedRecord.acidity,
             bitterness: updatedRecord.bitterness,
@@ -457,6 +467,17 @@ export default function CoffeeItemScreen() {
                     ? formData.coffeeAmount
                     : 0
                 }
+              />
+              <MeasurementSelector
+                dataTitle={measurementLabel}
+                onChange={(value: string) =>
+                  handleMeasurementSelect("measurementMethod", value)
+                }
+                value={
+                  formData.measurementMethod !== undefined
+                    ? formData.measurementMethod
+                    : ""
+                } // Provide a default value if formData.measurementMethod is undefined
               />
               <NumberComponent
                 dataTitle={NumberLabel.waterAmount}

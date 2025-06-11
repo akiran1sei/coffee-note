@@ -75,7 +75,22 @@ export const NumberComponent: React.FC<NumberProps> = ({
   const handleFocus = () => {
     setIsFocused(true);
   };
+  if (dataTitle === "湯量") {
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>{dataTitle}</Text>
 
+        <TextInput
+          style={[styles.numberInput, isFocused && styles.focusedInput]}
+          value={inputValue} // value プロパティを使用
+          onChangeText={handleInputChange}
+          keyboardType="number-pad"
+          onBlur={handleBlur}
+          onFocus={handleFocus}
+        />
+      </View>
+    );
+  }
   return (
     <View style={styles.inputContainer}>
       <Text style={styles.label}>{dataTitle}</Text>

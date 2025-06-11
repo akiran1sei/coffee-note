@@ -30,6 +30,7 @@ import ImageUploadComponent from "../../components/ImageUploadComponent";
 import RadarChart from "../../components/RadarChart/RadarChart";
 import CoffeeStorageService from "../../services/CoffeeStorageService"; // ストレージサービスをインポート
 import OverallPreferenceRangeComponent from "../../components/OverallComponent";
+import { MeasurementSelector } from "../../components/RadioComponent";
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
 interface CoffeeRecord {
@@ -43,6 +44,7 @@ interface CoffeeRecord {
   grindSize: string;
   temperature: number;
   coffeeAmount: number;
+  measurementMethod: string; // "注湯量" または "抽出量"
   waterAmount: number;
   extractionTime: string;
   acidity: number;
@@ -66,6 +68,7 @@ const initialFormData = {
   grindSize: "",
   temperature: 0,
   coffeeAmount: 0,
+  measurementMethod: "",
   waterAmount: 0,
   extractionTime: "",
   acidity: 0,
@@ -115,7 +118,7 @@ export default function CreateScreen() {
     coffeeAmount: "紛量（g）",
     waterAmount: "湯量（g）",
   });
-
+  const [measurementLabel, setMeasurement] = useState("測定方法");
   const [imageData, setImageData] = useState("");
   const [formData, setFormData] = useState({ ...initialFormData });
   const [rangeValues, setRangeValues] = useState({ ...initialRangeValues });
@@ -138,6 +141,9 @@ export default function CreateScreen() {
     setFormSubmitted(true);
   }, []);
   const handleInputChange = (label: string, value: string | number) => {
+    setFormData({ ...formData, [label]: value });
+  };
+  const handleMeasurementSelect = (label: string, value: string) => {
     setFormData({ ...formData, [label]: value });
   };
 
@@ -213,6 +219,7 @@ export default function CreateScreen() {
         grindSize: formData.grindSize || "",
         temperature: formData.temperature,
         coffeeAmount: formData.coffeeAmount,
+        measurementMethod: formData.measurementMethod,
         waterAmount: formData.waterAmount,
         extractionTime: formData.extractionTime,
         acidity: formData.acidity,
@@ -350,6 +357,15 @@ export default function CreateScreen() {
               }
               value={formData.coffeeAmount}
             />
+
+            <MeasurementSelector
+              key={`measurementMethod-${resetKey}`}
+              dataTitle={measurementLabel}
+              onChange={(value: string) =>
+                handleMeasurementSelect("measurementMethod", value)
+              }
+              value={formData.measurementMethod}
+            />
             <NumberComponent
               key={`waterAmount-${resetKey}`}
               dataTitle={NumberLabel.waterAmount}
@@ -358,6 +374,7 @@ export default function CreateScreen() {
               }
               value={formData.waterAmount}
             />
+
             <MeasuredTimeInputComponent
               key={`extractionTime-${resetKey}`}
               onChange={handleMeasuredTimeChange}

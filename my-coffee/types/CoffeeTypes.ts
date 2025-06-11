@@ -1,4 +1,4 @@
-// src/types/CoffeeTypes.ts
+// types/CoffeeTypes.ts
 export interface CoffeeRecord {
   id: string; // 一意の識別子
   name: string; // 名称
@@ -11,6 +11,7 @@ export interface CoffeeRecord {
   temperature: number; // 温度（℃）
   coffeeAmount: number; // 粉量（g）
   waterAmount: number; // 湯量（g）
+  measurementMethod: string; // 計測方法
   extractionTime: string; // 抽出時間
   acidity: number; // 酸味（1-10）
   bitterness: number; // 苦味（1-10）
