@@ -12,7 +12,7 @@ import { CoffeeRecord } from "../../types/CoffeeTypes"; // パスは実際の構
 type SortCriteria =
   | "acidity"
   | "bitterness"
-  | "sweetness"
+  | "overall"
   | "body"
   | "aroma"
   | "aftertaste"
@@ -40,8 +40,8 @@ const SortComponent: React.FC<SortComponentProps> = ({ onSort, records }) => {
     { label: "酸味 降順", value: "acidity", order: "desc" },
     { label: "苦味 昇順", value: "bitterness", order: "asc" },
     { label: "苦味 降順", value: "bitterness", order: "desc" },
-    { label: "甘味 昇順", value: "sweetness", order: "asc" },
-    { label: "甘味 降順", value: "sweetness", order: "desc" },
+    { label: "全体 昇順", value: "overall", order: "asc" },
+    { label: "全体 降順", value: "overall", order: "desc" },
     { label: "コク 昇順", value: "body", order: "asc" },
     { label: "コク 降順", value: "body", order: "desc" },
     { label: "香り 昇順", value: "aroma", order: "asc" },
@@ -72,8 +72,8 @@ const SortComponent: React.FC<SortComponentProps> = ({ onSort, records }) => {
         case "bitterness":
           comparison = (a.bitterness || 0) - (b.bitterness || 0);
           break;
-        case "sweetness":
-          comparison = (a.sweetness || 0) - (b.sweetness || 0);
+        case "overall":
+          comparison = (a.overall || 0) - (b.overall || 0);
           break;
         case "body":
           comparison = (a.body || 0) - (b.body || 0);

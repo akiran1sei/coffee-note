@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   Text,
   Alert,
-  Platform,
   Dimensions,
+  Button,
 } from "react-native";
 import HeaderComponent from "../../components/HeaderComponent";
 import PageTitleComponent from "../../components/PageTitleComponent";
@@ -93,7 +93,7 @@ export default function CreateScreen() {
   const TextData = "Coffee Create"; // ページタイトルに表示するテキスト
   const [resetKey, setResetKey] = useState(0);
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const [isWeb] = useState(Platform.OS === "web");
+
   const [InputLabel, setInputLabel] = useState({
     beansName: "名称",
     productionArea: "産地",
@@ -123,15 +123,7 @@ export default function CreateScreen() {
   const [formData, setFormData] = useState({ ...initialFormData });
   const [rangeValues, setRangeValues] = useState({ ...initialRangeValues });
   // Web環境でフォーム送信後の状態をリセット
-  useEffect(() => {
-    if (formSubmitted && isWeb) {
-      // 短い遅延後にフォームをリセット
-      const timer = setTimeout(() => {
-        setFormSubmitted(false);
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [formSubmitted, isWeb]);
+
   // フォームリセット関数
   const resetForm = useCallback(() => {
     setImageData("../../assets/images/no-image.png");
@@ -170,7 +162,10 @@ export default function CreateScreen() {
     setImageData(value);
     setFormData({ ...formData, imageUri: value }); // imageData の更新後に formData を更新
   };
-
+  const scrollViewRef = useRef<ScrollView>(null);
+  const handleScrollToTop = async () => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
   // 新しい送信ハンドラー
   const handleSubmit = async () => {
     // 必須フィールドのチェック
@@ -192,19 +187,10 @@ export default function CreateScreen() {
     );
 
     if (requiredFields.length > 0) {
-      if (isWeb) {
-        alert(
-          `入力エラー\n以下の必須項目が未入力です：\n${requiredFields.join(
-            ", "
-          )}`
-        );
-      } else {
-        Alert.alert(
-          "入力エラー",
-          `以下の必須項目が未入力です：\n${requiredFields.join(", ")}`
-        );
-      }
-      return;
+      return Alert.alert(
+        "入力エラー",
+        `以下の必須項目が未入力です：\n${requiredFields.join(", ")}`
+      );
     }
 
     try {
@@ -236,28 +222,15 @@ export default function CreateScreen() {
         formData.imageUri
       );
 
-      showWebAlert(
-        "保存成功",
-        `コーヒーレコードが保存されました。ID: ${recordId}`,
-        resetForm
-      );
+      showWebAlert("保存成功", `コーヒーレコードが保存されました。`, resetForm);
     } catch (error) {
-      if (isWeb) {
-        alert(
-          `保存エラー\n${
-            error instanceof Error
-              ? error.message
-              : "コーヒーレコードの保存中にエラーが発生しました。"
-          }`
-        );
-      } else {
-        Alert.alert(
-          "保存エラー",
-          error instanceof Error
-            ? error.message
-            : "コーヒーレコードの保存中にエラーが発生しました。"
-        );
-      }
+      Alert.alert(
+        "保存エラー",
+        error instanceof Error
+          ? error.message
+          : "コーヒーレコードの保存中にエラーが発生しました。"
+      );
+
       console.error("保存エラー:", error);
     }
   };
@@ -267,12 +240,7 @@ export default function CreateScreen() {
     message: string,
     onConfirm: () => void
   ) => {
-    if (isWeb) {
-      alert(`${title}\n${message}`);
-      onConfirm();
-    } else {
-      Alert.alert(title, message, [{ text: "OK", onPress: onConfirm }]);
-    }
+    Alert.alert(title, message, [{ text: "OK", onPress: onConfirm }]);
   };
   return (
     <SafeAreaView style={styles.container}>
@@ -285,6 +253,7 @@ export default function CreateScreen() {
           <ScrollView
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={true}
+            ref={scrollViewRef}
           >
             <ImageUploadComponent
               key={`imageUpload-${resetKey}`}
@@ -357,7 +326,6 @@ export default function CreateScreen() {
               }
               value={formData.coffeeAmount}
             />
-
             <MeasurementSelector
               key={`measurementMethod-${resetKey}`}
               dataTitle={measurementLabel}
@@ -374,7 +342,6 @@ export default function CreateScreen() {
               }
               value={formData.waterAmount}
             />
-
             <MeasuredTimeInputComponent
               key={`extractionTime-${resetKey}`}
               onChange={handleMeasuredTimeChange}
@@ -427,7 +394,6 @@ export default function CreateScreen() {
               onChange={handleTextAreaChange}
               value={formData.textArea}
             />
-
             <TouchableOpacity
               style={styles.submitButton}
               onPress={handleSubmit}
@@ -435,13 +401,12 @@ export default function CreateScreen() {
               <Text style={styles.submitButtonText}>保存</Text>
             </TouchableOpacity>
 
-            {isWeb && (
-              <View style={styles.statusIndicator}>
-                <Text style={styles.statusText}>
-                  {formSubmitted ? "保存成功！" : ""}
-                </Text>
-              </View>
-            )}
+            <Button
+              title="上へ"
+              color={"#5D4037"}
+              onPress={handleScrollToTop}
+              accessibilityLabel="上へ"
+            />
           </ScrollView>
         </View>
       </View>
@@ -473,9 +438,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   scrollContainer: {
-    alignItems: "center", // ScrollView内の子要素を中央揃え
-    paddingVertical: 20,
-    paddingBottom: 40,
+    alignItems: "stretch",
   },
 
   text: {
@@ -489,7 +452,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: "90%",
     alignItems: "center",
-    marginTop: 20,
+    marginVertical: 20,
+    marginHorizontal: "auto", // 水平方向の中央寄せ
   },
   submitButtonText: {
     color: "white",

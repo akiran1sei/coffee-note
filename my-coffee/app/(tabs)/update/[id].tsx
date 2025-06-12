@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   Text,
   Alert,
-  Platform,
   Dimensions,
+  Button,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useRoute } from "@react-navigation/native";
@@ -61,7 +61,7 @@ export default function CoffeeItemScreen() {
   const [RangeLabel, setRangeLabel] = useState({
     acidity: "酸味",
     bitterness: "苦味",
-    sweetness: "甘味",
+    overall: "全体",
     body: "コク",
     aroma: "香り",
     aftertaste: "キレ",
@@ -212,11 +212,8 @@ export default function CoffeeItemScreen() {
       );
 
       if (success) {
-        if (Platform.OS === "web") {
-          alert("コーヒーレコードが更新されました！");
-        } else {
-          Alert.alert("成功", "コーヒーレコードが更新されました！");
-        }
+        Alert.alert("成功", "コーヒーレコードが更新されました！");
+
         // Refresh data
         const updatedRecord = await CoffeeStorageService.getCoffeeRecordById(
           id
@@ -257,62 +254,46 @@ export default function CoffeeItemScreen() {
           });
         }
       } else {
-        if (Platform.OS === "web") {
-          alert("更新に失敗しました。もう一度お試しください。");
-        } else {
-          Alert.alert("エラー", "更新に失敗しました。もう一度お試しください。");
-        }
+        Alert.alert("エラー", "更新に失敗しました。もう一度お試しください。");
       }
     } catch (error) {
       console.error("レコードの更新に失敗しました:", error);
-      if (Platform.OS === "web") {
-        alert("更新中にエラーが発生しました。");
-      } else {
-        Alert.alert("エラー", "更新中にエラーが発生しました。");
-      }
+
+      Alert.alert("エラー", "更新中にエラーが発生しました。");
     } finally {
       setUpdating(false);
     }
   };
   const handleDeleteRecord = async (id: string) => {
-    if (Platform.OS === "web") {
-      // Web環境の場合、window.confirm を使用
-      if (window.confirm("このレコードを削除しますか？")) {
-        try {
-          await CoffeeStorageService.deleteCoffeeRecord(id);
-          router.replace("/list");
-        } catch (error) {
-          console.error("レコードの削除に失敗しました:", error);
-        }
-      }
-    } else {
-      // モバイル環境の場合、Alert.alert を使用
-      Alert.alert(
-        "削除確認",
-        "このレコードを削除しますか？",
-        [
-          {
-            text: "キャンセル",
-            style: "cancel",
+    // モバイル環境の場合、Alert.alert を使用
+    Alert.alert(
+      "削除確認",
+      "このレコードを削除しますか？",
+      [
+        {
+          text: "キャンセル",
+          style: "cancel",
+        },
+        {
+          text: "削除",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await CoffeeStorageService.deleteCoffeeRecord(id);
+              router.replace("/list");
+            } catch (error) {
+              console.error("レコードの削除に失敗しました:", error);
+            }
           },
-          {
-            text: "削除",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                await CoffeeStorageService.deleteCoffeeRecord(id);
-                router.replace("/list");
-              } catch (error) {
-                console.error("レコードの削除に失敗しました:", error);
-              }
-            },
-          },
-        ],
-        { cancelable: false }
-      );
-    }
+        },
+      ],
+      { cancelable: false }
+    );
   };
-
+  const scrollViewRef = useRef<ScrollView>(null);
+  const handleScrollToTop = async () => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
   useEffect(() => {
     const fetchCoffeeRecord = async () => {
       try {
@@ -379,6 +360,7 @@ export default function CoffeeItemScreen() {
           <ScrollView
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
+            ref={scrollViewRef}
           >
             <View style={styles.formContainer}>
               <InputComponent
@@ -599,6 +581,12 @@ export default function CoffeeItemScreen() {
                 <Text style={styles.returnButtonText}>リストに戻る</Text>
               </TouchableOpacity>
             </View>
+            <Button
+              title="上へ"
+              color={"#5D4037"}
+              onPress={handleScrollToTop}
+              accessibilityLabel="上へ"
+            />
           </ScrollView>
         </View>
       </View>
@@ -631,14 +619,16 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   scrollContainer: {
-    paddingVertical: 20,
-    paddingBottom: 80, // Increased padding to accommodate buttons
+    // paddingVertical: 20,
+    // paddingBottom: 80, // Increased padding to accommodate buttons
     width: "100%",
-    alignItems: "center",
+    alignItems: "stretch", // Stretch to fill the container
+    justifyContent: "space-between", // Center the contents vertically
   },
   formContainer: {
-    width: "90%",
-    padding: 20,
+    width: "100%",
+    paddingTop: 20,
+    marginHorizontal: "auto",
     borderRadius: 10,
     backgroundColor: "#fff",
     shadowColor: "#000",
@@ -677,7 +667,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 20,
-    width: "100%",
+    marginHorizontal: "auto",
+    width: "90%",
     alignItems: "center",
   },
   deleteButtonText: {
@@ -690,8 +681,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#007bff", // Bootstrap primary color
     paddingVertical: 12,
     borderRadius: 8,
-    marginTop: 25,
-    width: "100%",
+    marginTop: 20,
+    marginHorizontal: "auto",
+    width: "90%",
     alignItems: "center",
   },
   updateButtonText: {
@@ -701,11 +693,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   returnButton: {
+    width: "90%",
     backgroundColor: "#6c757d", // Bootstrap secondary color
     paddingVertical: 12,
+
     borderRadius: 8,
-    marginTop: 20,
-    width: "100%",
+    marginVertical: 20,
+    marginHorizontal: "auto",
     alignItems: "center",
   },
   returnButtonText: {

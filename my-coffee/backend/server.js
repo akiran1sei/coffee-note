@@ -28,13 +28,13 @@ app.post("/api/generate-pdf", async (req, res) => {
 
     // レーダーチャートのデータ
     const radarData = {
-      labels: ["酸味", "甘味", "苦味", "コク", "香り", "キレ"],
+      labels: ["酸味", "苦味", "コク", "香り", "キレ"],
       datasets: [
         {
           label: coffeeRecord.name,
           data: [
             Number(coffeeRecord.acidity) || 0,
-            Number(coffeeRecord.sweetness) || 0,
+            Number(coffeeRecord.overall) || 0,
             Number(coffeeRecord.bitterness) || 0,
             Number(coffeeRecord.body) || 0,
             Number(coffeeRecord.aroma) || 0,
@@ -102,7 +102,7 @@ app.post("/api/generate-pdf", async (req, res) => {
               ["水量", coffeeRecord.waterAmount || "未記入"],
               ["抽出時間", coffeeRecord.extractionTime || "未記入"],
               ["酸味", coffeeRecord.acidity || "0"],
-              ["甘味", coffeeRecord.sweetness || "0"],
+              ["全体", coffeeRecord.overall || "0"],
               ["苦味", coffeeRecord.bitterness || "0"],
               ["コク", coffeeRecord.body || "0"],
               ["香り", coffeeRecord.aroma || "0"],

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react"; // useCallback を追加
+import React, { useEffect, useState, useCallback, useRef } from "react"; // useCallback を追加
 import {
   View,
   StyleSheet,
@@ -9,9 +9,9 @@ import {
   TouchableOpacity,
   Text,
   Alert,
-  Platform,
   ActivityIndicator,
   Dimensions,
+  Button,
 } from "react-native";
 import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
@@ -1071,15 +1071,11 @@ export default function CoffeeItemScreen() {
         base64: false,
       });
 
-      if (Platform.OS === "web") {
-        window.open(uri, "_blank");
-      } else {
-        await Sharing.shareAsync(uri, {
-          mimeType: "application/pdf",
-          dialogTitle: "コーヒー情報をPDFで共有",
-        });
-        console.log("PDF共有完了 (Mobile)");
-      }
+      await Sharing.shareAsync(uri, {
+        mimeType: "application/pdf",
+        dialogTitle: "コーヒー情報をPDFで共有",
+      });
+      console.log("PDF共有完了 (Mobile)");
     } catch (error) {
       console.error("PDF生成エラー:", error);
       const errorMessage =
@@ -1089,7 +1085,10 @@ export default function CoffeeItemScreen() {
       setIsGeneratingPdf(false);
     }
   }, [coffeeRecord]); // coffeeRecord を依存関係に追加
-
+  const scrollViewRef = useRef<ScrollView>(null);
+  const handleScrollToTop = async () => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
   // レコードをフェッチする useEffect
   useEffect(() => {
     const fetchCoffeeRecord = async () => {
@@ -1138,6 +1137,7 @@ export default function CoffeeItemScreen() {
           <ScrollView
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
+            ref={scrollViewRef}
           >
             <View style={styles.itemContainer}>
               <View style={styles.imageContents}>
@@ -1317,6 +1317,12 @@ export default function CoffeeItemScreen() {
                 <Text style={styles.buttonText}>PDF をダウンロード</Text>
               )}
             </TouchableOpacity>
+            <Button
+              title="上へ"
+              color={"#5D4037"}
+              onPress={handleScrollToTop}
+              accessibilityLabel="上へ"
+            />
           </ScrollView>
         </View>
       </View>
@@ -1350,14 +1356,15 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   scrollContainer: {
-    alignItems: "center",
-    paddingVertical: 20,
-    paddingBottom: 60,
+    alignItems: "stretch",
+    marginHorizontal: "auto",
+
     width: "100%",
   },
   itemContainer: {
     width: "90%",
     padding: 20,
+    marginHorizontal: "auto",
     borderRadius: 10,
     backgroundColor: "#fff",
     shadowColor: "#000",
@@ -1459,7 +1466,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#28a745",
     paddingVertical: 12,
     borderRadius: 8,
-    marginTop: 20,
+    marginVertical: 20,
+    marginHorizontal: "auto",
     width: "90%",
     alignItems: "center",
   },

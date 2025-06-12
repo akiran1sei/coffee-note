@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Text, TextInput, Platform } from "react-native"; // Platformをインポート
+import { View, StyleSheet, Text, TextInput } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 // 階層的選択のためのインターフェース

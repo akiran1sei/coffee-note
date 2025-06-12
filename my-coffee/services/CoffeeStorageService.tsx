@@ -1,4 +1,3 @@
-import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { CoffeeRecord } from "../types/CoffeeTypes";
 import * as FileSystem from "expo-file-system";
@@ -6,39 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 class CoffeeStorageService {
   private STORAGE_KEY = "@CoffeeRecords";
-  private isWeb = Platform.OS === "web";
 
-  // Web環境用のストレージヘルパー
-  private async webSaveData(key: string, data: any): Promise<void> {
-    try {
-      localStorage.setItem(key, JSON.stringify(data));
-    } catch (error) {
-      console.error("Webストレージ保存エラー:", error);
-      throw error;
-    }
-  }
-
-  private async webGetData(key: string): Promise<any> {
-    try {
-      const data = localStorage.getItem(key);
-      return data ? JSON.parse(data) : null;
-    } catch (error) {
-      console.error("Webストレージ取得エラー:", error);
-      return null;
-    }
-  }
-
-  // Web環境での画像保存の改善
-  private async webSaveImage(imageUri: string): Promise<string> {
-    // Base64形式かどうかをチェック
-    if (imageUri.startsWith("data:image")) {
-      // Base64形式の画像はそのまま返す
-      return imageUri;
-    }
-
-    // Web環境ではBase64またはURLをそのまま保存
-    return imageUri;
-  }
   // 新しいコーヒーレコードを保存
   async saveCoffeeRecord(
     record: Omit<CoffeeRecord, "id" | "createdAt">, // OmitにcreatedAtを追加
@@ -50,11 +17,7 @@ class CoffeeStorageService {
 
       let processedImageUri = null;
       if (imageUri) {
-        if (this.isWeb) {
-          processedImageUri = await this.webSaveImage(imageUri);
-        } else {
-          processedImageUri = await this.saveImage(imageUri, id);
-        }
+        processedImageUri = await this.saveImage(imageUri, id);
       }
 
       // 画像処理が失敗した場合のデフォルト値を設定
@@ -66,33 +29,20 @@ class CoffeeStorageService {
         imageUri: finalImageUri,
         createdAt: createdAt, // 作成日時を追加
       };
-      // 既存のレコードを取得
-      let existingRecords: CoffeeRecord[] = [];
-
-      if (this.isWeb) {
-        const existingRecordsJson = await this.webGetData(this.STORAGE_KEY);
-        existingRecords = existingRecordsJson || [];
-      } else {
-        const existingRecordsJson = await AsyncStorage.getItem(
-          this.STORAGE_KEY
-        );
-        existingRecords = existingRecordsJson
-          ? JSON.parse(existingRecordsJson)
-          : [];
-      }
+      // 既存のレコードを取得 (モバイル環境専用)
+      const existingRecordsJson = await AsyncStorage.getItem(this.STORAGE_KEY);
+      const existingRecords: CoffeeRecord[] = existingRecordsJson
+        ? JSON.parse(existingRecordsJson)
+        : [];
 
       // 新しいレコードを追加
       const updatedRecords = [...existingRecords, fullRecord];
 
-      // 更新されたレコードを保存
-      if (this.isWeb) {
-        await this.webSaveData(this.STORAGE_KEY, updatedRecords);
-      } else {
-        await AsyncStorage.setItem(
-          this.STORAGE_KEY,
-          JSON.stringify(updatedRecords)
-        );
-      }
+      // 更新されたレコードを保存 (モバイル環境専用)
+      await AsyncStorage.setItem(
+        this.STORAGE_KEY,
+        JSON.stringify(updatedRecords)
+      );
 
       return id;
     } catch (error) {
@@ -120,16 +70,11 @@ class CoffeeStorageService {
     return newImageUri;
   }
 
-  // すべてのコーヒーレコードを取得
+  // すべてのコーヒーレコードを取得 (モバイル環境専用)
   async getAllCoffeeRecords(): Promise<CoffeeRecord[]> {
     try {
-      if (this.isWeb) {
-        const records = await this.webGetData(this.STORAGE_KEY);
-        return records || [];
-      } else {
-        const recordsJson = await AsyncStorage.getItem(this.STORAGE_KEY);
-        return recordsJson ? JSON.parse(recordsJson) : [];
-      }
+      const recordsJson = await AsyncStorage.getItem(this.STORAGE_KEY);
+      return recordsJson ? JSON.parse(recordsJson) : [];
     } catch (error) {
       console.error("コーヒーレコードの取得中にエラーが発生しました:", error);
       return [];
@@ -147,7 +92,7 @@ class CoffeeStorageService {
     }
   }
 
-  // 既存のレコードを更新
+  // 既存のレコードを更新 (モバイル環境専用)
   async updateCoffeeRecord(
     id: string,
     updatedRecord: Partial<CoffeeRecord>
@@ -159,11 +104,8 @@ class CoffeeStorageService {
       if (index !== -1) {
         records[index] = { ...records[index], ...updatedRecord };
 
-        if (this.isWeb) {
-          await this.webSaveData(this.STORAGE_KEY, records);
-        } else {
-          await AsyncStorage.setItem(this.STORAGE_KEY, JSON.stringify(records));
-        }
+        await AsyncStorage.setItem(this.STORAGE_KEY, JSON.stringify(records));
+
         return true;
       }
       return false;
@@ -173,7 +115,7 @@ class CoffeeStorageService {
     }
   }
 
-  // レコードを削除
+  // レコードを削除 (モバイル環境専用)
   async deleteCoffeeRecord(id: string): Promise<boolean> {
     try {
       const records = await this.getAllCoffeeRecords();
@@ -182,16 +124,14 @@ class CoffeeStorageService {
 
       // 関連する画像があれば削除（モバイル環境のみ）
       if (
-        !this.isWeb && // Web環境ではない
         recordToDelete?.imageUri && // imageUri が存在し
         recordToDelete.imageUri !== "default_image_path" && // デフォルトパスではない
-        !recordToDelete.imageUri.startsWith("file://assets/")
+        !recordToDelete.imageUri.startsWith("file://assets/") // アセット内の画像ではない
       ) {
         try {
-          // FileSystem.deleteAsync は 'file://' スキームを期待するので、必要なら付与
           const uriToDelete = recordToDelete.imageUri.startsWith("file://")
             ? recordToDelete.imageUri
-            : `file://${recordToDelete.imageUri}`; // 例えば、file:// を付与する場合
+            : `file://${recordToDelete.imageUri}`;
 
           await FileSystem.deleteAsync(uriToDelete, {
             idempotent: true,
@@ -206,14 +146,11 @@ class CoffeeStorageService {
         }
       }
 
-      if (this.isWeb) {
-        await this.webSaveData(this.STORAGE_KEY, filteredRecords);
-      } else {
-        await AsyncStorage.setItem(
-          this.STORAGE_KEY,
-          JSON.stringify(filteredRecords)
-        );
-      }
+      await AsyncStorage.setItem(
+        this.STORAGE_KEY,
+        JSON.stringify(filteredRecords)
+      );
+
       return true;
     } catch (error) {
       console.error("コーヒーレコードの削除中にエラーが発生しました:", error);
@@ -241,7 +178,7 @@ class CoffeeStorageService {
     criteria:
       | "acidity"
       | "bitterness"
-      // | "sweetness"
+      | "overall"
       | "body"
       | "aroma"
       | "aftertaste"
@@ -261,9 +198,9 @@ class CoffeeStorageService {
           case "bitterness":
             comparison = (a.bitterness || 0) - (b.bitterness || 0);
             break;
-          // case "sweetness":
-          //   comparison = (a.sweetness || 0) - (b.sweetness || 0);
-          //   break;
+          case "overall":
+            comparison = (a.overall || 0) - (b.overall || 0);
+            break;
           case "body":
             comparison = (a.body || 0) - (b.body || 0);
             break;
@@ -296,7 +233,7 @@ class CoffeeStorageService {
     sortCriteria?:
       | "acidity"
       | "bitterness"
-      // | "sweetness"
+      | "overall"
       | "body"
       | "aroma"
       | "aftertaste"
@@ -322,9 +259,9 @@ class CoffeeStorageService {
             case "bitterness":
               comparison = (a.bitterness || 0) - (b.bitterness || 0);
               break;
-            // case "sweetness":
-            //   comparison = (a.sweetness || 0) - (b.sweetness || 0);
-            //   break;
+            case "overall":
+              comparison = (a.overall || 0) - (b.overall || 0);
+              break;
             case "body":
               comparison = (a.body || 0) - (b.body || 0);
               break;

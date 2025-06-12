@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Text,
   View,
   Image,
   StyleSheet,
-  Platform,
   ImageSourcePropType,
   RefreshControl,
   TouchableOpacity,
@@ -12,6 +11,7 @@ import {
   ScrollView,
   FlatList,
   Dimensions,
+  Button,
 } from "react-native";
 import { useRouter } from "expo-router";
 import HeaderComponent from "../../components/HeaderComponent";
@@ -128,25 +128,19 @@ export default function ListScreen() {
   // 削除確認ダイアログを表示
   const confirmDelete = useCallback(
     (message: string, onConfirm: () => void) => {
-      if (Platform.OS === "web") {
-        if (window.confirm(message)) {
-          onConfirm();
-        }
-      } else {
-        Alert.alert(
-          "削除確認",
-          message,
-          [
-            { text: "キャンセル", style: "cancel" },
-            {
-              text: "削除",
-              style: "destructive",
-              onPress: onConfirm,
-            },
-          ],
-          { cancelable: false }
-        );
-      }
+      Alert.alert(
+        "削除確認",
+        message,
+        [
+          { text: "キャンセル", style: "cancel" },
+          {
+            text: "削除",
+            style: "destructive",
+            onPress: onConfirm,
+          },
+        ],
+        { cancelable: false }
+      );
     },
     [] // useCallback を使用して関数をメモ化
   );
@@ -154,20 +148,19 @@ export default function ListScreen() {
   // 画像URIを環境に応じて適切に処理する関数
   const getImageSource = useCallback(
     (uri?: string | null): ImageSourcePropType => {
-      if (!uri || (Platform.OS === "web" && !uri.startsWith("data:image"))) {
-        // URI がないか、Web 環境で Base64 形式でない場合はデフォルト画像
+      // URI がない場合はデフォルト画像
+      if (!uri) {
         return require("../../assets/images/no-image.png");
       }
-      if (Platform.OS !== "web" && !uri.startsWith("file://")) {
-        // モバイル環境で file:// が付いていなければ追加
+      // モバイル環境で file:// が付いていなければ追加
+      if (!uri.startsWith("file://")) {
         return { uri: `file://${uri}` };
       }
 
       return { uri }; // その他の場合はそのまま URI を使用
     },
     []
-  ); // useCallback を使用して関数をメモ化
-
+  );
   // レコードアイテムをレンダリングする関数
   // この関数自体は useCallback で囲む必要はないが、
   // FlatList の renderItem に渡す場合は、FlatList の最適化のために
@@ -185,8 +178,7 @@ export default function ListScreen() {
 
         <TouchableOpacity
           onPress={() => {
-            const isWeb = Platform.OS === "web";
-            const pathname = isWeb ? "/item/web/[id]" : "/item/[id]";
+            const pathname = "/item/[id]";
 
             // router オブジェクトが変更されない限り useCallback は不要だが、念のため
             router.replace({ pathname: pathname, params: { id: record.id } });
@@ -275,6 +267,10 @@ export default function ListScreen() {
       </View>
     );
   };
+  const scrollViewRef = useRef<ScrollView>(null);
+  const handleScrollToTop = async () => {
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
 
   // handleSort 関数
   const handleSort = useCallback((sortedRecords: CoffeeRecord[]) => {
@@ -345,7 +341,7 @@ export default function ListScreen() {
               />
             </View>
             {/* FlatList に置き換え */}
-            <ScrollView>
+            <ScrollView ref={scrollViewRef}>
               {/* 一括削除ボタン */}
               {selectedRecords.length > 0 && (
                 <TouchableOpacity
@@ -381,6 +377,14 @@ export default function ListScreen() {
                 decelerationRate="fast" // 速い減速率（オプション）
                 snapToInterval={370} // カードの幅+マージン（オプション）
               />
+              {displayedCoffeeRecords.length > 0 && (
+                <Button
+                  title="上へ"
+                  color={"#5D4037"}
+                  onPress={handleScrollToTop}
+                  accessibilityLabel="上へ"
+                />
+              )}
             </ScrollView>
           </View>
         </View>
