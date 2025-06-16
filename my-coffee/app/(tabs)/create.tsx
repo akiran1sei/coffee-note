@@ -303,12 +303,6 @@ export default function CreateScreen() {
               secondaryValue={formData.extractionMaker}
             />
 
-            <ConditionalMeasurementSelector
-              dataTitle="計量タイプ"
-              onChange={(value: string) => handleMeasurementSelect(value)}
-              value={formData.measurementMethod}
-              extractionMethod={formData.extractionMethod} // 抽出方法を渡す
-            />
             <CoffeeProcessingSelect
               key={`grindSize-${resetKey}`}
               dataTitle={SelectLabel.grindSize}
@@ -333,7 +327,12 @@ export default function CreateScreen() {
               }
               value={formData.coffeeAmount}
             />
-
+            <ConditionalMeasurementSelector
+              dataTitle="計量タイプ"
+              onChange={(value: string) => handleMeasurementSelect(value)}
+              value={formData.measurementMethod}
+              extractionMethod={formData.extractionMethod} // 抽出方法を渡す
+            />
             <NumberComponent
               key={`waterAmount-${resetKey}`}
               dataTitle={NumberLabel.waterAmount}

@@ -206,6 +206,7 @@ export const ConditionalMeasurementSelector: React.FC<
     "ペーパードリップ",
     "ペーパーレスドリッパー",
     "ネルドリップ",
+    "コーヒーメーカー(ドリップ式)",
   ];
 
   // 選択肢を表示するかどうかを判定
@@ -220,9 +221,14 @@ export const ConditionalMeasurementSelector: React.FC<
 
   // 抽出方法が変更された場合の処理
   useEffect(() => {
+    console.log("extractionMethod", extractionMethod);
     if (shouldShowChoice) {
       // 選択肢がある場合は、現在の値を維持するか空にする
       setSelectedMeasurement((value as MeasurementType) || "");
+    } else if (extractionMethod === "エスプレッソ") {
+      // エスプレッソの場合は強制的に抽出量に設定
+      setSelectedMeasurement("抽出量");
+      onChange("抽出量");
     } else {
       // 選択肢がない場合は強制的に注湯量に設定
       setSelectedMeasurement("注湯量");
@@ -234,6 +240,8 @@ export const ConditionalMeasurementSelector: React.FC<
   useEffect(() => {
     if (shouldShowChoice) {
       setSelectedMeasurement((value as MeasurementType) || "");
+    } else if (extractionMethod === "エスプレッソ") {
+      setSelectedMeasurement("抽出量");
     } else {
       setSelectedMeasurement("注湯量");
     }
@@ -246,7 +254,17 @@ export const ConditionalMeasurementSelector: React.FC<
   };
 
   // 選択肢がない場合は固定表示
-  if (!shouldShowChoice) {
+  if (!shouldShowChoice && extractionMethod === "エスプレッソ") {
+    return (
+      <View style={styles.radioContainer}>
+        <Text style={styles.label}>{dataTitle}</Text>
+        <View style={styles.fixedContainer}>
+          <Text style={styles.fixedText}>抽出量（固定）</Text>
+        </View>
+        <Text style={styles.selectedValueText}>選択中のタイプ: 抽出量</Text>
+      </View>
+    );
+  } else if (!shouldShowChoice && extractionMethod !== "エスプレッソ") {
     return (
       <View style={styles.radioContainer}>
         <Text style={styles.label}>{dataTitle}</Text>

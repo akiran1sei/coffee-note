@@ -1000,7 +1000,9 @@ export default function CoffeeItemScreen() {
                   }</div>
                 </div>
                 <div class="field-row">
-                  <div class="field-label">水量</div>
+                  <div class="field-label">${
+                    coffeeRecord.measurementMethod
+                  }</div>
                   <div class="field-input">${
                     coffeeRecord.waterAmount || "未記入"
                   }</div>
@@ -1211,7 +1213,7 @@ export default function CoffeeItemScreen() {
               <View style={styles.detailItem}>
                 <View style={styles.wrapper}>
                   <Text style={styles.labelText}>
-                    水量({coffeeRecord.measurementMethod})
+                    {coffeeRecord.measurementMethod}
                   </Text>
                   <Text style={styles.valueText}>
                     {coffeeRecord.waterAmount}
