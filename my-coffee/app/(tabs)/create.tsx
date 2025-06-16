@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -17,6 +17,7 @@ import {
   HierarchicalCoffeeSelect,
   CoffeeProcessingSelect,
   CoffeeTypesSelect,
+  ConditionalMeasurementSelector,
 } from "../../components/SelectComponent";
 import {
   InputComponent,
@@ -30,7 +31,6 @@ import ImageUploadComponent from "../../components/ImageUploadComponent";
 import RadarChart from "../../components/RadarChart/RadarChart";
 import CoffeeStorageService from "../../services/CoffeeStorageService"; // ストレージサービスをインポート
 import OverallPreferenceRangeComponent from "../../components/OverallComponent";
-import { MeasurementSelector } from "../../components/RadioComponent";
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
 interface CoffeeRecord {
@@ -118,7 +118,7 @@ export default function CreateScreen() {
     coffeeAmount: "紛量（g）",
     waterAmount: "湯量（g）",
   });
-  const [measurementLabel, setMeasurement] = useState("測定方法");
+
   const [imageData, setImageData] = useState("");
   const [formData, setFormData] = useState({ ...initialFormData });
   const [rangeValues, setRangeValues] = useState({ ...initialRangeValues });
@@ -135,8 +135,8 @@ export default function CreateScreen() {
   const handleInputChange = (label: string, value: string | number) => {
     setFormData({ ...formData, [label]: value });
   };
-  const handleMeasurementSelect = (label: string, value: string) => {
-    setFormData({ ...formData, [label]: value });
+  const handleMeasurementSelect = (value: string) => {
+    setFormData({ ...formData, measurementMethod: value });
   };
 
   const handleSelectChange = (label: string, value: string) => {
@@ -302,6 +302,13 @@ export default function CreateScreen() {
               primaryValue={formData.extractionMethod}
               secondaryValue={formData.extractionMaker}
             />
+
+            <ConditionalMeasurementSelector
+              dataTitle="計量タイプ"
+              onChange={(value: string) => handleMeasurementSelect(value)}
+              value={formData.measurementMethod}
+              extractionMethod={formData.extractionMethod} // 抽出方法を渡す
+            />
             <CoffeeProcessingSelect
               key={`grindSize-${resetKey}`}
               dataTitle={SelectLabel.grindSize}
@@ -326,14 +333,7 @@ export default function CreateScreen() {
               }
               value={formData.coffeeAmount}
             />
-            <MeasurementSelector
-              key={`measurementMethod-${resetKey}`}
-              dataTitle={measurementLabel}
-              onChange={(value: string) =>
-                handleMeasurementSelect("measurementMethod", value)
-              }
-              value={formData.measurementMethod}
-            />
+
             <NumberComponent
               key={`waterAmount-${resetKey}`}
               dataTitle={NumberLabel.waterAmount}
@@ -400,7 +400,6 @@ export default function CreateScreen() {
             >
               <Text style={styles.submitButtonText}>保存</Text>
             </TouchableOpacity>
-
             <Button
               title="上へ"
               color={"#5D4037"}

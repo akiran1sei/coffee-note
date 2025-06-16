@@ -211,7 +211,10 @@ export default function ListScreen() {
                 <InfoRow label="挽き目" value={record.grindSize} />
                 <InfoRow label="注湯温度" value={record.temperature} />
                 <InfoRow label="粉量" value={record.coffeeAmount} />
-                <InfoRow label="水量" value={record.waterAmount} />
+                <InfoRow
+                  label={`水量(${record.measurementMethod})`}
+                  value={record.waterAmount}
+                />
                 <InfoRow label="抽出時間" value={record.extractionTime} />
               </View>
             </View>

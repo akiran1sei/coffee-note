@@ -1210,7 +1210,9 @@ export default function CoffeeItemScreen() {
               </View>
               <View style={styles.detailItem}>
                 <View style={styles.wrapper}>
-                  <Text style={styles.labelText}>水量</Text>
+                  <Text style={styles.labelText}>
+                    水量({coffeeRecord.measurementMethod})
+                  </Text>
                   <Text style={styles.valueText}>
                     {coffeeRecord.waterAmount}
                   </Text>

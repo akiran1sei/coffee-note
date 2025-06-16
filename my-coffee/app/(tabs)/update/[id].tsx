@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -20,6 +20,7 @@ import {
   HierarchicalCoffeeSelect,
   CoffeeProcessingSelect,
   CoffeeTypesSelect,
+  ConditionalMeasurementSelector,
 } from "../../../components/SelectComponent";
 import {
   InputComponent,
@@ -36,7 +37,7 @@ import {
   NoRecordComponent,
 } from "@/components/MessageComponent";
 import OverallPreferenceRangeComponent from "@/components/OverallComponent";
-import { MeasurementSelector } from "@/components/RadioComponent";
+
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
 type RouteParams = {
@@ -82,8 +83,8 @@ export default function CoffeeItemScreen() {
   const handleInputChange = (label: string, value: string | number) => {
     setFormData({ ...formData, [label]: value });
   };
-  const handleMeasurementSelect = (label: string, value: string) => {
-    setFormData({ ...formData, [label]: value });
+  const handleMeasurementSelect = (value: string) => {
+    setFormData({ ...formData, measurementMethod: value });
   };
   const handleImageChange = (value: string) => {
     setImageData(value);
@@ -218,6 +219,7 @@ export default function CoffeeItemScreen() {
         const updatedRecord = await CoffeeStorageService.getCoffeeRecordById(
           id
         );
+        console.log("Updated Record:", updatedRecord);
         if (updatedRecord) {
           setCoffeeRecord(updatedRecord);
           // 更新された値をformDataにも反映
@@ -309,6 +311,7 @@ export default function CoffeeItemScreen() {
             extractionMaker: record.extractionMaker,
             grindSize: record.grindSize,
             temperature: record.temperature,
+            measurementMethod: record.measurementMethod,
             coffeeAmount: record.coffeeAmount,
             waterAmount: record.waterAmount,
             extractionTime: record.extractionTime,
@@ -450,17 +453,17 @@ export default function CoffeeItemScreen() {
                     : 0
                 }
               />
-              <MeasurementSelector
-                dataTitle={measurementLabel}
-                onChange={(value: string) =>
-                  handleMeasurementSelect("measurementMethod", value)
-                }
+              <ConditionalMeasurementSelector
+                dataTitle="計量タイプ"
+                onChange={(value: string) => handleMeasurementSelect(value)}
                 value={
                   formData.measurementMethod !== undefined
                     ? formData.measurementMethod
                     : ""
-                } // Provide a default value if formData.measurementMethod is undefined
+                }
+                extractionMethod={formData.extractionMethod} // 抽出方法を渡す
               />
+
               <NumberComponent
                 dataTitle={NumberLabel.waterAmount}
                 onChange={(value: number) =>

@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Text, TextInput } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 // 階層的選択のためのインターフェース
@@ -178,6 +184,128 @@ export const HierarchicalCoffeeSelect: React.FC<HierarchicalSelectProps> = ({
           </View>
         </View>
       )}
+    </View>
+  );
+};
+
+// 選択肢の型を定義
+type MeasurementType = "注湯量" | "抽出量";
+
+interface ConditionalMeasurementProps {
+  onChange: (value: string) => void;
+  dataTitle: string;
+  value: string | undefined;
+  extractionMethod?: string; // 抽出方法を受け取るプロパティを追加
+}
+
+export const ConditionalMeasurementSelector: React.FC<
+  ConditionalMeasurementProps
+> = ({ dataTitle, onChange, value, extractionMethod }) => {
+  // 選択肢を表示する抽出方法を定義
+  const methodsWithChoice = [
+    "ペーパードリップ",
+    "ペーパーレスドリッパー",
+    "ネルドリップ",
+  ];
+
+  // 選択肢を表示するかどうかを判定
+  const shouldShowChoice = methodsWithChoice.includes(extractionMethod || "");
+
+  // value が undefined または空文字列の場合、デフォルト値を設定
+  const [selectedMeasurement, setSelectedMeasurement] = useState<
+    MeasurementType | ""
+  >(
+    shouldShowChoice ? (value as MeasurementType) || "" : "注湯量" // 選択肢がない場合は固定で注湯量
+  );
+
+  // 抽出方法が変更された場合の処理
+  useEffect(() => {
+    if (shouldShowChoice) {
+      // 選択肢がある場合は、現在の値を維持するか空にする
+      setSelectedMeasurement((value as MeasurementType) || "");
+    } else {
+      // 選択肢がない場合は強制的に注湯量に設定
+      setSelectedMeasurement("注湯量");
+      onChange("注湯量");
+    }
+  }, [extractionMethod, shouldShowChoice]);
+
+  // 親から渡される value が変更された場合、内部状態も更新
+  useEffect(() => {
+    if (shouldShowChoice) {
+      setSelectedMeasurement((value as MeasurementType) || "");
+    } else {
+      setSelectedMeasurement("注湯量");
+    }
+  }, [value, shouldShowChoice]);
+
+  // ボタンが押されたときのハンドラ
+  const handlePress = (type: MeasurementType) => {
+    setSelectedMeasurement(type);
+    onChange(type);
+  };
+
+  // 選択肢がない場合は固定表示
+  if (!shouldShowChoice) {
+    return (
+      <View style={styles.radioContainer}>
+        <Text style={styles.label}>{dataTitle}</Text>
+        <View style={styles.fixedContainer}>
+          <Text style={styles.fixedText}>注湯量（固定）</Text>
+        </View>
+        <Text style={styles.selectedValueText}>選択中のタイプ: 注湯量</Text>
+      </View>
+    );
+  }
+
+  // 選択肢がある場合は通常の選択UI
+  return (
+    <View style={styles.radioContainer}>
+      <Text style={styles.label}>{dataTitle}</Text>
+      <View style={styles.buttonGroup}>
+        {/* 注湯量ボタン */}
+        <TouchableOpacity
+          style={[
+            styles.button,
+            selectedMeasurement === "注湯量" && styles.selectedButton,
+          ]}
+          onPress={() => handlePress("注湯量")}
+        >
+          <Text
+            style={[
+              styles.buttonText,
+              selectedMeasurement === "注湯量" && styles.selectedButtonText,
+            ]}
+          >
+            注湯量
+          </Text>
+        </TouchableOpacity>
+
+        {/* 抽出量ボタン */}
+        <TouchableOpacity
+          style={[
+            styles.button,
+            styles.rightButton,
+            selectedMeasurement === "抽出量" && styles.selectedButton,
+          ]}
+          onPress={() => handlePress("抽出量")}
+        >
+          <Text
+            style={[
+              styles.buttonText,
+              selectedMeasurement === "抽出量" && styles.selectedButtonText,
+            ]}
+          >
+            抽出量
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.selectedValueText}>
+        選択中のタイプ:{" "}
+        {selectedMeasurement === ""
+          ? "選択されていません"
+          : selectedMeasurement}
+      </Text>
     </View>
   );
 };
@@ -411,5 +539,66 @@ const styles = StyleSheet.create({
   selectedText: {
     marginTop: 20,
     fontSize: 16,
+  },
+  radioContainer: {
+    width: "90%",
+
+    marginHorizontal: "auto",
+    alignItems: "center",
+  },
+
+  buttonGroup: {
+    width: "100%",
+    flexDirection: "row",
+    borderRadius: 8,
+    borderColor: "#007bff",
+    borderWidth: 1,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  rightButton: {
+    borderLeftWidth: 1,
+    borderLeftColor: "#007bff",
+  },
+  selectedButton: {
+    backgroundColor: "#007bff",
+  },
+  buttonText: {
+    fontSize: 16,
+    color: "#007bff",
+    fontWeight: "bold",
+  },
+  selectedButtonText: {
+    color: "#fff",
+  },
+  selectedValueText: {
+    marginVertical: 10,
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#555",
+  },
+  // 固定表示用のスタイル
+  fixedContainer: {
+    width: "100%",
+    backgroundColor: "#f0f0f0",
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    borderWidth: 1,
+    borderColor: "#D2B48C",
+    marginTop: -1,
+    padding: 15,
+    alignItems: "center",
+  },
+  fixedText: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "bold",
   },
 });
