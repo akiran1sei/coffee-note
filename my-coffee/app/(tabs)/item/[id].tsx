@@ -56,13 +56,29 @@ const STAR_ASSET_MODULES = {
   Star5: require("../../../assets/images/pdf/beans5.png"),
   no_image: require("../../../assets/images/no-image.png"),
 };
+const resolvedStar0Asset = Image.resolveAssetSource(STAR_ASSET_MODULES.Star0);
+const resolvedStar1Asset = Image.resolveAssetSource(STAR_ASSET_MODULES.Star1);
+const resolvedStar2Asset = Image.resolveAssetSource(STAR_ASSET_MODULES.Star2);
+const resolvedStar3Asset = Image.resolveAssetSource(STAR_ASSET_MODULES.Star3);
+const resolvedStar4Asset = Image.resolveAssetSource(STAR_ASSET_MODULES.Star4);
+const resolvedStar5Asset = Image.resolveAssetSource(STAR_ASSET_MODULES.Star5);
+const resolvedStar0_5Asset = Image.resolveAssetSource(
+  STAR_ASSET_MODULES.Star0_5
+);
+const resolvedStar1_5Asset = Image.resolveAssetSource(
+  STAR_ASSET_MODULES.Star1_5
+);
+const resolvedStar2_5Asset = Image.resolveAssetSource(
+  STAR_ASSET_MODULES.Star2_5
+);
+const resolvedStar3_5Asset = Image.resolveAssetSource(
+  STAR_ASSET_MODULES.Star3_5
+);
+const resolvedStar4_5Asset = Image.resolveAssetSource(
+  STAR_ASSET_MODULES.Star4_5
+);
+const base64ImageCache: { [key: string]: string | null } = {};
 
-let base64ImageCache: { [key: string]: string } = {};
-
-/**
- * SDK53対応: 改良版Base64画像取得関数
- * 複数の方法を順次試行し、より安定した取得を実現
- */
 const getBase64ImageByKey = async (
   imageKey: keyof typeof STAR_ASSET_MODULES
 ): Promise<string | null> => {
@@ -75,13 +91,9 @@ const getBase64ImageByKey = async (
   const assetModule = STAR_ASSET_MODULES[imageKey];
   if (!assetModule) {
     console.error(`Asset module not found for key: ${imageKey}`);
-    console.warn(
-      `[PDF_DEBUG] Falling back for ${imageKey}. No Base64 available.`
-    );
-    return null;
+    return getFallbackBase64(imageKey);
   }
 
-  // 方法1: Asset.fromModule() + 改良版エラーハンドリング
   try {
     console.log(`[DEBUG_PREVIEW] Attempting Asset.fromModule for ${imageKey}`);
     const asset = Asset.fromModule(assetModule);
@@ -102,59 +114,114 @@ const getBase64ImageByKey = async (
       ]);
     }
 
-    // ファイルURIの決定（優先順位付き）
-    const possibleUris = [
-      asset.localUri,
-      asset.uri,
-      asset.name ? `${FileSystem.bundleDirectory}${asset.name}` : null,
-    ].filter(Boolean);
-    console.log(`possibleUris: ${possibleUris}`);
+    // ここが重要な修正点：asset.localUriまたはasset.uriを使用
+    let fileUri = asset.localUri || asset.uri;
 
-    for (const fileUri of possibleUris) {
-      try {
-        console.log(`[DEBUG_PREVIEW] Trying URI: ${fileUri}`);
+    // HTTP URLの場合は、Image.resolveAssetSourceを使用
+    if (!fileUri || fileUri.startsWith("http")) {
+      const resolvedSource = Image.resolveAssetSource(assetModule);
+      fileUri = resolvedSource?.uri;
+    }
 
-        // ファイル存在確認
-        const fileInfo = await FileSystem.getInfoAsync(fileUri!);
-        if (!fileInfo.exists) {
-          console.log(`[DEBUG_PREVIEW] File not found at ${fileUri}`);
-          continue;
-        }
+    if (!fileUri) {
+      console.warn(
+        `[DEBUG_PREVIEW] Could not resolve file URI for ${imageKey}.`
+      );
+      return getFallbackBase64(imageKey);
+    }
 
-        // Base64変換（チャンク処理で安定化）
-        const base64 = await readFileAsBase64Stable(fileUri!);
-        if (base64 && base64.length > 0) {
-          const dataUri = `data:image/png;base64,${base64}`;
-          base64ImageCache[imageKey] = dataUri;
-          console.log(
-            `[DEBUG_PREVIEW] Successfully converted ${imageKey} to base64`
-          );
-          return dataUri;
-        }
-      } catch (error) {
-        console.log(`[DEBUG_PREVIEW] Failed to process URI ${fileUri}:`, error);
-        continue;
-      }
+    console.log(
+      `[DEBUG_PREVIEW] Resolved file URI for ${imageKey}: ${fileUri}`
+    );
+
+    // HTTP URLの場合は、fetch APIを使用してBase64変換
+    if (fileUri.startsWith("http")) {
+      return await convertHttpUrlToBase64(fileUri, imageKey);
+    }
+
+    // ローカルファイルの場合は、従来通りFileSystemを使用
+    // ファイル存在確認
+    const fileInfo = await FileSystem.getInfoAsync(fileUri);
+    if (!fileInfo.exists) {
+      console.warn(`[DEBUG_PREVIEW] File not found at resolved URI ${fileUri}`);
+      return getFallbackBase64(imageKey);
+    }
+
+    // Base64変換
+    const base64 = await readFileAsBase64Stable(fileUri);
+    if (base64 && base64.length > 0) {
+      const mimeType = "image/png";
+      const dataUri = `data:${mimeType};base64,${base64}`;
+      base64ImageCache[imageKey] = dataUri;
+      console.log(
+        `[DEBUG_PREVIEW] Successfully converted ${imageKey} to base64`
+      );
+      return dataUri;
     }
   } catch (error) {
     console.error(
-      `[ERROR_PREVIEW] Asset.fromModule failed for ${imageKey}:`,
+      `[ERROR_PREVIEW] Failed to get base64 for ${imageKey}:`,
       error
     );
   }
 
-  console.error(`[ERROR_PREVIEW] All methods failed for ${imageKey}`);
-  return null;
+  return getFallbackBase64(imageKey);
 };
 
 /**
- * 安定したBase64読み込み関数
- * メモリ効率を考慮したチャンク処理
+ * HTTP URLからBase64に変換する新しい関数
+ */
+const convertHttpUrlToBase64 = async (
+  httpUrl: string,
+  imageKey: string
+): Promise<string | null> => {
+  try {
+    console.log(`[DEBUG_PREVIEW] Converting HTTP URL to base64: ${httpUrl}`);
+
+    const response = await fetch(httpUrl);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const blob = await response.blob();
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        base64ImageCache[imageKey] = result;
+        console.log(
+          `[DEBUG_PREVIEW] Successfully converted HTTP URL to base64 for ${imageKey}`
+        );
+        resolve(result);
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error(
+      `[ERROR_PREVIEW] Failed to convert HTTP URL to base64:`,
+      error
+    );
+    return null;
+  }
+};
+
+/**
+ * 安定したBase64読み込み関数（ローカルファイル用）
  */
 const readFileAsBase64Stable = async (
   fileUri: string
 ): Promise<string | null> => {
   try {
+    // HTTP URLの場合はこの関数を使わない
+    if (fileUri.startsWith("http")) {
+      console.warn(
+        `[WARNING] HTTP URL passed to readFileAsBase64Stable: ${fileUri}`
+      );
+      return null;
+    }
+
     // ファイルサイズチェック
     const fileInfo = await FileSystem.getInfoAsync(fileUri);
     if (!fileInfo.exists) {
@@ -163,7 +230,6 @@ const readFileAsBase64Stable = async (
 
     // 大きなファイルの場合は処理をスキップ
     if (fileInfo.size && fileInfo.size > 5 * 1024 * 1024) {
-      // 5MB制限
       console.warn(`[WARNING] File too large: ${fileInfo.size} bytes`);
       return null;
     }
@@ -193,7 +259,6 @@ const readFileAsBase64Stable = async (
         lastError = error as Error;
         console.log(`[DEBUG] Attempt ${attempt} failed:`, error);
 
-        // 短い待機時間を置いてリトライ
         if (attempt < 3) {
           await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
         }
@@ -226,12 +291,16 @@ const getFallbackBase64 = (
   const fallbackMap: Partial<Record<keyof typeof STAR_ASSET_MODULES, string>> =
     {
       no_image: transparent1x1,
-      // 他のアイコンも必要に応じて追加
       Star0: transparent1x1,
+      Star0_5: transparent1x1,
       Star1: transparent1x1,
+      Star1_5: transparent1x1,
       Star2: transparent1x1,
+      Star2_5: transparent1x1,
       Star3: transparent1x1,
+      Star3_5: transparent1x1,
       Star4: transparent1x1,
+      Star4_5: transparent1x1,
       Star5: transparent1x1,
     };
 
