@@ -56,27 +56,7 @@ const STAR_ASSET_MODULES = {
   Star5: require("../../../assets/images/pdf/beans5.png"),
   no_image: require("../../../assets/images/no-image.png"),
 };
-const resolvedStar0Asset = Image.resolveAssetSource(STAR_ASSET_MODULES.Star0);
-const resolvedStar1Asset = Image.resolveAssetSource(STAR_ASSET_MODULES.Star1);
-const resolvedStar2Asset = Image.resolveAssetSource(STAR_ASSET_MODULES.Star2);
-const resolvedStar3Asset = Image.resolveAssetSource(STAR_ASSET_MODULES.Star3);
-const resolvedStar4Asset = Image.resolveAssetSource(STAR_ASSET_MODULES.Star4);
-const resolvedStar5Asset = Image.resolveAssetSource(STAR_ASSET_MODULES.Star5);
-const resolvedStar0_5Asset = Image.resolveAssetSource(
-  STAR_ASSET_MODULES.Star0_5
-);
-const resolvedStar1_5Asset = Image.resolveAssetSource(
-  STAR_ASSET_MODULES.Star1_5
-);
-const resolvedStar2_5Asset = Image.resolveAssetSource(
-  STAR_ASSET_MODULES.Star2_5
-);
-const resolvedStar3_5Asset = Image.resolveAssetSource(
-  STAR_ASSET_MODULES.Star3_5
-);
-const resolvedStar4_5Asset = Image.resolveAssetSource(
-  STAR_ASSET_MODULES.Star4_5
-);
+
 const base64ImageCache: { [key: string]: string | null } = {};
 
 const getBase64ImageByKey = async (
@@ -374,9 +354,23 @@ export default function CoffeeItemScreen() {
   // 画像URIを処理する関数
   const getImageSource = (uri?: string | null): ImageSourcePropType => {
     if (!uri) {
-      return require("@/assets/images/no-image.png");
+      return require("../../../assets/images/no-image.png");
     }
-    return { uri: uri.startsWith("file://") ? uri : `file://${uri}` };
+    // HTTP/HTTPSの場合はそのまま
+    if (uri.startsWith("http://") || uri.startsWith("https://")) {
+      return { uri };
+    }
+    // file://の場合はそのまま
+    if (uri.startsWith("file://")) {
+      return { uri };
+    }
+    // Expo assetIdの場合や相対パスの場合
+    if (/^\d+$/.test(uri)) {
+      // assetId (number as string)
+      return parseInt(uri, 10);
+    }
+    // それ以外はfile://を付与
+    return { uri: `file://${uri}` };
   };
 
   const handleDeleteRecord = async (recordId: string) => {
@@ -598,7 +592,6 @@ export default function CoffeeItemScreen() {
 
       // --- 3. 評価バーのHTML生成関数 (SVG画像対応版) ---
       const createRatingBarHtml = async (label: string, value: number) => {
-        const ratingImagesHtml = [];
         const roundedValue = Math.round(value * 2) / 2; // 0.5刻みに丸める
 
         // 全体の好みの場合は特別な処理をしない（他の項目と同じ画像で表示）
@@ -736,7 +729,7 @@ export default function CoffeeItemScreen() {
           /* Bodyの基本スタイル */
           /* ------------------------------------------------------------------- */
           body {
-            font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "YuGothic", "Meiryo", sans-serif;
+            font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Yu Gothic', 'YuGothic', 'Meiryo', sans-serif;
             width: 210mm;
             height: 297mm;
             margin: 0 auto;
@@ -1243,7 +1236,7 @@ export default function CoffeeItemScreen() {
               </View>
               <View style={styles.detailItem}>
                 <View style={styles.wrapper}>
-                  <Text style={styles.labelText}>抽出器具</Text>
+                  <Text style={styles.labelText}>抽出方法</Text>
                   <Text style={styles.valueText}>
                     {coffeeRecord.extractionMethod}
                   </Text>
