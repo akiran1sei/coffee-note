@@ -40,6 +40,14 @@ export default function Index() {
                 <IconButton icon="view-list" size={50} iconColor="#D2B48C" />
               </Link>
             </View>
+            <View style={styles.settingButtonContainer}>
+              <Link
+                href="/settings/PrivacyPolicyJP"
+                style={styles.settingButton}
+              >
+                <IconButton icon="cog" size={30} iconColor="#D2B48C" />
+              </Link>
+            </View>
           </View>
         </View>
       </View>
@@ -79,5 +87,20 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginVertical: 10,
   },
+  settingButtonContainer: {
+    position: "absolute",
+    alignItems: "center",
+    bottom: 10,
+    right: 10,
+    justifyContent: "center",
+  },
+  settingButton: {
+    textDecorationLine: "underline",
+
+    borderRadius: 10,
+    marginVertical: 5,
+    marginTop: 20,
+  },
+
   pageTitle: { width: "100%", height: 80 },
 });
