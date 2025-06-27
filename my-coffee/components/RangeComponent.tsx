@@ -93,7 +93,8 @@ const RangeComponent: React.FC<RangeComponentProps> = ({
               onSlidingComplete={handleSlidingComplete}
               minimumTrackTintColor="#D2B48C"
               maximumTrackTintColor="#FFF"
-              thumbTintColor="#D2B48C"
+              // thumbTintColor="#D2B48C"
+              thumbImage={require("../assets/images/slider-thumb.png")} // スライダーのサム画像を指定
             />
           </View>
           <TouchableOpacity
@@ -147,8 +148,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   button: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     borderRadius: 15,
     backgroundColor: "#FFF",
     justifyContent: "center",
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
   },
   slider: {
     width: "100%",
-    height: 40,
+    height: 50,
   },
   tickContainer: {
     width: "100%",

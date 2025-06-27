@@ -87,7 +87,8 @@ const OverallPreferenceRangeComponent: React.FC<
               onSlidingComplete={handleSlidingComplete}
               minimumTrackTintColor="#D2B48C"
               maximumTrackTintColor="#FFF"
-              thumbTintColor="#D2B48C"
+              // thumbTintColor="#D2B48C"
+              thumbImage={require("../assets/images/slider-thumb.png")}
             />
           </View>
           <TouchableOpacity
@@ -141,8 +142,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   button: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     borderRadius: 15,
     backgroundColor: "#FFF",
     justifyContent: "center",
