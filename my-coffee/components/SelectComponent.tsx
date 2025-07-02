@@ -367,6 +367,7 @@ export const CoffeeProcessingSelect: React.FC<SelectProps> = ({
           label: "イタリアン (深)",
           value: "イタリアン (深)",
         },
+        { label: "複数焙煎度", value: "複数焙煎度" },
       ];
     } else if (dataTitle === "挽き目") {
       return [
@@ -376,6 +377,7 @@ export const CoffeeProcessingSelect: React.FC<SelectProps> = ({
         { label: "中挽き", value: "中挽き" },
         { label: "粗挽き", value: "粗挽き" },
         { label: "極粗挽き", value: "極粗挽き" },
+        { label: "複数挽き", value: "複数挽き" },
       ];
     }
     return [];
@@ -420,6 +422,8 @@ export const CoffeeTypesSelect: React.FC<SelectProps> = ({
     { label: "アラビカ種", value: "アラビカ種" },
     { label: "カネフォラ種", value: "カネフォラ種" },
     { label: "リベリカ種", value: "リベリカ種" },
+    { label: "複数種類", value: "複数種類" },
+    { label: "不明", value: "不明" },
   ];
 
   // selectedValueが変更されたときに、「その他」が選択されたかどうかを判定
