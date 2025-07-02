@@ -93,7 +93,6 @@ const RangeComponent: React.FC<RangeComponentProps> = ({
               onSlidingComplete={handleSlidingComplete}
               minimumTrackTintColor="#D2B48C"
               maximumTrackTintColor="#FFF"
-              // thumbTintColor="#D2B48C"
               thumbImage={require("../assets/images/slider-thumb.png")} // スライダーのサム画像を指定
             />
           </View>
