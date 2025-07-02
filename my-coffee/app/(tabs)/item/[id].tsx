@@ -1430,7 +1430,7 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: screenWidth > 768 ? 700 : "100%",
     marginHorizontal: "auto",
-    top: 160,
+    top: 200,
     bottom: 0,
   },
   scrollContainer: {
