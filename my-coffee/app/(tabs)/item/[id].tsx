@@ -30,6 +30,8 @@ import {
   NoRecordComponent,
 } from "@/components/MessageComponent";
 import STAR_ASSET_BASE64 from "../../../assets/images/pdf/eccode/beans"; // 画像アセットのBase64をインポート
+import { GlobalStyles } from "../../styles/GlobalStyles";
+
 const isPreviewBuild = Constants.executionEnvironment === "storeClient";
 if (isPreviewBuild) {
   console.log("[DEBUG] Running in preview/production environment");
@@ -1199,8 +1201,8 @@ export default function CoffeeItemScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.contents}>
+    <SafeAreaView style={[GlobalStyles.container, styles.itemContainer]}>
+      <View style={GlobalStyles.contents}>
         <HeaderComponent />
         <PageTitleComponent TextData={coffeeRecord.name} />
         {isGeneratingPdf && (
@@ -1209,13 +1211,13 @@ export default function CoffeeItemScreen() {
             <Text style={styles.loadingText}>PDFを作成中...</Text>
           </View>
         )}
-        <View style={[styles.absoluteBox, styles.mainContents]}>
+        <View style={[GlobalStyles.absoluteBox, GlobalStyles.mainContents]}>
           <ScrollView
-            contentContainerStyle={styles.scrollContainer}
+            contentContainerStyle={GlobalStyles.scrollContainer}
             showsVerticalScrollIndicator={false}
             ref={scrollViewRef}
           >
-            <View style={styles.itemContainer}>
+            <View style={styles.itemContents}>
               <View style={styles.imageContents}>
                 <Image
                   source={getImageSource(coffeeRecord.imageUri)}
@@ -1339,7 +1341,9 @@ export default function CoffeeItemScreen() {
 
               <View style={styles.radarChartContainer}>
                 <View style={styles.wrapper}>
-                  <Text style={styles.sectionTitle}>レーダーチャート</Text>
+                  <Text style={GlobalStyles.sectionTitle}>
+                    フレーバープロファイル
+                  </Text>
                   <View style={styles.recordRadarChart}>
                     <RadarChart
                       data={{
@@ -1355,7 +1359,7 @@ export default function CoffeeItemScreen() {
               </View>
               <View style={styles.overallContainer}>
                 <View style={styles.wrapper}>
-                  <Text style={styles.sectionTitle}>全体の好み</Text>
+                  <Text style={GlobalStyles.sectionTitle}>全体の好み</Text>
                   <Text style={styles.overallValueText}>
                     {coffeeRecord.overall}
                   </Text>
@@ -1363,7 +1367,7 @@ export default function CoffeeItemScreen() {
               </View>
               <View style={styles.memoContainer}>
                 <View style={styles.wrapper}>
-                  <Text style={styles.sectionTitle}>MEMO</Text>
+                  <Text style={GlobalStyles.sectionTitle}>MEMO</Text>
                   <Text style={styles.memoText}>{coffeeRecord.memo}</Text>
                 </View>
               </View>
@@ -1409,37 +1413,13 @@ export default function CoffeeItemScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  itemContainer: {
     backgroundColor: "#f8f8f8",
   },
-  contents: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  wrapper: { paddingVertical: 20 },
-  absoluteBox: {
-    flex: 1,
-    position: "absolute",
-    left: 0,
-    right: 0,
-    backgroundColor: "#FFFFFF",
-  },
-  mainContents: {
-    width: "100%",
-    maxWidth: screenWidth > 768 ? 700 : "100%",
-    marginHorizontal: "auto",
-    top: 200,
-    bottom: 0,
-  },
-  scrollContainer: {
-    alignItems: "stretch",
-    marginHorizontal: "auto",
 
-    width: "100%",
-  },
-  itemContainer: {
+  wrapper: { paddingVertical: 20 },
+
+  itemContents: {
     width: "90%",
     padding: 20,
     marginHorizontal: "auto",
@@ -1487,13 +1467,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     paddingBottom: 0,
   },
-  sectionTitle: {
-    color: "#555",
-    fontSize: 20,
-    fontWeight: "bold",
 
-    textAlign: "center",
-  },
   radarChartContainer: {
     width: "100%",
     alignItems: "center",

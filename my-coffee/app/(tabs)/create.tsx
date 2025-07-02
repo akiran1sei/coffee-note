@@ -31,6 +31,8 @@ import ImageUploadComponent from "../../components/ImageUploadComponent";
 import RadarChart from "../../components/RadarChart/RadarChart";
 import CoffeeStorageService from "../../services/CoffeeStorageService"; // ストレージサービスをインポート
 import OverallPreferenceRangeComponent from "../../components/OverallComponent";
+import { GlobalStyles } from "../styles/GlobalStyles"; // ★追加
+
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
 interface CoffeeRecord {
@@ -243,15 +245,15 @@ export default function CreateScreen() {
     Alert.alert(title, message, [{ text: "OK", onPress: onConfirm }]);
   };
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.contents}>
+    <SafeAreaView style={[GlobalStyles.container, styles.createContainer]}>
+      <View style={GlobalStyles.contents}>
         {/* ヘッダーコンポーネントを配置 */}
         <HeaderComponent />
         <PageTitleComponent TextData={TextData} />
 
-        <View style={[styles.absoluteBox, styles.mainContents]}>
+        <View style={[GlobalStyles.absoluteBox, GlobalStyles.mainContents]}>
           <ScrollView
-            contentContainerStyle={styles.scrollContainer}
+            contentContainerStyle={GlobalStyles.scrollContainer}
             showsVerticalScrollIndicator={true}
             ref={scrollViewRef}
           >
@@ -413,30 +415,8 @@ export default function CreateScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  createContainer: {
     backgroundColor: "#F5F5F5",
-  },
-  contents: {
-    flex: 1,
-
-    alignItems: "center", // 横方向の中心に配置
-  },
-  absoluteBox: {
-    flex: 1,
-    position: "absolute",
-    left: 0,
-    right: 0,
-    backgroundColor: "#FFFFFF",
-  },
-  mainContents: {
-    maxWidth: screenWidth > 768 ? 700 : "100%", // 例: タブレット以上で最大幅を設定
-    marginHorizontal: "auto", // これが水平方向の中央寄せの肝
-    top: 210,
-    bottom: 0,
-  },
-  scrollContainer: {
-    alignItems: "stretch",
   },
 
   text: {

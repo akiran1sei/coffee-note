@@ -23,6 +23,8 @@ import RadarChart from "../../components/RadarChart/RadarChart";
 import Checkbox from "expo-checkbox";
 import SearchComponent from "../../components/button/Search";
 import SortComponent from "@/components/button/Sort";
+import { GlobalStyles } from "../styles/GlobalStyles";
+
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
 export default function ListScreen() {
@@ -221,7 +223,9 @@ export default function ListScreen() {
 
             {/* テイスティングノート */}
             <View style={styles.tastingSection}>
-              <Text style={styles.sectionTitle}>テイスティングノート</Text>
+              <Text style={GlobalStyles.sectionTitle}>
+                テイスティングノート
+              </Text>
               <View style={styles.tastingGrid}>
                 <TastingValue label="酸味" value={record.acidity} />
                 <TastingValue label="コク" value={record.body} />
@@ -235,7 +239,9 @@ export default function ListScreen() {
             {/* レーダーチャート - パフォーマンスへの影響が大きい可能性 */}
             {/* 検討: アイテム数が多い場合、一覧では非表示にするか、軽量な表示にする */}
             <View style={styles.radarChartContainer}>
-              <Text style={styles.sectionTitle}>フレーバープロファイル</Text>
+              <Text style={GlobalStyles.sectionTitle}>
+                フレーバープロファイル
+              </Text>
               <View style={styles.recordRadarChart}>
                 <RadarChart
                   data={{
@@ -252,7 +258,7 @@ export default function ListScreen() {
             {/* メモ */}
 
             <View style={styles.memoContainer}>
-              <Text style={styles.sectionTitle}>メモ</Text>
+              <Text style={GlobalStyles.sectionTitle}>メモ</Text>
               {record.memo && (
                 <Text style={styles.memoText}>{record.memo}</Text>
               )}
@@ -325,12 +331,12 @@ export default function ListScreen() {
   } else {
     // ローディング完了後にメインコンテンツを表示
     return (
-      <View style={styles.container}>
-        <View style={styles.contents}>
+      <View style={[GlobalStyles.container, styles.listContainer]}>
+        <View style={GlobalStyles.contents}>
           <HeaderComponent />
           <PageTitleComponent TextData={"Coffee List"} />
 
-          <View style={[styles.absoluteBox, styles.mainContents]}>
+          <View style={[GlobalStyles.absoluteBox, GlobalStyles.mainContents]}>
             <View style={styles.subMenuBox}>
               {/* SearchComponent には allCoffeeRecords を渡す */}
               <SearchComponent
@@ -397,20 +403,10 @@ export default function ListScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  listContainer: {
     backgroundColor: "#F5F5F5",
   },
-  contents: {
-    flex: 1,
-  },
-  absoluteBox: {
-    flex: 1,
-    position: "absolute",
-    left: 0,
-    right: 0,
-    backgroundColor: "#FFFFFF",
-  },
+
   subMenuBox: {
     marginVertical: 10,
     flexDirection: "column",
@@ -419,14 +415,6 @@ const styles = StyleSheet.create({
     height: "100%",
     maxHeight: 120, // 一定の高さを設定
     // 必要に応じて paddingHorizontal などを調整
-  },
-  mainContents: {
-    flex: 1,
-    width: "100%",
-    maxWidth: screenWidth > 768 ? 700 : "100%", // 例: タブレット以上で最大幅を設定
-    marginHorizontal: "auto",
-    top: 210, // HeaderComponent + PageTitleComponent の高さ分 + マージン
-    bottom: 0,
   },
 
   // 横スクロールリスト専用スタイル
@@ -485,15 +473,6 @@ const styles = StyleSheet.create({
     paddingBottom: 5, // 余白を減らす
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
-  },
-
-  // セクションタイトルをコンパクトに
-  sectionTitle: {
-    fontSize: 16, // 小さくする
-    fontWeight: "600",
-    color: "#5D4037",
-    marginBottom: 5, // 余白を減らす
-    textAlign: "center",
   },
 
   // レーダーチャートのコンテナ

@@ -37,6 +37,7 @@ import {
   NoRecordComponent,
 } from "@/components/MessageComponent";
 import OverallPreferenceRangeComponent from "@/components/OverallComponent";
+import { GlobalStyles } from "../../styles/GlobalStyles"; // ★追加
 
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
@@ -48,6 +49,7 @@ export default function CoffeeItemScreen() {
   const route = useRoute();
   const router = useRouter();
   const { id } = route.params as RouteParams;
+  const TextData = "Coffee Edit";
   const [InputLabel, setInputLabel] = useState({
     name: "名称",
     productionArea: "産地",
@@ -355,13 +357,13 @@ export default function CoffeeItemScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.contents}>
+    <SafeAreaView style={[GlobalStyles.container, styles.updateContainer]}>
+      <View style={GlobalStyles.contents}>
         <HeaderComponent />
-        <PageTitleComponent TextData={"Coffee Info Edit"} />
-        <View style={[styles.absoluteBox, styles.mainContents]}>
+        <PageTitleComponent TextData={TextData} />
+        <View style={[GlobalStyles.absoluteBox, GlobalStyles.mainContents]}>
           <ScrollView
-            contentContainerStyle={styles.scrollContainer}
+            contentContainerStyle={GlobalStyles.scrollContainer}
             showsVerticalScrollIndicator={false}
             ref={scrollViewRef}
           >
@@ -524,7 +526,9 @@ export default function CoffeeItemScreen() {
                 }
               />
               <View style={styles.radarChartContainer}>
-                <Text style={styles.radarChartTitle}>風味の評価</Text>
+                <Text style={styles.radarChartTitle}>
+                  フレーバープロファイル
+                </Text>
                 <RadarChart
                   data={{
                     acidity:
@@ -596,38 +600,11 @@ export default function CoffeeItemScreen() {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  updateContainer: {
     backgroundColor: "#f4f4f4",
   },
-  contents: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  absoluteBox: {
-    flex: 1,
-    position: "absolute",
-    left: 0,
-    right: 0,
-    backgroundColor: "#FFFFFF",
-  },
-  mainContents: {
-    width: "100%",
-    maxWidth: screenWidth > 768 ? 700 : "100%", // 例: タブレット以上で最大幅を設定
-    marginHorizontal: "auto",
-    top: 160, // ヘッダーとタイトルに合わせて調整
-    bottom: 0,
-  },
-  scrollContainer: {
-    // paddingVertical: 20,
-    // paddingBottom: 80, // Increased padding to accommodate buttons
-    width: "100%",
-    alignItems: "stretch", // Stretch to fill the container
-    justifyContent: "space-between", // Center the contents vertically
-  },
+
   formContainer: {
     width: "100%",
     paddingTop: 20,
