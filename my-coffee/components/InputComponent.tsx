@@ -260,6 +260,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 40,
     backgroundColor: "#FFF",
+    color: "000",
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
     borderWidth: 1,
@@ -275,6 +276,7 @@ const styles = StyleSheet.create({
   input: {
     width: "100%",
     backgroundColor: "#FFF",
+    color: "000",
     padding: 10,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
@@ -285,6 +287,7 @@ const styles = StyleSheet.create({
   textarea: {
     width: "100%",
     backgroundColor: "#FFF",
+    color: "000",
     padding: 10,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
@@ -322,6 +325,8 @@ const styles = StyleSheet.create({
     height: 40,
     borderWidth: 1,
     borderColor: "#E0E0E0",
+    backgroundColor: "#FFF",
+    color: "000",
     borderRadius: 5,
     padding: 10,
     textAlign: "center",

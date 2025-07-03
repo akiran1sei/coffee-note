@@ -101,6 +101,8 @@ const styled = StyleSheet.create({
     marginRight: 10,
   },
   input: {
+    backgroundColor: "fff",
+    color: "000",
     flex: 1,
     height: 40,
     paddingVertical: 8,

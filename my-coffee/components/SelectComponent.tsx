@@ -519,6 +519,7 @@ const styles = StyleSheet.create({
   pickerWrapper: {
     width: "100%",
     backgroundColor: "#FFF",
+
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
     borderWidth: 1,
@@ -530,7 +531,7 @@ const styles = StyleSheet.create({
   picker: {
     width: "100%",
     backgroundColor: "transparent", // ラッパーの背景色を使う
-    // borderWidth や borderColor はここでは設定しない
+    color: "000",
     paddingVertical: 16,
     paddingHorizontal: 0,
     fontSize: 18,
@@ -551,6 +552,7 @@ const styles = StyleSheet.create({
   otherInput: {
     width: "100%",
     backgroundColor: "#FFF",
+    color: "000",
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#D2B48C",
