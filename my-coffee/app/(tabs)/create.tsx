@@ -8,7 +8,8 @@ import {
   Text,
   Alert,
   Dimensions,
-  Button,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import HeaderComponent from "../../components/HeaderComponent";
 import PageTitleComponent from "../../components/PageTitleComponent";
@@ -32,6 +33,7 @@ import RadarChart from "../../components/RadarChart/RadarChart";
 import CoffeeStorageService from "../../services/CoffeeStorageService"; // ストレージサービスをインポート
 import OverallPreferenceRangeComponent from "../../components/OverallComponent";
 import { GlobalStyles } from "../styles/GlobalStyles"; // ★追加
+import UpperButton from "@/components/button/Upper";
 
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
@@ -124,6 +126,7 @@ export default function CreateScreen() {
   const [imageData, setImageData] = useState("");
   const [formData, setFormData] = useState({ ...initialFormData });
   const [rangeValues, setRangeValues] = useState({ ...initialRangeValues });
+  const [showScrollToTopButton, setShowScrollToTopButton] = useState(false);
   // Web環境でフォーム送信後の状態をリセット
 
   // フォームリセット関数
@@ -165,9 +168,7 @@ export default function CreateScreen() {
     setFormData({ ...formData, imageUri: value }); // imageData の更新後に formData を更新
   };
   const scrollViewRef = useRef<ScrollView>(null);
-  const handleScrollToTop = async () => {
-    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-  };
+
   // 新しい送信ハンドラー
   const handleSubmit = async () => {
     // 必須フィールドのチェック
@@ -244,6 +245,18 @@ export default function CreateScreen() {
   ) => {
     Alert.alert(title, message, [{ text: "OK", onPress: onConfirm }]);
   };
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const scrollY = event.nativeEvent.contentOffset.y;
+      // 例えば、200pxスクロールしたらボタンを表示する
+      if (scrollY > 200 && !showScrollToTopButton) {
+        setShowScrollToTopButton(true);
+      } else if (scrollY <= 200 && showScrollToTopButton) {
+        setShowScrollToTopButton(false);
+      }
+    },
+    [showScrollToTopButton]
+  );
   return (
     <SafeAreaView style={[GlobalStyles.container, styles.createContainer]}>
       <View style={GlobalStyles.contents}>
@@ -256,158 +269,164 @@ export default function CreateScreen() {
             contentContainerStyle={GlobalStyles.scrollContainer}
             showsVerticalScrollIndicator={true}
             ref={scrollViewRef}
+            onScroll={handleScroll} //  スクロールイベントを監視
+            scrollEventThrottle={16}
           >
-            <ImageUploadComponent
-              key={`imageUpload-${resetKey}`}
-              onChange={handleImageChange}
-              value={imageData}
-            />
-            <InputComponent
-              key={`beansName-${resetKey}`}
-              dataTitle={InputLabel.beansName}
-              onChange={(value: string) =>
-                handleInputChange("beansName", value)
-              }
-              value={formData.beansName}
-            />
-            <CoffeeTypesSelect
-              key={`variety-${resetKey}`}
-              dataTitle={SelectLabel.variety}
-              onChange={(value: string) => handleSelectChange("variety", value)}
-              value={formData.variety}
-            />
-            <InputComponent
-              key={`productionArea-${resetKey}`}
-              dataTitle={InputLabel.productionArea}
-              onChange={(value: string) =>
-                handleInputChange("productionArea", value)
-              }
-              value={formData.productionArea}
-            />
-            <CoffeeProcessingSelect
-              key={`roastingDegree-${resetKey}`}
-              dataTitle={SelectLabel.roastingDegree}
-              onChange={(value: string) =>
-                handleSelectChange("roastingDegree", value)
-              }
-              value={formData.roastingDegree}
-            />
-            <HierarchicalCoffeeSelect
-              primaryTitle="抽出方法"
-              secondaryTitle="抽出器具"
-              onPrimaryChange={(value) =>
-                handleSelectChange("extractionMethod", value)
-              }
-              onSecondaryChange={(value) =>
-                handleSelectChange("extractionMaker", value)
-              }
-              primaryValue={formData.extractionMethod}
-              secondaryValue={formData.extractionMaker}
-            />
+            <View style={styles.formContainer}>
+              <ImageUploadComponent
+                key={`imageUpload-${resetKey}`}
+                onChange={handleImageChange}
+                value={imageData}
+              />
+              <InputComponent
+                key={`beansName-${resetKey}`}
+                dataTitle={InputLabel.beansName}
+                onChange={(value: string) =>
+                  handleInputChange("beansName", value)
+                }
+                value={formData.beansName}
+              />
+              <CoffeeTypesSelect
+                key={`variety-${resetKey}`}
+                dataTitle={SelectLabel.variety}
+                onChange={(value: string) =>
+                  handleSelectChange("variety", value)
+                }
+                value={formData.variety}
+              />
+              <InputComponent
+                key={`productionArea-${resetKey}`}
+                dataTitle={InputLabel.productionArea}
+                onChange={(value: string) =>
+                  handleInputChange("productionArea", value)
+                }
+                value={formData.productionArea}
+              />
+              <CoffeeProcessingSelect
+                key={`roastingDegree-${resetKey}`}
+                dataTitle={SelectLabel.roastingDegree}
+                onChange={(value: string) =>
+                  handleSelectChange("roastingDegree", value)
+                }
+                value={formData.roastingDegree}
+              />
+              <HierarchicalCoffeeSelect
+                primaryTitle="抽出方法"
+                secondaryTitle="抽出器具"
+                onPrimaryChange={(value) =>
+                  handleSelectChange("extractionMethod", value)
+                }
+                onSecondaryChange={(value) =>
+                  handleSelectChange("extractionMaker", value)
+                }
+                primaryValue={formData.extractionMethod}
+                secondaryValue={formData.extractionMaker}
+              />
 
-            <CoffeeProcessingSelect
-              key={`grindSize-${resetKey}`}
-              dataTitle={SelectLabel.grindSize}
-              onChange={(value: string) =>
-                handleSelectChange("grindSize", value)
-              }
-              value={formData.grindSize}
-            />
-            <NumberComponent
-              key={`temperature-${resetKey}`}
-              dataTitle={NumberLabel.temperature}
-              onChange={(value: number) =>
-                handleInputChange("temperature", value)
-              }
-              value={formData.temperature}
-            />
-            <NumberComponent
-              key={`coffeeAmount-${resetKey}`}
-              dataTitle={NumberLabel.coffeeAmount}
-              onChange={(value: number) =>
-                handleInputChange("coffeeAmount", value)
-              }
-              value={formData.coffeeAmount}
-            />
-            <ConditionalMeasurementSelector
-              dataTitle="計量タイプ"
-              onChange={(value: string) => handleMeasurementSelect(value)}
-              value={formData.measurementMethod}
-              extractionMethod={formData.extractionMethod} // 抽出方法を渡す
-            />
-            <NumberComponent
-              key={`waterAmount-${resetKey}`}
-              dataTitle={NumberLabel.waterAmount}
-              onChange={(value: number) =>
-                handleInputChange("waterAmount", value)
-              }
-              value={formData.waterAmount}
-            />
-            <MeasuredTimeInputComponent
-              key={`extractionTime-${resetKey}`}
-              onChange={handleMeasuredTimeChange}
-              value={formData.extractionTime}
-            />
-            <RangeComponent
-              key={`acidity-${resetKey}`}
-              dataTitle={RangeLabel.acidity}
-              onChange={(value: number) => handleRangeChange("acidity", value)}
-              value={rangeValues.acidity}
-            />
-            <RangeComponent
-              key={`bitterness-${resetKey}`}
-              dataTitle={RangeLabel.bitterness}
-              onChange={(value: number) =>
-                handleRangeChange("bitterness", value)
-              }
-              value={rangeValues.bitterness}
-            />
-            <RangeComponent
-              key={`body-${resetKey}`}
-              dataTitle={RangeLabel.body}
-              onChange={(value: number) => handleRangeChange("body", value)}
-              value={rangeValues.body}
-            />
-            <RangeComponent
-              key={`aroma-${resetKey}`}
-              dataTitle={RangeLabel.aroma}
-              onChange={(value: number) => handleRangeChange("aroma", value)}
-              value={rangeValues.aroma}
-            />
-            <RangeComponent
-              key={`aftertaste-${resetKey}`}
-              dataTitle={RangeLabel.aftertaste}
-              onChange={(value: number) =>
-                handleRangeChange("aftertaste", value)
-              }
-              value={rangeValues.aftertaste}
-            />
-            <RadarChart data={rangeValues} />
-            <OverallPreferenceRangeComponent
-              key={`overall-${resetKey}`}
-              onChange={(value: number) =>
-                handleOverallPreferenceChange("overall", value)
-              }
-              value={rangeValues.overall}
-            />
-            <TextAreaComponent
-              key={`textArea-${resetKey}`}
-              onChange={handleTextAreaChange}
-              value={formData.textArea}
-            />
-            <TouchableOpacity
-              style={styles.submitButton}
-              onPress={handleSubmit}
-            >
-              <Text style={styles.submitButtonText}>保存</Text>
-            </TouchableOpacity>
-            <Button
-              title="上へ"
-              color={"#5D4037"}
-              onPress={handleScrollToTop}
-              accessibilityLabel="上へ"
-            />
+              <CoffeeProcessingSelect
+                key={`grindSize-${resetKey}`}
+                dataTitle={SelectLabel.grindSize}
+                onChange={(value: string) =>
+                  handleSelectChange("grindSize", value)
+                }
+                value={formData.grindSize}
+              />
+              <NumberComponent
+                key={`temperature-${resetKey}`}
+                dataTitle={NumberLabel.temperature}
+                onChange={(value: number) =>
+                  handleInputChange("temperature", value)
+                }
+                value={formData.temperature}
+              />
+              <NumberComponent
+                key={`coffeeAmount-${resetKey}`}
+                dataTitle={NumberLabel.coffeeAmount}
+                onChange={(value: number) =>
+                  handleInputChange("coffeeAmount", value)
+                }
+                value={formData.coffeeAmount}
+              />
+              <ConditionalMeasurementSelector
+                dataTitle="計量タイプ"
+                onChange={(value: string) => handleMeasurementSelect(value)}
+                value={formData.measurementMethod}
+                extractionMethod={formData.extractionMethod} // 抽出方法を渡す
+              />
+              <NumberComponent
+                key={`waterAmount-${resetKey}`}
+                dataTitle={NumberLabel.waterAmount}
+                onChange={(value: number) =>
+                  handleInputChange("waterAmount", value)
+                }
+                value={formData.waterAmount}
+              />
+              <MeasuredTimeInputComponent
+                key={`extractionTime-${resetKey}`}
+                onChange={handleMeasuredTimeChange}
+                value={formData.extractionTime}
+              />
+              <RangeComponent
+                key={`acidity-${resetKey}`}
+                dataTitle={RangeLabel.acidity}
+                onChange={(value: number) =>
+                  handleRangeChange("acidity", value)
+                }
+                value={rangeValues.acidity}
+              />
+              <RangeComponent
+                key={`bitterness-${resetKey}`}
+                dataTitle={RangeLabel.bitterness}
+                onChange={(value: number) =>
+                  handleRangeChange("bitterness", value)
+                }
+                value={rangeValues.bitterness}
+              />
+              <RangeComponent
+                key={`body-${resetKey}`}
+                dataTitle={RangeLabel.body}
+                onChange={(value: number) => handleRangeChange("body", value)}
+                value={rangeValues.body}
+              />
+              <RangeComponent
+                key={`aroma-${resetKey}`}
+                dataTitle={RangeLabel.aroma}
+                onChange={(value: number) => handleRangeChange("aroma", value)}
+                value={rangeValues.aroma}
+              />
+              <RangeComponent
+                key={`aftertaste-${resetKey}`}
+                dataTitle={RangeLabel.aftertaste}
+                onChange={(value: number) =>
+                  handleRangeChange("aftertaste", value)
+                }
+                value={rangeValues.aftertaste}
+              />
+              <RadarChart data={rangeValues} />
+              <OverallPreferenceRangeComponent
+                key={`overall-${resetKey}`}
+                onChange={(value: number) =>
+                  handleOverallPreferenceChange("overall", value)
+                }
+                value={rangeValues.overall}
+              />
+              <TextAreaComponent
+                key={`textArea-${resetKey}`}
+                onChange={handleTextAreaChange}
+                value={formData.textArea}
+              />
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleSubmit}
+              >
+                <Text style={styles.submitButtonText}>保存</Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
+          <UpperButton
+            scrollViewRef={scrollViewRef}
+            isVisible={showScrollToTopButton}
+          />
         </View>
       </View>
     </SafeAreaView>
@@ -418,9 +437,20 @@ const styles = StyleSheet.create({
   createContainer: {
     backgroundColor: "#F5F5F5",
   },
-
+  formContainer: {
+    width: "100%",
+    paddingTop: 20,
+    marginHorizontal: "auto",
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    shadowColor: "#333",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   text: {
-    color: "#000",
+    color: "#333",
     fontSize: 18,
   },
 
@@ -434,7 +464,7 @@ const styles = StyleSheet.create({
     marginHorizontal: "auto", // 水平方向の中央寄せ
   },
   submitButtonText: {
-    color: "white",
+    color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
   },

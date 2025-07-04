@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -9,6 +9,8 @@ import {
   Alert,
   Dimensions,
   Button,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useRoute } from "@react-navigation/native";
@@ -38,6 +40,7 @@ import {
 } from "@/components/MessageComponent";
 import OverallPreferenceRangeComponent from "@/components/OverallComponent";
 import { GlobalStyles } from "../../styles/GlobalStyles"; // ★追加
+import UpperButton from "@/components/button/Upper";
 
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
@@ -82,6 +85,8 @@ export default function CoffeeItemScreen() {
   const [formData, setFormData] = useState<Partial<CoffeeRecord>>({});
   const [rangeValues, setRangeValues] = useState<Partial<CoffeeRecord>>({});
   const [updating, setUpdating] = useState(false);
+  const [showScrollToTopButton, setShowScrollToTopButton] = useState(false);
+
   const handleInputChange = (label: string, value: string | number) => {
     setFormData({ ...formData, [label]: value });
   };
@@ -295,9 +300,19 @@ export default function CoffeeItemScreen() {
     );
   };
   const scrollViewRef = useRef<ScrollView>(null);
-  const handleScrollToTop = async () => {
-    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-  };
+  //  スクロールイベントハンドラ
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const scrollY = event.nativeEvent.contentOffset.y;
+      // 例えば、200pxスクロールしたらボタンを表示する
+      if (scrollY > 200 && !showScrollToTopButton) {
+        setShowScrollToTopButton(true);
+      } else if (scrollY <= 200 && showScrollToTopButton) {
+        setShowScrollToTopButton(false);
+      }
+    },
+    [showScrollToTopButton]
+  );
   useEffect(() => {
     const fetchCoffeeRecord = async () => {
       try {
@@ -366,6 +381,8 @@ export default function CoffeeItemScreen() {
             contentContainerStyle={GlobalStyles.scrollContainer}
             showsVerticalScrollIndicator={false}
             ref={scrollViewRef}
+            onScroll={handleScroll} //  スクロールイベントを監視
+            scrollEventThrottle={16}
           >
             <View style={styles.formContainer}>
               <InputComponent
@@ -588,13 +605,11 @@ export default function CoffeeItemScreen() {
                 <Text style={styles.returnButtonText}>リストに戻る</Text>
               </TouchableOpacity>
             </View>
-            <Button
-              title="上へ"
-              color={"#5D4037"}
-              onPress={handleScrollToTop}
-              accessibilityLabel="上へ"
-            />
           </ScrollView>
+          <UpperButton
+            scrollViewRef={scrollViewRef}
+            isVisible={showScrollToTopButton}
+          />
         </View>
       </View>
     </SafeAreaView>
@@ -611,7 +626,7 @@ const styles = StyleSheet.create({
     marginHorizontal: "auto",
     borderRadius: 10,
     backgroundColor: "#fff",
-    shadowColor: "#000",
+    shadowColor: "#333",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -652,7 +667,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   deleteButtonText: {
-    color: "white",
+    color: "#fff",
     textAlign: "center",
     fontWeight: "bold",
     fontSize: 16,
@@ -667,7 +682,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   updateButtonText: {
-    color: "white",
+    color: "#fff",
     textAlign: "center",
     fontWeight: "bold",
     fontSize: 16,
@@ -683,7 +698,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   returnButtonText: {
-    color: "white",
+    color: "#fff",
     textAlign: "center",
     fontWeight: "bold",
     fontSize: 16,

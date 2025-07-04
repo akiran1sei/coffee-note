@@ -11,7 +11,8 @@ import {
   Alert,
   ActivityIndicator,
   Dimensions,
-  Button,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import * as FileSystem from "expo-file-system";
 import { Asset } from "expo-asset";
@@ -31,6 +32,7 @@ import {
 } from "@/components/MessageComponent";
 import STAR_ASSET_BASE64 from "../../../assets/images/pdf/eccode/beans"; // 画像アセットのBase64をインポート
 import { GlobalStyles } from "../../styles/GlobalStyles";
+import UpperButton from "@/components/button/Upper";
 
 const isPreviewBuild = Constants.executionEnvironment === "storeClient";
 if (isPreviewBuild) {
@@ -364,6 +366,7 @@ export default function CoffeeItemScreen() {
   const [loading, setLoading] = useState(true);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [triggerPdfDownload, setTriggerPdfDownload] = useState(false); // New state to trigger PDF download
+  const [showScrollToTopButton, setShowScrollToTopButton] = useState(false);
 
   // 画像URIを処理する関数
   const getImageSource = (uri?: string | null): ImageSourcePropType => {
@@ -1164,9 +1167,19 @@ export default function CoffeeItemScreen() {
     }
   }, [coffeeRecord]); // coffeeRecord を依存関係に追加
   const scrollViewRef = useRef<ScrollView>(null);
-  const handleScrollToTop = async () => {
-    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-  };
+  // ★追加: スクロールイベントハンドラ
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const scrollY = event.nativeEvent.contentOffset.y;
+      // 例えば、200pxスクロールしたらボタンを表示する
+      if (scrollY > 200 && !showScrollToTopButton) {
+        setShowScrollToTopButton(true);
+      } else if (scrollY <= 200 && showScrollToTopButton) {
+        setShowScrollToTopButton(false);
+      }
+    },
+    [showScrollToTopButton]
+  );
   // レコードをフェッチする useEffect
   useEffect(() => {
     const fetchCoffeeRecord = async () => {
@@ -1216,6 +1229,8 @@ export default function CoffeeItemScreen() {
             contentContainerStyle={GlobalStyles.scrollContainer}
             showsVerticalScrollIndicator={false}
             ref={scrollViewRef}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
           >
             <View style={styles.itemContents}>
               <View style={styles.imageContents}>
@@ -1394,18 +1409,16 @@ export default function CoffeeItemScreen() {
               disabled={isGeneratingPdf} // PDF生成中は無効にする
             >
               {isGeneratingPdf ? (
-                <ActivityIndicator color="white" />
+                <ActivityIndicator color="#fff" />
               ) : (
                 <Text style={styles.buttonText}>PDF をダウンロード</Text>
               )}
             </TouchableOpacity>
-            <Button
-              title="上へ"
-              color={"#5D4037"}
-              onPress={handleScrollToTop}
-              accessibilityLabel="上へ"
-            />
           </ScrollView>
+          <UpperButton
+            scrollViewRef={scrollViewRef}
+            isVisible={showScrollToTopButton}
+          />
         </View>
       </View>
     </SafeAreaView>
@@ -1425,7 +1438,7 @@ const styles = StyleSheet.create({
     marginHorizontal: "auto",
     borderRadius: 10,
     backgroundColor: "#fff",
-    shadowColor: "#000",
+    shadowColor: "#333",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -1510,7 +1523,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buttonText: {
-    color: "white",
+    color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
   },

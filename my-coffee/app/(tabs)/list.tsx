@@ -11,6 +11,8 @@ import {
   ScrollView,
   FlatList,
   Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
   Button,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -24,6 +26,7 @@ import Checkbox from "expo-checkbox";
 import SearchComponent from "../../components/button/Search";
 import SortComponent from "@/components/button/Sort";
 import { GlobalStyles } from "../styles/GlobalStyles";
+import UpperButton from "@/components/button/Upper";
 
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
@@ -42,7 +45,7 @@ export default function ListScreen() {
   // プルツーリフレッシュの状態
   const [refreshing, setRefreshing] = useState(false);
   // 不要な State を削除: const [coffeeRecords, setCoffeeRecords] = useState<CoffeeRecord[]>([]);
-
+  const [showScrollToTopButton, setShowScrollToTopButton] = useState(false);
   // データの取得と State 更新
   const fetchData = useCallback(async () => {
     try {
@@ -277,9 +280,19 @@ export default function ListScreen() {
     );
   };
   const scrollViewRef = useRef<ScrollView>(null);
-  const handleScrollToTop = async () => {
-    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-  };
+  //  スクロールイベントハンドラ
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const scrollY = event.nativeEvent.contentOffset.y;
+      // 例えば、200pxスクロールしたらボタンを表示する
+      if (scrollY > 200 && !showScrollToTopButton) {
+        setShowScrollToTopButton(true);
+      } else if (scrollY <= 200 && showScrollToTopButton) {
+        setShowScrollToTopButton(false);
+      }
+    },
+    [showScrollToTopButton]
+  );
 
   // handleSort 関数
   const handleSort = useCallback((sortedRecords: CoffeeRecord[]) => {
@@ -350,7 +363,11 @@ export default function ListScreen() {
               />
             </View>
             {/* FlatList に置き換え */}
-            <ScrollView ref={scrollViewRef}>
+            <ScrollView
+              ref={scrollViewRef}
+              onScroll={handleScroll} //  スクロールイベントを監視
+              scrollEventThrottle={16}
+            >
               {/* 一括削除ボタン */}
               {selectedRecords.length > 0 && (
                 <TouchableOpacity
@@ -387,11 +404,9 @@ export default function ListScreen() {
                 snapToInterval={370} // カードの幅+マージン（オプション）
               />
               {displayedCoffeeRecords.length > 0 && (
-                <Button
-                  title="上へ"
-                  color={"#5D4037"}
-                  onPress={handleScrollToTop}
-                  accessibilityLabel="上へ"
+                <UpperButton
+                  scrollViewRef={scrollViewRef}
+                  isVisible={showScrollToTopButton}
                 />
               )}
             </ScrollView>
@@ -448,7 +463,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     marginBottom: 10,
-    shadowColor: "#000",
+    shadowColor: "#333",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -616,7 +631,7 @@ const styles = StyleSheet.create({
     alignItems: "center", // テキスト中央揃え
   },
   deleteButtonText: {
-    color: "white",
+    color: "#fff",
     textAlign: "center",
     fontWeight: "bold",
     fontSize: 16,
