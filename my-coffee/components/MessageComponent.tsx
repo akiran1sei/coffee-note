@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     textAlign: "center", // 中央揃えにすると配置が整う
   },
   button: {
-    backgroundColor: "white",
+    backgroundColor: "#fff",
     borderRadius: 8,
     paddingVertical: 12, // 少しpaddingを大きく
     paddingHorizontal: 20, // 少しpaddingを大きく

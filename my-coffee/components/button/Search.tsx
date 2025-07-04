@@ -53,6 +53,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
         <TextInput
           style={styled.input}
           placeholder="コーヒー豆を検索..."
+          placeholderTextColor="#aaa"
           value={searchText}
           onChangeText={setSearchText}
           onSubmitEditing={handleSearch} // Enterキーで検索
@@ -85,6 +86,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
 const styled = StyleSheet.create({
   container: {
     width: "100%",
+    borderColor: "#E0E0E0",
     maxWidth: 500,
     height: "auto",
     padding: 10,
@@ -101,8 +103,11 @@ const styled = StyleSheet.create({
     marginRight: 10,
   },
   input: {
-    backgroundColor: "fff",
-    color: "000",
+    backgroundColor: "#fff",
+    color: "#333",
+    borderColor: "#f0f0f0",
+    borderWidth: 0.5,
+
     flex: 1,
     height: 40,
     paddingVertical: 8,
@@ -130,7 +135,7 @@ const styled = StyleSheet.create({
     padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
-    backgroundColor: "white",
+    backgroundColor: "#fff",
     borderRadius: 5,
     marginBottom: 8,
   },

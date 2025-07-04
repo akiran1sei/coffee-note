@@ -165,6 +165,7 @@ const styles = StyleSheet.create({
   sortButtonText: {
     textAlign: "center",
     fontWeight: "500",
+    color: "#777",
   },
   modalOverlay: {
     flex: 1,
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    backgroundColor: "white",
+    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 20,
     width: "80%",

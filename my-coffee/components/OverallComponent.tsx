@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   label: {
     width: "100%",
     backgroundColor: "#D2B48C",
-    color: "#000",
+    color: "#333",
     padding: 10,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     borderColor: "#D2B48C",
   },
   valueText: {
-    color: "#000",
+    color: "#333",
     marginVertical: 10,
     fontSize: 18,
     fontWeight: "bold",
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 10,
-    shadowColor: "#000000",
+    shadowColor: "#333000",
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 2,

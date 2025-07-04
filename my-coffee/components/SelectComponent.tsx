@@ -472,6 +472,7 @@ export const CoffeeTypesSelect: React.FC<SelectProps> = ({
         <Picker
           selectedValue={selectedValue}
           onValueChange={handlePickerChange}
+          style={styles.picker}
         >
           <Picker.Item label="選択してください" value="" />
           {options.map((option) => (
@@ -509,7 +510,7 @@ const styles = StyleSheet.create({
   label: {
     width: "100%",
     backgroundColor: "#D2B48C",
-    color: "#000",
+    color: "#333",
     padding: 10,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
@@ -531,7 +532,7 @@ const styles = StyleSheet.create({
   picker: {
     width: "100%",
     backgroundColor: "transparent", // ラッパーの背景色を使う
-    color: "000",
+    color: "#333",
     paddingVertical: 16,
     paddingHorizontal: 0,
     fontSize: 18,
@@ -552,7 +553,7 @@ const styles = StyleSheet.create({
   otherInput: {
     width: "100%",
     backgroundColor: "#FFF",
-    color: "000",
+    color: "#333",
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#D2B48C",
@@ -575,7 +576,7 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     borderRadius: 8,
-    borderColor: "#007bff",
+    borderColor: "#6F4E37",
     borderWidth: 1,
     overflow: "hidden",
     alignItems: "center",
@@ -589,14 +590,14 @@ const styles = StyleSheet.create({
   },
   rightButton: {
     borderLeftWidth: 1,
-    borderLeftColor: "#007bff",
+    borderLeftColor: "#6F4E37",
   },
   selectedButton: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#6F4E37",
   },
   buttonText: {
     fontSize: 16,
-    color: "#007bff",
+    color: "#6F4E37",
     fontWeight: "bold",
   },
   selectedButtonText: {

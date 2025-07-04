@@ -32,7 +32,7 @@ export const InputComponent: React.FC<InputProps> = ({
         onChangeText={handleInputChange}
         value={value}
         placeholder="入力してください"
-        placeholderTextColor="#D3D3D3"
+        placeholderTextColor="#aaa"
       />
     </View>
   );
@@ -133,7 +133,7 @@ export const TextAreaComponent: React.FC<TextAreaProps> = ({
         onChangeText={handleInputChange}
         value={value} // value プロパティを使用
         placeholder="コーヒーの評価項目以外でのメモや気になることがあれば記入してください"
-        placeholderTextColor="#D3D3D3"
+        placeholderTextColor="#aaa"
         multiline={true}
         numberOfLines={4}
       />
@@ -212,7 +212,7 @@ export const MeasuredTimeInputComponent: React.FC<TimeInputProps> = ({
             onChangeText={handleMinutesChange}
             onSubmitEditing={handleMinutesSubmit}
             placeholder="00"
-            placeholderTextColor="#AAAAAA"
+            placeholderTextColor="#aaa"
             ref={minutesInput}
           />
           <Text style={styles.timeUnit}>分</Text>
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   label: {
     width: "100%",
     backgroundColor: "#D2B48C",
-    color: "#000",
+    color: "#333",
     padding: 10,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 40,
     backgroundColor: "#FFF",
-    color: "000",
+    color: "#333",
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
     borderWidth: 1,
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   input: {
     width: "100%",
     backgroundColor: "#FFF",
-    color: "000",
+    color: "#333",
     padding: 10,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   textarea: {
     width: "100%",
     backgroundColor: "#FFF",
-    color: "000",
+    color: "#333",
     padding: 10,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
     backgroundColor: "#FFF",
-    color: "000",
+    color: "#333",
     borderRadius: 5,
     padding: 10,
     textAlign: "center",
@@ -335,11 +335,13 @@ const styles = StyleSheet.create({
   timeUnit: {
     marginLeft: 5,
     fontSize: 18,
+    color: "#333",
   },
   timeSeparator: {
     marginHorizontal: 10,
     fontSize: 24,
     fontWeight: "bold",
+    color: "#333",
   },
   resetButton: {
     marginLeft: 15,
