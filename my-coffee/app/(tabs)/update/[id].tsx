@@ -41,7 +41,7 @@ import {
 import OverallPreferenceRangeComponent from "@/components/OverallComponent";
 import { GlobalStyles } from "../../styles/GlobalStyles"; // ★追加
 import UpperButton from "@/components/button/Upper";
-
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
 type RouteParams = {
@@ -372,247 +372,260 @@ export default function CoffeeItemScreen() {
   }
 
   return (
-    <SafeAreaView style={[GlobalStyles.container, styles.updateContainer]}>
-      <View style={GlobalStyles.contents}>
-        <HeaderComponent />
-        <PageTitleComponent TextData={TextData} />
-        <View style={[GlobalStyles.absoluteBox, GlobalStyles.mainContents]}>
-          <ScrollView
-            contentContainerStyle={GlobalStyles.scrollContainer}
-            showsVerticalScrollIndicator={false}
-            ref={scrollViewRef}
-            onScroll={handleScroll} //  スクロールイベントを監視
-            scrollEventThrottle={16}
-          >
-            <View style={styles.formContainer}>
-              <InputComponent
-                dataTitle={InputLabel.name}
-                onChange={(value: string) => handleInputChange("name", value)}
-                value={formData.name !== undefined ? formData.name : ""}
-              />
-              <ImageUploadComponent
-                onChange={handleImageChange}
-                value={formData.imageUri !== undefined ? formData.imageUri : ""}
-              />
-              <InputComponent
-                dataTitle={InputLabel.productionArea}
-                onChange={(value: string) =>
-                  handleInputChange("productionArea", value)
-                }
-                value={
-                  formData.productionArea !== undefined
-                    ? formData.productionArea
-                    : ""
-                }
-              />
-              <CoffeeTypesSelect
-                dataTitle={SelectLabel.variety}
-                onChange={(value: string) =>
-                  handleInputChange("variety", value)
-                }
-                value={formData.variety !== undefined ? formData.variety : ""}
-              />
-              <CoffeeProcessingSelect
-                dataTitle={SelectLabel.roastingDegree}
-                onChange={(value: string) =>
-                  handleSelectChange("roastingDegree", value)
-                }
-                value={
-                  formData.roastingDegree !== undefined
-                    ? formData.roastingDegree
-                    : ""
-                }
-              />
-              <CoffeeProcessingSelect
-                dataTitle={SelectLabel.grindSize}
-                onChange={(value: string) =>
-                  handleSelectChange("grindSize", value)
-                }
-                value={
-                  formData.grindSize !== undefined ? formData.grindSize : ""
-                }
-              />
-              <HierarchicalCoffeeSelect
-                primaryTitle={SelectLabel.extractionMethod}
-                secondaryTitle={SelectLabel.extractionMaker}
-                onPrimaryChange={(value) =>
-                  handleSelectChange("extractionMethod", value)
-                }
-                onSecondaryChange={(value) =>
-                  handleSelectChange("extractionMaker", value)
-                }
-                primaryValue={
-                  formData.extractionMethod !== undefined
-                    ? formData.extractionMethod
-                    : ""
-                }
-                secondaryValue={
-                  formData.extractionMaker !== undefined
-                    ? formData.extractionMaker
-                    : ""
-                }
-              />
-              <NumberComponent
-                dataTitle={NumberLabel.temperature}
-                onChange={(value: number) =>
-                  handleInputChange("temperature", value)
-                }
-                value={
-                  formData.temperature !== undefined ? formData.temperature : 0
-                }
-              />
-              <NumberComponent
-                dataTitle={NumberLabel.coffeeAmount}
-                onChange={(value: number) =>
-                  handleInputChange("coffeeAmount", value)
-                }
-                value={
-                  formData.coffeeAmount !== undefined
-                    ? formData.coffeeAmount
-                    : 0
-                }
-              />
-              <ConditionalMeasurementSelector
-                dataTitle="計量タイプ"
-                onChange={(value: string) => handleMeasurementSelect(value)}
-                value={
-                  formData.measurementMethod !== undefined
-                    ? formData.measurementMethod
-                    : ""
-                }
-                extractionMethod={formData.extractionMethod} // 抽出方法を渡す
-              />
-
-              <NumberComponent
-                dataTitle={NumberLabel.waterAmount}
-                onChange={(value: number) =>
-                  handleInputChange("waterAmount", value)
-                }
-                value={
-                  formData.waterAmount !== undefined ? formData.waterAmount : 0
-                }
-              />
-              <MeasuredTimeInputComponent
-                onChange={handleMeasuredTimeChange}
-                value={
-                  formData.extractionTime !== undefined
-                    ? formData.extractionTime
-                    : ""
-                }
-              />
-              <RangeComponent
-                dataTitle={RangeLabel.acidity}
-                onChange={(value: number) =>
-                  handleRangeChange("acidity", value)
-                }
-                value={
-                  rangeValues.acidity !== undefined ? rangeValues.acidity : 0
-                }
-              />
-              <RangeComponent
-                dataTitle={RangeLabel.bitterness}
-                onChange={(value: number) =>
-                  handleRangeChange("bitterness", value)
-                }
-                value={
-                  rangeValues.bitterness !== undefined
-                    ? rangeValues.bitterness
-                    : 0
-                }
-              />
-
-              <RangeComponent
-                dataTitle={RangeLabel.body}
-                onChange={(value: number) => handleRangeChange("body", value)}
-                value={rangeValues.body !== undefined ? rangeValues.body : 0}
-              />
-              <RangeComponent
-                dataTitle={RangeLabel.aroma}
-                onChange={(value: number) => handleRangeChange("aroma", value)}
-                value={rangeValues.aroma !== undefined ? rangeValues.aroma : 0}
-              />
-              <RangeComponent
-                dataTitle={RangeLabel.aftertaste}
-                onChange={(value: number) =>
-                  handleRangeChange("aftertaste", value)
-                }
-                value={
-                  rangeValues.aftertaste !== undefined
-                    ? rangeValues.aftertaste
-                    : 0
-                }
-              />
-              <View style={styles.radarChartContainer}>
-                <Text style={styles.radarChartTitle}>
-                  フレーバープロファイル
-                </Text>
-                <RadarChart
-                  data={{
-                    acidity:
-                      rangeValues.acidity !== undefined
-                        ? rangeValues.acidity
-                        : 0,
-                    bitterness:
-                      rangeValues.bitterness !== undefined
-                        ? rangeValues.bitterness
-                        : 0,
-
-                    body: rangeValues.body !== undefined ? rangeValues.body : 0,
-                    aroma:
-                      rangeValues.aroma !== undefined ? rangeValues.aroma : 0,
-                    aftertaste:
-                      rangeValues.aftertaste !== undefined
-                        ? rangeValues.aftertaste
-                        : 0,
-                  }}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={[GlobalStyles.container, styles.updateContainer]}>
+        <View style={GlobalStyles.contents}>
+          <HeaderComponent />
+          <PageTitleComponent TextData={TextData} />
+          <View style={[GlobalStyles.absoluteBox, GlobalStyles.mainContents]}>
+            <ScrollView
+              contentContainerStyle={GlobalStyles.scrollContainer}
+              showsVerticalScrollIndicator={false}
+              ref={scrollViewRef}
+              onScroll={handleScroll} //  スクロールイベントを監視
+              scrollEventThrottle={16}
+            >
+              <View style={styles.formContainer}>
+                <InputComponent
+                  dataTitle={InputLabel.name}
+                  onChange={(value: string) => handleInputChange("name", value)}
+                  value={formData.name !== undefined ? formData.name : ""}
                 />
+                <ImageUploadComponent
+                  onChange={handleImageChange}
+                  value={
+                    formData.imageUri !== undefined ? formData.imageUri : ""
+                  }
+                />
+                <InputComponent
+                  dataTitle={InputLabel.productionArea}
+                  onChange={(value: string) =>
+                    handleInputChange("productionArea", value)
+                  }
+                  value={
+                    formData.productionArea !== undefined
+                      ? formData.productionArea
+                      : ""
+                  }
+                />
+                <CoffeeTypesSelect
+                  dataTitle={SelectLabel.variety}
+                  onChange={(value: string) =>
+                    handleInputChange("variety", value)
+                  }
+                  value={formData.variety !== undefined ? formData.variety : ""}
+                />
+                <CoffeeProcessingSelect
+                  dataTitle={SelectLabel.roastingDegree}
+                  onChange={(value: string) =>
+                    handleSelectChange("roastingDegree", value)
+                  }
+                  value={
+                    formData.roastingDegree !== undefined
+                      ? formData.roastingDegree
+                      : ""
+                  }
+                />
+                <CoffeeProcessingSelect
+                  dataTitle={SelectLabel.grindSize}
+                  onChange={(value: string) =>
+                    handleSelectChange("grindSize", value)
+                  }
+                  value={
+                    formData.grindSize !== undefined ? formData.grindSize : ""
+                  }
+                />
+                <HierarchicalCoffeeSelect
+                  primaryTitle={SelectLabel.extractionMethod}
+                  secondaryTitle={SelectLabel.extractionMaker}
+                  onPrimaryChange={(value) =>
+                    handleSelectChange("extractionMethod", value)
+                  }
+                  onSecondaryChange={(value) =>
+                    handleSelectChange("extractionMaker", value)
+                  }
+                  primaryValue={
+                    formData.extractionMethod !== undefined
+                      ? formData.extractionMethod
+                      : ""
+                  }
+                  secondaryValue={
+                    formData.extractionMaker !== undefined
+                      ? formData.extractionMaker
+                      : ""
+                  }
+                />
+                <NumberComponent
+                  dataTitle={NumberLabel.temperature}
+                  onChange={(value: number) =>
+                    handleInputChange("temperature", value)
+                  }
+                  value={
+                    formData.temperature !== undefined
+                      ? formData.temperature
+                      : 0
+                  }
+                />
+                <NumberComponent
+                  dataTitle={NumberLabel.coffeeAmount}
+                  onChange={(value: number) =>
+                    handleInputChange("coffeeAmount", value)
+                  }
+                  value={
+                    formData.coffeeAmount !== undefined
+                      ? formData.coffeeAmount
+                      : 0
+                  }
+                />
+                <ConditionalMeasurementSelector
+                  dataTitle="計量タイプ"
+                  onChange={(value: string) => handleMeasurementSelect(value)}
+                  value={
+                    formData.measurementMethod !== undefined
+                      ? formData.measurementMethod
+                      : ""
+                  }
+                  extractionMethod={formData.extractionMethod} // 抽出方法を渡す
+                />
+
+                <NumberComponent
+                  dataTitle={NumberLabel.waterAmount}
+                  onChange={(value: number) =>
+                    handleInputChange("waterAmount", value)
+                  }
+                  value={
+                    formData.waterAmount !== undefined
+                      ? formData.waterAmount
+                      : 0
+                  }
+                />
+                <MeasuredTimeInputComponent
+                  onChange={handleMeasuredTimeChange}
+                  value={
+                    formData.extractionTime !== undefined
+                      ? formData.extractionTime
+                      : ""
+                  }
+                />
+                <RangeComponent
+                  dataTitle={RangeLabel.acidity}
+                  onChange={(value: number) =>
+                    handleRangeChange("acidity", value)
+                  }
+                  value={
+                    rangeValues.acidity !== undefined ? rangeValues.acidity : 0
+                  }
+                />
+                <RangeComponent
+                  dataTitle={RangeLabel.bitterness}
+                  onChange={(value: number) =>
+                    handleRangeChange("bitterness", value)
+                  }
+                  value={
+                    rangeValues.bitterness !== undefined
+                      ? rangeValues.bitterness
+                      : 0
+                  }
+                />
+
+                <RangeComponent
+                  dataTitle={RangeLabel.body}
+                  onChange={(value: number) => handleRangeChange("body", value)}
+                  value={rangeValues.body !== undefined ? rangeValues.body : 0}
+                />
+                <RangeComponent
+                  dataTitle={RangeLabel.aroma}
+                  onChange={(value: number) =>
+                    handleRangeChange("aroma", value)
+                  }
+                  value={
+                    rangeValues.aroma !== undefined ? rangeValues.aroma : 0
+                  }
+                />
+                <RangeComponent
+                  dataTitle={RangeLabel.aftertaste}
+                  onChange={(value: number) =>
+                    handleRangeChange("aftertaste", value)
+                  }
+                  value={
+                    rangeValues.aftertaste !== undefined
+                      ? rangeValues.aftertaste
+                      : 0
+                  }
+                />
+                <View style={styles.radarChartContainer}>
+                  <Text style={styles.radarChartTitle}>
+                    フレーバープロファイル
+                  </Text>
+                  <RadarChart
+                    data={{
+                      acidity:
+                        rangeValues.acidity !== undefined
+                          ? rangeValues.acidity
+                          : 0,
+                      bitterness:
+                        rangeValues.bitterness !== undefined
+                          ? rangeValues.bitterness
+                          : 0,
+
+                      body:
+                        rangeValues.body !== undefined ? rangeValues.body : 0,
+                      aroma:
+                        rangeValues.aroma !== undefined ? rangeValues.aroma : 0,
+                      aftertaste:
+                        rangeValues.aftertaste !== undefined
+                          ? rangeValues.aftertaste
+                          : 0,
+                    }}
+                  />
+                </View>
+                <OverallPreferenceRangeComponent
+                  onChange={(value: number) =>
+                    handleOverallPreferenceChange("overall", value)
+                  }
+                  value={formData.overall !== undefined ? formData.overall : 1}
+                />
+                <TextAreaComponent
+                  onChange={handleTextAreaChange}
+                  value={formData.memo !== undefined ? formData.memo : ""}
+                />
+                {/* Update Button */}
+                <TouchableOpacity
+                  style={styles.updateButton}
+                  onPress={handleUpdateRecord}
+                  disabled={updating}
+                >
+                  <Text style={styles.updateButtonText}>
+                    {updating ? "更新中..." : "コーヒー情報を更新する"}
+                  </Text>
+                </TouchableOpacity>
+                {/* Delete Button */}
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteRecord(id)}
+                  disabled={updating}
+                >
+                  <Text style={styles.deleteButtonText}>
+                    コーヒー情報を削除する
+                  </Text>
+                </TouchableOpacity>
+                {/* Return to List Button */}
+                <TouchableOpacity
+                  style={styles.returnButton}
+                  onPress={() => router.replace("/list")}
+                >
+                  <Text style={styles.returnButtonText}>リストに戻る</Text>
+                </TouchableOpacity>
               </View>
-              <OverallPreferenceRangeComponent
-                onChange={(value: number) =>
-                  handleOverallPreferenceChange("overall", value)
-                }
-                value={formData.overall !== undefined ? formData.overall : 1}
-              />
-              <TextAreaComponent
-                onChange={handleTextAreaChange}
-                value={formData.memo !== undefined ? formData.memo : ""}
-              />
-              {/* Update Button */}
-              <TouchableOpacity
-                style={styles.updateButton}
-                onPress={handleUpdateRecord}
-                disabled={updating}
-              >
-                <Text style={styles.updateButtonText}>
-                  {updating ? "更新中..." : "コーヒー情報を更新する"}
-                </Text>
-              </TouchableOpacity>
-              {/* Delete Button */}
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteRecord(id)}
-                disabled={updating}
-              >
-                <Text style={styles.deleteButtonText}>
-                  コーヒー情報を削除する
-                </Text>
-              </TouchableOpacity>
-              {/* Return to List Button */}
-              <TouchableOpacity
-                style={styles.returnButton}
-                onPress={() => router.replace("/list")}
-              >
-                <Text style={styles.returnButtonText}>リストに戻る</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-          <UpperButton
-            scrollViewRef={scrollViewRef}
-            isVisible={showScrollToTopButton}
-          />
+            </ScrollView>
+            <UpperButton
+              scrollViewRef={scrollViewRef}
+              isVisible={showScrollToTopButton}
+            />
+          </View>
         </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 const styles = StyleSheet.create({

@@ -13,7 +13,6 @@ import {
   Dimensions,
   NativeSyntheticEvent,
   NativeScrollEvent,
-  Button,
 } from "react-native";
 import { useRouter } from "expo-router";
 import HeaderComponent from "../../components/HeaderComponent";
@@ -27,7 +26,7 @@ import SearchComponent from "../../components/button/Search";
 import SortComponent from "@/components/button/Sort";
 import { GlobalStyles } from "../styles/GlobalStyles";
 import UpperButton from "@/components/button/Upper";
-
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
 export default function ListScreen() {
@@ -245,7 +244,7 @@ export default function ListScreen() {
               <Text style={GlobalStyles.sectionTitle}>
                 フレーバープロファイル
               </Text>
-              <View style={styles.recordRadarChart}>
+              <View style={styles.recordRadarChart} pointerEvents="none">
                 <RadarChart
                   data={{
                     acidity: Number(record.acidity) || 0,
@@ -344,75 +343,77 @@ export default function ListScreen() {
   } else {
     // ローディング完了後にメインコンテンツを表示
     return (
-      <View style={[GlobalStyles.container, styles.listContainer]}>
-        <View style={GlobalStyles.contents}>
-          <HeaderComponent />
-          <PageTitleComponent TextData={"Coffee List"} />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={[GlobalStyles.container, styles.listContainer]}>
+          <View style={GlobalStyles.contents}>
+            <HeaderComponent />
+            <PageTitleComponent TextData={"Coffee List"} />
 
-          <View style={[GlobalStyles.absoluteBox, GlobalStyles.mainContents]}>
-            <View style={styles.subMenuBox}>
-              {/* SearchComponent には allCoffeeRecords を渡す */}
-              <SearchComponent
-                initialData={allCoffeeRecords}
-                onSearch={handleSearch}
-              />
-              {/* SortComponent には allCoffeeRecords を渡して、ソート結果を handleSort で受け取る */}
-              <SortComponent
-                onSort={handleSort}
-                records={allCoffeeRecords} // ソートは常に元の全データに対して行う
-              />
-            </View>
-            {/* FlatList に置き換え */}
-            <ScrollView
-              ref={scrollViewRef}
-              onScroll={handleScroll} //  スクロールイベントを監視
-              scrollEventThrottle={16}
-            >
-              {/* 一括削除ボタン */}
-              {selectedRecords.length > 0 && (
-                <TouchableOpacity
-                  style={styles.batchDeleteButton}
-                  onPress={handleDeleteSelected}
-                >
-                  <Text style={styles.deleteButtonText}>
-                    {selectedRecords.length === 1
-                      ? "1件のレコードを削除"
-                      : `選択した ${selectedRecords.length} 件を削除`}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              <FlatList
-                data={displayedCoffeeRecords}
-                renderItem={renderCoffeeRecord}
-                keyExtractor={(item) => item.id}
-                horizontal={true}
-                style={styles.horizontalList} // 専用のスタイルを適用
-                contentContainerStyle={styles.flatListContentContainer}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                  />
-                }
-                removeClippedSubviews={true}
-                maxToRenderPerBatch={5}
-                updateCellsBatchingPeriod={50}
-                windowSize={5}
-                showsHorizontalScrollIndicator={false}
-                snapToAlignment="start" // スナップ効果を追加（オプション）
-                decelerationRate="fast" // 速い減速率（オプション）
-                snapToInterval={370} // カードの幅+マージン（オプション）
-              />
+            <View style={[GlobalStyles.absoluteBox, GlobalStyles.mainContents]}>
+              <View style={styles.subMenuBox}>
+                {/* SearchComponent には allCoffeeRecords を渡す */}
+                <SearchComponent
+                  initialData={allCoffeeRecords}
+                  onSearch={handleSearch}
+                />
+                {/* SortComponent には allCoffeeRecords を渡して、ソート結果を handleSort で受け取る */}
+                <SortComponent
+                  onSort={handleSort}
+                  records={allCoffeeRecords} // ソートは常に元の全データに対して行う
+                />
+              </View>
+              {/* FlatList に置き換え */}
+              <ScrollView
+                ref={scrollViewRef}
+                onScroll={handleScroll} //  スクロールイベントを監視
+                scrollEventThrottle={16}
+              >
+                {/* 一括削除ボタン */}
+                {selectedRecords.length > 0 && (
+                  <TouchableOpacity
+                    style={styles.batchDeleteButton}
+                    onPress={handleDeleteSelected}
+                  >
+                    <Text style={styles.deleteButtonText}>
+                      {selectedRecords.length === 1
+                        ? "1件のレコードを削除"
+                        : `選択した ${selectedRecords.length} 件を削除`}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                <FlatList
+                  data={displayedCoffeeRecords}
+                  renderItem={renderCoffeeRecord}
+                  keyExtractor={(item) => item.id}
+                  horizontal={true}
+                  style={styles.horizontalList} // 専用のスタイルを適用
+                  contentContainerStyle={styles.flatListContentContainer}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={handleRefresh}
+                    />
+                  }
+                  removeClippedSubviews={true}
+                  maxToRenderPerBatch={5}
+                  updateCellsBatchingPeriod={50}
+                  windowSize={5}
+                  showsHorizontalScrollIndicator={false}
+                  snapToAlignment="start" // スナップ効果を追加（オプション）
+                  decelerationRate="fast" // 速い減速率（オプション）
+                  snapToInterval={370} // カードの幅+マージン（オプション）
+                />
+              </ScrollView>
               {displayedCoffeeRecords.length > 0 && (
                 <UpperButton
                   scrollViewRef={scrollViewRef}
                   isVisible={showScrollToTopButton}
                 />
               )}
-            </ScrollView>
+            </View>
           </View>
         </View>
-      </View>
+      </GestureHandlerRootView>
     );
   }
 }
