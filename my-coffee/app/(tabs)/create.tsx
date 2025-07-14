@@ -13,30 +13,13 @@ import {
 } from "react-native";
 import HeaderComponent from "../../components/HeaderComponent";
 import PageTitleComponent from "../../components/PageTitleComponent";
+import SelfEditComponent from "../../components/Edit/SelfEdit";
 
-import {
-  HierarchicalCoffeeSelect,
-  CoffeeProcessingSelect,
-  CoffeeTypesSelect,
-  ConditionalMeasurementSelector,
-} from "../../components/SelectComponent";
-import {
-  InputComponent,
-  NumberComponent,
-  TextAreaComponent,
-  MeasuredTimeInputComponent,
-} from "../../components/InputComponent";
-import RangeComponent from "../../components/RangeComponent";
-import ImageUploadComponent from "../../components/ImageUploadComponent";
-
-import RadarChart from "../../components/RadarChart/RadarChart";
 import CoffeeStorageService from "../../services/CoffeeStorageService"; // ストレージサービスをインポート
-import OverallPreferenceRangeComponent from "../../components/OverallComponent";
 import { GlobalStyles } from "../styles/GlobalStyles"; // ★追加
 import UpperButton from "@/components/button/Upper";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-// 画面サイズを取得
-const { width: screenWidth } = Dimensions.get("window");
+
 interface CoffeeRecord {
   id: string;
   name: string;
@@ -59,6 +42,9 @@ interface CoffeeRecord {
   aftertaste: number;
   memo: string;
   imageUri: string;
+  createdAt: Date;
+  shopName: string; // 店名（店で飲んだ場合のみ）
+  shopPrice?: number; // 店の価格（店で飲んだ場合のみ）
 }
 // 初期状態を定数として定義
 const initialFormData = {
@@ -82,6 +68,8 @@ const initialFormData = {
   aroma: 0,
   aftertaste: 0,
   textArea: "",
+  shopName: "",
+  shopPrice: 0,
 };
 
 const initialRangeValues = {
@@ -101,6 +89,7 @@ export default function CreateScreen() {
   const [InputLabel, setInputLabel] = useState({
     beansName: "名称",
     productionArea: "産地",
+    shopName: "店名", // 店名のラベルを追加
   });
   const [SelectLabel, setSelectLabel] = useState({
     roastingDegree: "焙煎度",
@@ -119,8 +108,9 @@ export default function CreateScreen() {
   });
   const [NumberLabel, setNumberLabel] = useState({
     temperature: "温度（℃）",
-    coffeeAmount: "紛量（g）",
+    coffeeAmount: "粉量（g）",
     waterAmount: "湯量（g）",
+    shopPrice: "店の価格（円）", // 店の価格のラベルを追加
   });
 
   const [imageData, setImageData] = useState("");
@@ -218,6 +208,9 @@ export default function CreateScreen() {
         aroma: formData.aroma,
         aftertaste: formData.aftertaste,
         memo: formData.textArea,
+        createdAt: new Date(), // 現在の日時を設定
+        shopName: formData.shopName || "", // 店名を追加
+        shopPrice: formData.shopPrice || 0, // 店の価格を追加
       };
 
       const recordId = await CoffeeStorageService.saveCoffeeRecord(
@@ -273,158 +266,25 @@ export default function CreateScreen() {
               onScroll={handleScroll} //  スクロールイベントを監視
               scrollEventThrottle={16}
             >
-              <View style={styles.formContainer}>
-                <ImageUploadComponent
-                  key={`imageUpload-${resetKey}`}
-                  onChange={handleImageChange}
-                  value={imageData}
-                />
-                <InputComponent
-                  key={`beansName-${resetKey}`}
-                  dataTitle={InputLabel.beansName}
-                  onChange={(value: string) =>
-                    handleInputChange("beansName", value)
-                  }
-                  value={formData.beansName}
-                />
-                <CoffeeTypesSelect
-                  key={`variety-${resetKey}`}
-                  dataTitle={SelectLabel.variety}
-                  onChange={(value: string) =>
-                    handleSelectChange("variety", value)
-                  }
-                  value={formData.variety}
-                />
-                <InputComponent
-                  key={`productionArea-${resetKey}`}
-                  dataTitle={InputLabel.productionArea}
-                  onChange={(value: string) =>
-                    handleInputChange("productionArea", value)
-                  }
-                  value={formData.productionArea}
-                />
-                <CoffeeProcessingSelect
-                  key={`roastingDegree-${resetKey}`}
-                  dataTitle={SelectLabel.roastingDegree}
-                  onChange={(value: string) =>
-                    handleSelectChange("roastingDegree", value)
-                  }
-                  value={formData.roastingDegree}
-                />
-                <HierarchicalCoffeeSelect
-                  primaryTitle="抽出方法"
-                  secondaryTitle="抽出器具"
-                  onPrimaryChange={(value) =>
-                    handleSelectChange("extractionMethod", value)
-                  }
-                  onSecondaryChange={(value) =>
-                    handleSelectChange("extractionMaker", value)
-                  }
-                  primaryValue={formData.extractionMethod}
-                  secondaryValue={formData.extractionMaker}
-                />
-
-                <CoffeeProcessingSelect
-                  key={`grindSize-${resetKey}`}
-                  dataTitle={SelectLabel.grindSize}
-                  onChange={(value: string) =>
-                    handleSelectChange("grindSize", value)
-                  }
-                  value={formData.grindSize}
-                />
-                <NumberComponent
-                  key={`temperature-${resetKey}`}
-                  dataTitle={NumberLabel.temperature}
-                  onChange={(value: number) =>
-                    handleInputChange("temperature", value)
-                  }
-                  value={formData.temperature}
-                />
-                <NumberComponent
-                  key={`coffeeAmount-${resetKey}`}
-                  dataTitle={NumberLabel.coffeeAmount}
-                  onChange={(value: number) =>
-                    handleInputChange("coffeeAmount", value)
-                  }
-                  value={formData.coffeeAmount}
-                />
-                <ConditionalMeasurementSelector
-                  dataTitle="計量タイプ"
-                  onChange={(value: string) => handleMeasurementSelect(value)}
-                  value={formData.measurementMethod}
-                  extractionMethod={formData.extractionMethod} // 抽出方法を渡す
-                />
-                <NumberComponent
-                  key={`waterAmount-${resetKey}`}
-                  dataTitle={NumberLabel.waterAmount}
-                  onChange={(value: number) =>
-                    handleInputChange("waterAmount", value)
-                  }
-                  value={formData.waterAmount}
-                />
-                <MeasuredTimeInputComponent
-                  key={`extractionTime-${resetKey}`}
-                  onChange={handleMeasuredTimeChange}
-                  value={formData.extractionTime}
-                />
-                <RangeComponent
-                  key={`acidity-${resetKey}`}
-                  dataTitle={RangeLabel.acidity}
-                  onChange={(value: number) =>
-                    handleRangeChange("acidity", value)
-                  }
-                  value={rangeValues.acidity}
-                />
-                <RangeComponent
-                  key={`bitterness-${resetKey}`}
-                  dataTitle={RangeLabel.bitterness}
-                  onChange={(value: number) =>
-                    handleRangeChange("bitterness", value)
-                  }
-                  value={rangeValues.bitterness}
-                />
-                <RangeComponent
-                  key={`body-${resetKey}`}
-                  dataTitle={RangeLabel.body}
-                  onChange={(value: number) => handleRangeChange("body", value)}
-                  value={rangeValues.body}
-                />
-                <RangeComponent
-                  key={`aroma-${resetKey}`}
-                  dataTitle={RangeLabel.aroma}
-                  onChange={(value: number) =>
-                    handleRangeChange("aroma", value)
-                  }
-                  value={rangeValues.aroma}
-                />
-                <RangeComponent
-                  key={`aftertaste-${resetKey}`}
-                  dataTitle={RangeLabel.aftertaste}
-                  onChange={(value: number) =>
-                    handleRangeChange("aftertaste", value)
-                  }
-                  value={rangeValues.aftertaste}
-                />
-                <RadarChart data={rangeValues} />
-                <OverallPreferenceRangeComponent
-                  key={`overall-${resetKey}`}
-                  onChange={(value: number) =>
-                    handleOverallPreferenceChange("overall", value)
-                  }
-                  value={rangeValues.overall}
-                />
-                <TextAreaComponent
-                  key={`textArea-${resetKey}`}
-                  onChange={handleTextAreaChange}
-                  value={formData.textArea}
-                />
-                <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={handleSubmit}
-                >
-                  <Text style={styles.submitButtonText}>保存</Text>
-                </TouchableOpacity>
-              </View>
+              <SelfEditComponent
+                resetKey={resetKey}
+                formData={formData}
+                rangeValues={rangeValues}
+                imageData={imageData}
+                InputLabel={InputLabel}
+                SelectLabel={SelectLabel}
+                RangeLabel={RangeLabel}
+                NumberLabel={NumberLabel}
+                handleInputChange={handleInputChange}
+                handleMeasurementSelect={handleMeasurementSelect}
+                handleSelectChange={handleSelectChange}
+                handleRangeChange={handleRangeChange}
+                handleOverallPreferenceChange={handleOverallPreferenceChange}
+                handleTextAreaChange={handleTextAreaChange}
+                handleMeasuredTimeChange={handleMeasuredTimeChange}
+                handleImageChange={handleImageChange}
+                handleSubmit={handleSubmit}
+              />
             </ScrollView>
             <UpperButton
               scrollViewRef={scrollViewRef}

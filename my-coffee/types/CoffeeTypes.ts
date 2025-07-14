@@ -23,8 +23,8 @@ export interface CoffeeRecord {
   imageUri: string; // 画像のパス
   createdAt: Date; // 追加
   // SelfOrShop: boolean; // 自分で淹れたか、店で飲んだか
-  // shopName?: string; // 店名（店で飲んだ場合のみ）
-  // shopPrice?: number; // 店の価格（店で飲んだ場合のみ）
+  shopName?: string; // 店名（店で飲んだ場合のみ）
+  shopPrice?: number; // 店の価格（店で飲んだ場合のみ）
   // shopDate?: Date; // 店で飲んだ日付（店で飲んだ場合のみ）
   // shopAddress?: string; // 店の住所（店で飲んだ場合のみ）
   // shopUrl?: string; // 店のURL（店で飲んだ場合のみ）
