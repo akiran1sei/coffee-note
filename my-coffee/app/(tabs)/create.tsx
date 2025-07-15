@@ -308,6 +308,7 @@ export default function CreateScreen() {
         shopName: formData.shopName || "", // ShopEditの場合に設定
         shopPrice: formData.shopPrice || 0, // ShopEditの場合に設定
         self: formData.self, // 画面切り替えで設定される
+
         shopDate: formData.shopDate || "", // ShopEditの場合に設定
       };
 
@@ -315,7 +316,7 @@ export default function CreateScreen() {
         coffeeRecordForSave,
         formData.imageUri
       );
-
+      console.log("保存成功:", recordId);
       showWebAlert("保存成功", `コーヒーレコードが保存されました。`, resetForm);
     } catch (error) {
       Alert.alert(
