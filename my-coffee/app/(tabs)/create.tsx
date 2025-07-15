@@ -13,16 +13,16 @@ import {
 } from "react-native";
 import HeaderComponent from "../../components/HeaderComponent";
 import PageTitleComponent from "../../components/PageTitleComponent";
+
 import { CoffeeRecord } from "../../types/CoffeeTypes";
+
 import CoffeeStorageService from "../../services/CoffeeStorageService"; // ストレージサービスをインポート
 import { GlobalStyles } from "../styles/GlobalStyles"; // ★追加
 import UpperButton from "@/components/button/Upper";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+
 import ShopEditComponent from "@/components/Edit/ShopEdit";
 import SelfEditComponent from "@/components/Edit/SelfEdit";
-
-// CoffeeRecord インターフェースは CoffeeTypes.ts からインポートされるため、ここには不要です
-// interface CoffeeRecord { ... }
 
 // 初期状態を定数として定義
 // initialFormData の self は、createScreen の初期値 (false) と一致するように true に設定
@@ -50,6 +50,7 @@ const initialFormData = {
   textArea: "",
   shopName: "",
   shopPrice: 0,
+
   self: true, // 初期は自分用の情報 (SelfEditComponentが表示される)
   shopDate: "", // 店で飲んだ日付（店で飲んだ場合のみ）
 };
@@ -73,11 +74,12 @@ export default function CreateScreen() {
   const [InputLabel, setInputLabel] = useState({
     beansName: "名称",
     productionArea: "産地",
+
     shopName: "店名",
     shopPrice: "店の価格（円）",
-    shopAddress: "店の住所",
-    shopUrl: "店のURL",
-    shopMemo: "店でのメモ",
+    // shopAddress: "店の住所",
+    // shopUrl: "店のURL",
+    // shopMemo: "店でのメモ",
   });
   const [SelectLabel, setSelectLabel] = useState({
     roastingDegree: "焙煎度",
@@ -305,6 +307,7 @@ export default function CreateScreen() {
         aftertaste: formData.aftertaste,
         memo: formData.textArea,
         createdAt: new Date(), // 現在の日時を設定
+
         shopName: formData.shopName || "", // ShopEditの場合に設定
         shopPrice: formData.shopPrice || 0, // ShopEditの場合に設定
         self: formData.self, // 画面切り替えで設定される
