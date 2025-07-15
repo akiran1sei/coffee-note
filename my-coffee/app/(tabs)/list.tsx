@@ -171,6 +171,7 @@ export default function ListScreen() {
   // ItemSeparatorComponent など他の要素との組み合わせで検討する
   const renderCoffeeRecord = ({ item: record }: { item: CoffeeRecord }) => {
     // 各アイテムのレンダリングロジックはほぼそのまま
+    console.log("Rendering record:", record.self);
     return (
       // key は FlatList が自動で付与するため、ここでは不要
       <View style={styles.wrapContainer}>
@@ -204,22 +205,44 @@ export default function ListScreen() {
             {/* メイン情報 */}
             <View style={styles.recordMainInfo}>
               <View style={styles.infoColumn}>
-                <InfoRow label="種類" value={record.variety} />
+                <InfoRow
+                  label="Self/Shop"
+                  value={record.self ? "自分" : "お店"}
+                />
                 <InfoRow label="産地" value={record.productionArea} />
-                <InfoRow label="焙煎度" value={record.roastingDegree} />
-                <InfoRow label="抽出器具" value={record.extractionMethod} />
-                <InfoRow label="抽出器具" value={record.extractionMaker} />
+                {record.self ? (
+                  <>
+                    <InfoRow label="種類" value={record.variety} />
+                    <InfoRow label="焙煎度" value={record.roastingDegree} />
+                    <InfoRow label="抽出器具" value={record.extractionMethod} />
+                    <InfoRow label="抽出器具" value={record.extractionMaker} />
+                  </>
+                ) : (
+                  <>
+                    <InfoRow label="店名" value={record.shopName} />
+                    <InfoRow
+                      label="店の価格"
+                      value={
+                        record.shopPrice ? `${record.shopPrice}円` : "不明"
+                      }
+                    />
+                  </>
+                )}
               </View>
 
               <View style={styles.infoColumn}>
-                <InfoRow label="挽き目" value={record.grindSize} />
-                <InfoRow label="注湯温度" value={record.temperature} />
-                <InfoRow label="粉量" value={record.coffeeAmount} />
-                <InfoRow
-                  label={`水量(${record.measurementMethod})`}
-                  value={record.waterAmount}
-                />
-                <InfoRow label="抽出時間" value={record.extractionTime} />
+                {record.self ? (
+                  <>
+                    <InfoRow label="挽き目" value={record.grindSize} />
+                    <InfoRow label="注湯温度" value={record.temperature} />
+                    <InfoRow label="粉量" value={record.coffeeAmount} />
+                    <InfoRow
+                      label={`水量(${record.measurementMethod})`}
+                      value={record.waterAmount}
+                    />
+                    <InfoRow label="抽出時間" value={record.extractionTime} />
+                  </>
+                ) : null}
               </View>
             </View>
 
@@ -303,7 +326,7 @@ export default function ListScreen() {
 
   // 情報行を表示するサブコンポーネント (Memo化してパフォーマンス向上を試みる)
   const InfoRow = React.memo(
-    ({ label, value }: { label: string; value: string | number }) => (
+    ({ label, value }: { label: string; value: string | number | boolean }) => (
       <View style={styles.infoRow}>
         <Text style={styles.infoLabel}>{label}</Text>
         <Text style={styles.infoValue}>{value}</Text>
