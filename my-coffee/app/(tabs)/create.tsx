@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -14,53 +14,19 @@ import {
 import HeaderComponent from "../../components/HeaderComponent";
 import PageTitleComponent from "../../components/PageTitleComponent";
 
-import {
-  HierarchicalCoffeeSelect,
-  CoffeeProcessingSelect,
-  CoffeeTypesSelect,
-  ConditionalMeasurementSelector,
-} from "../../components/SelectComponent";
-import {
-  InputComponent,
-  NumberComponent,
-  TextAreaComponent,
-  MeasuredTimeInputComponent,
-} from "../../components/InputComponent";
-import RangeComponent from "../../components/RangeComponent";
-import ImageUploadComponent from "../../components/ImageUploadComponent";
+import { CoffeeRecord } from "../../types/CoffeeTypes";
 
-import RadarChart from "../../components/RadarChart/RadarChart";
 import CoffeeStorageService from "../../services/CoffeeStorageService"; // ストレージサービスをインポート
-import OverallPreferenceRangeComponent from "../../components/OverallComponent";
 import { GlobalStyles } from "../styles/GlobalStyles"; // ★追加
 import UpperButton from "@/components/button/Upper";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-// 画面サイズを取得
-const { width: screenWidth } = Dimensions.get("window");
-interface CoffeeRecord {
-  id: string;
-  name: string;
-  variety: string;
-  productionArea: string;
-  roastingDegree: string;
-  extractionMethod: string;
-  extractionMaker: string;
-  grindSize: string;
-  temperature: number;
-  coffeeAmount: number;
-  measurementMethod: string; // "注湯量" または "抽出量"
-  waterAmount: number;
-  extractionTime: string;
-  acidity: number;
-  bitterness: number;
-  overall: number;
-  body: number;
-  aroma: number;
-  aftertaste: number;
-  memo: string;
-  imageUri: string;
-}
+
+import ShopEditComponent from "@/components/Edit/ShopEdit";
+import SelfEditComponent from "@/components/Edit/SelfEdit";
+
 // 初期状態を定数として定義
+// initialFormData の self は、createScreen の初期値 (false) と一致するように true に設定
+// createScreen: false -> SelfEditComponent が表示され、self: true であるため整合性が取れています
 const initialFormData = {
   imageUri: "",
   beansName: "",
@@ -82,6 +48,11 @@ const initialFormData = {
   aroma: 0,
   aftertaste: 0,
   textArea: "",
+  shopName: "",
+  shopPrice: 0,
+
+  self: true, // 初期は自分用の情報 (SelfEditComponentが表示される)
+  shopDate: "", // 店で飲んだ日付（店で飲んだ場合のみ）
 };
 
 const initialRangeValues = {
@@ -97,10 +68,15 @@ export default function CreateScreen() {
   const TextData = "Coffee Create"; // ページタイトルに表示するテキスト
   const [resetKey, setResetKey] = useState(0);
   const [formSubmitted, setFormSubmitted] = useState(false);
-
+  // createScreen の初期値は false に設定されています。
+  // false の場合は SelfEditComponent が表示され、initialFormData.self が true なので整合性があります。
+  const [createScreen, setCreateScreen] = useState(false);
   const [InputLabel, setInputLabel] = useState({
     beansName: "名称",
     productionArea: "産地",
+
+    shopName: "店名",
+    shopPrice: "店の価格（円）",
   });
   const [SelectLabel, setSelectLabel] = useState({
     roastingDegree: "焙煎度",
@@ -119,15 +95,15 @@ export default function CreateScreen() {
   });
   const [NumberLabel, setNumberLabel] = useState({
     temperature: "温度（℃）",
-    coffeeAmount: "紛量（g）",
+    coffeeAmount: "粉量（g）",
     waterAmount: "湯量（g）",
+    shopPrice: "店の価格（円）", // 店の価格のラベルを追加
   });
-
+  const [createDate, setCreateDate] = useState(""); // 作成日を管理するステート
   const [imageData, setImageData] = useState("");
   const [formData, setFormData] = useState({ ...initialFormData });
   const [rangeValues, setRangeValues] = useState({ ...initialRangeValues });
   const [showScrollToTopButton, setShowScrollToTopButton] = useState(false);
-  // Web環境でフォーム送信後の状態をリセット
 
   // フォームリセット関数
   const resetForm = useCallback(() => {
@@ -137,6 +113,52 @@ export default function CreateScreen() {
     setResetKey((prevKey) => prevKey + 1);
     setFormSubmitted(true);
   }, []);
+
+  // 現在の日付を取得し、`createDate` と `formData.shopDate` を設定
+  useEffect(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+
+    const formattedDate = `${year}年${month}月${day}日`;
+    const formattedDateSlash = `${year}/${month}/${day}`;
+
+    // 作成日と、shopDateの初期値を現在の日付に設定
+    setCreateDate(formattedDate);
+    setFormData((prevFormData) => ({
+      ...prevFormData,
+      shopDate: formattedDateSlash, // shopDateをスラッシュ形式で設定
+    }));
+
+    console.log("初期化された作成日 (和暦):", formattedDate);
+    console.log("初期化された作成日 (スラッシュ):", formattedDateSlash);
+  }, []);
+
+  // createScreen と formData.self の同期ロジック
+  const SwitchScreenButton = () => {
+    setCreateScreen((prevCreateScreen) => {
+      const newCreateScreen = !prevCreateScreen; // 新しいcreateScreenの値を計算
+      // newCreateScreen が true (Shop Ver.) の場合、self は false
+      // newCreateScreen が false (Self Ver.) の場合、self は true
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        self: !newCreateScreen,
+      }));
+      // ここに console.log を移動することで、状態更新後の値を確認できます
+      console.log(
+        "SwitchScreenButton: createScreen の新しい値:",
+        newCreateScreen
+      );
+      console.log(
+        "SwitchScreenButton: formData.self の新しい値:",
+        !newCreateScreen
+      );
+      return newCreateScreen; // setCreateScreenに新しい値を返す
+    });
+  };
+  console.log("SwitchScreenButton: createScreen の新しい値:", createScreen);
+  console.log("SwitchScreenButton: formData.self の新しい値:", !createScreen);
   const handleInputChange = (label: string, value: string | number) => {
     setFormData({ ...formData, [label]: value });
   };
@@ -172,10 +194,11 @@ export default function CreateScreen() {
   // 新しい送信ハンドラー
   const handleSubmit = async () => {
     // 必須フィールドのチェック
-    const missingFields = (
+    const commonMissingFields = (
       Object.keys(formData) as Array<keyof typeof formData>
     ).filter((field) => {
       const value = formData[field];
+      // 空文字列、null、undefined、数値0を未入力と判断
       return (
         value === null ||
         value === undefined ||
@@ -184,27 +207,89 @@ export default function CreateScreen() {
       );
     });
 
-    // textArea と imageUri を必須フィールドから除外
-    const requiredFields = missingFields.filter(
-      (field) => field !== "textArea" && field !== "imageUri"
+    let specificMissingFields: string[] = [];
+
+    if (createScreen) {
+      // Shop Ver. (createScreen が true)
+      // ShopEditComponent に関連する必須フィールド
+      const shopRequiredFields = [
+        "shopName",
+        "shopPrice",
+        "textArea", // メモは必須ではないので、ここでは除外
+        "imageUri", // 画像は必須ではないので、ここでは除外
+      ];
+      specificMissingFields = commonMissingFields.filter((field) =>
+        shopRequiredFields.includes(field)
+      );
+    } else {
+      // Self Ver. (createScreen が false)
+      // SelfEditComponent に関連する必須フィールド
+      const selfRequiredFields = [
+        "beansName",
+        "variety",
+        "productionArea",
+        "roastingDegree",
+        "extractionMethod",
+        "extractionMaker",
+        "grindSize",
+        "temperature",
+        "coffeeAmount",
+        "measurementMethod",
+        "waterAmount",
+        "extractionTime",
+        "textArea", // メモは必須ではないので、ここでは除外
+        "imageUri", // 画像は必須ではないので、ここでは除外
+      ];
+      specificMissingFields = commonMissingFields.filter((field) =>
+        selfRequiredFields.includes(field)
+      );
+    }
+
+    // `acidity` から `aftertaste` までの範囲は、`rangeValues` から来ており、
+    // ユーザーが0のままにすることも可能なので、ここでは必須フィールドから除外します。
+    // もしこれらの項目も0以外を必須とするなら、上記の `specificMissingFields` に含めてください。
+    const tasteRelatedFields = [
+      "acidity",
+      "bitterness",
+      "overall",
+      "body",
+      "aroma",
+      "aftertaste",
+    ];
+    specificMissingFields = specificMissingFields.filter(
+      (field) => !tasteRelatedFields.includes(field as string)
     );
 
-    if (requiredFields.length > 0) {
+    if (specificMissingFields.length > 0) {
+      // 日本語のラベルに変換して表示
+      const missingLabels = specificMissingFields.map((field) => {
+        if (InputLabel[field as keyof typeof InputLabel]) {
+          return InputLabel[field as keyof typeof InputLabel];
+        } else if (SelectLabel[field as keyof typeof SelectLabel]) {
+          return SelectLabel[field as keyof typeof SelectLabel];
+        } else if (NumberLabel[field as keyof typeof NumberLabel]) {
+          return NumberLabel[field as keyof typeof NumberLabel];
+        }
+        return field; // ラベルが見つからない場合はそのまま表示
+      });
       return Alert.alert(
         "入力エラー",
-        `以下の必須項目が未入力です：\n${requiredFields.join(", ")}`
+        `以下の必須項目が未入力です：\n${missingLabels.join(", ")}`
       );
     }
 
     try {
-      const coffeeRecordForSave: Omit<CoffeeRecord, "id"> = {
+      // `Omit<CoffeeRecord, "id">` は `CoffeeRecord` から `id` プロパティを除外した型です。
+      // CoffeeTypes.ts から CoffeeRecord をインポートする必要があります。
+      type CoffeeRecordForSave = Omit<CoffeeRecord, "id">;
+      const coffeeRecordForSave: CoffeeRecordForSave = {
         imageUri: formData.imageUri || "../../assets/images/no-image.png",
-        name: formData.beansName,
-        variety: formData.variety,
-        productionArea: formData.productionArea,
+        name: formData.beansName, // SelfEditの場合に設定
+        variety: formData.variety, // SelfEditの場合に設定
+        productionArea: formData.productionArea, // SelfEditの場合に設定
         roastingDegree: formData.roastingDegree || "",
         extractionMethod: formData.extractionMethod || "",
-        extractionMaker: formData.extractionMaker || "", // メーカー名を日本語に変換
+        extractionMaker: formData.extractionMaker || "",
         grindSize: formData.grindSize || "",
         temperature: formData.temperature,
         coffeeAmount: formData.coffeeAmount,
@@ -218,6 +303,12 @@ export default function CreateScreen() {
         aroma: formData.aroma,
         aftertaste: formData.aftertaste,
         memo: formData.textArea,
+        createdAt: new Date(), // 現在の日時を設定
+
+        shopName: formData.shopName || "", // ShopEditの場合に設定
+        shopPrice: formData.shopPrice || 0, // ShopEditの場合に設定
+        self: formData.self, // 画面切り替えで設定される
+        shopDate: formData.shopDate || "", // ShopEditの場合に設定
       };
 
       const recordId = await CoffeeStorageService.saveCoffeeRecord(
@@ -233,11 +324,11 @@ export default function CreateScreen() {
           ? error.message
           : "コーヒーレコードの保存中にエラーが発生しました。"
       );
-
       console.error("保存エラー:", error);
     }
   };
-  // Web向けのアラートコンポーネント
+
+  // Web向けのアラートコンポーネント (これは既存のもので問題ありません)
   const showWebAlert = (
     title: string,
     message: string,
@@ -248,7 +339,6 @@ export default function CreateScreen() {
   const handleScroll = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const scrollY = event.nativeEvent.contentOffset.y;
-      // 例えば、200pxスクロールしたらボタンを表示する
       if (scrollY > 200 && !showScrollToTopButton) {
         setShowScrollToTopButton(true);
       } else if (scrollY <= 200 && showScrollToTopButton) {
@@ -257,174 +347,72 @@ export default function CreateScreen() {
     },
     [showScrollToTopButton]
   );
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={[GlobalStyles.container, styles.createContainer]}>
         <View style={GlobalStyles.contents}>
-          {/* ヘッダーコンポーネントを配置 */}
           <HeaderComponent />
           <PageTitleComponent TextData={TextData} />
 
           <View style={[GlobalStyles.absoluteBox, GlobalStyles.mainContents]}>
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={SwitchScreenButton} // ここを直接関数参照にすることもできます
+            >
+              <Text style={styles.submitButtonText}>
+                {createScreen ? "Switch to Self Ver." : "Switch to Shop Ver."}
+              </Text>
+            </TouchableOpacity>
+            <View>
+              {/* createScreen: true なら Shop (お店), false なら Self (自分) */}
+              <Text>{createScreen ? "お店" : "自分"}</Text>
+            </View>
             <ScrollView
               contentContainerStyle={GlobalStyles.scrollContainer}
               showsVerticalScrollIndicator={true}
               ref={scrollViewRef}
-              onScroll={handleScroll} //  スクロールイベントを監視
+              onScroll={handleScroll}
               scrollEventThrottle={16}
             >
-              <View style={styles.formContainer}>
-                <ImageUploadComponent
-                  key={`imageUpload-${resetKey}`}
-                  onChange={handleImageChange}
-                  value={imageData}
+              {createScreen ? ( // createScreen が true なら ShopEditComponent
+                <ShopEditComponent
+                  resetKey={resetKey}
+                  formData={formData}
+                  rangeValues={rangeValues}
+                  imageData={imageData}
+                  InputLabel={InputLabel}
+                  RangeLabel={RangeLabel}
+                  NumberLabel={NumberLabel}
+                  handleInputChange={handleInputChange}
+                  handleRangeChange={handleRangeChange}
+                  handleOverallPreferenceChange={handleOverallPreferenceChange}
+                  handleTextAreaChange={handleTextAreaChange}
+                  handleImageChange={handleImageChange}
+                  handleSubmit={handleSubmit}
                 />
-                <InputComponent
-                  key={`beansName-${resetKey}`}
-                  dataTitle={InputLabel.beansName}
-                  onChange={(value: string) =>
-                    handleInputChange("beansName", value)
-                  }
-                  value={formData.beansName}
+              ) : (
+                // createScreen が false なら SelfEditComponent
+                <SelfEditComponent
+                  resetKey={resetKey}
+                  formData={formData}
+                  rangeValues={rangeValues}
+                  imageData={imageData}
+                  InputLabel={InputLabel}
+                  SelectLabel={SelectLabel}
+                  RangeLabel={RangeLabel}
+                  NumberLabel={NumberLabel}
+                  handleInputChange={handleInputChange}
+                  handleMeasurementSelect={handleMeasurementSelect}
+                  handleSelectChange={handleSelectChange}
+                  handleRangeChange={handleRangeChange}
+                  handleOverallPreferenceChange={handleOverallPreferenceChange}
+                  handleTextAreaChange={handleTextAreaChange}
+                  handleMeasuredTimeChange={handleMeasuredTimeChange}
+                  handleImageChange={handleImageChange}
+                  handleSubmit={handleSubmit}
                 />
-                <CoffeeTypesSelect
-                  key={`variety-${resetKey}`}
-                  dataTitle={SelectLabel.variety}
-                  onChange={(value: string) =>
-                    handleSelectChange("variety", value)
-                  }
-                  value={formData.variety}
-                />
-                <InputComponent
-                  key={`productionArea-${resetKey}`}
-                  dataTitle={InputLabel.productionArea}
-                  onChange={(value: string) =>
-                    handleInputChange("productionArea", value)
-                  }
-                  value={formData.productionArea}
-                />
-                <CoffeeProcessingSelect
-                  key={`roastingDegree-${resetKey}`}
-                  dataTitle={SelectLabel.roastingDegree}
-                  onChange={(value: string) =>
-                    handleSelectChange("roastingDegree", value)
-                  }
-                  value={formData.roastingDegree}
-                />
-                <HierarchicalCoffeeSelect
-                  primaryTitle="抽出方法"
-                  secondaryTitle="抽出器具"
-                  onPrimaryChange={(value) =>
-                    handleSelectChange("extractionMethod", value)
-                  }
-                  onSecondaryChange={(value) =>
-                    handleSelectChange("extractionMaker", value)
-                  }
-                  primaryValue={formData.extractionMethod}
-                  secondaryValue={formData.extractionMaker}
-                />
-
-                <CoffeeProcessingSelect
-                  key={`grindSize-${resetKey}`}
-                  dataTitle={SelectLabel.grindSize}
-                  onChange={(value: string) =>
-                    handleSelectChange("grindSize", value)
-                  }
-                  value={formData.grindSize}
-                />
-                <NumberComponent
-                  key={`temperature-${resetKey}`}
-                  dataTitle={NumberLabel.temperature}
-                  onChange={(value: number) =>
-                    handleInputChange("temperature", value)
-                  }
-                  value={formData.temperature}
-                />
-                <NumberComponent
-                  key={`coffeeAmount-${resetKey}`}
-                  dataTitle={NumberLabel.coffeeAmount}
-                  onChange={(value: number) =>
-                    handleInputChange("coffeeAmount", value)
-                  }
-                  value={formData.coffeeAmount}
-                />
-                <ConditionalMeasurementSelector
-                  dataTitle="計量タイプ"
-                  onChange={(value: string) => handleMeasurementSelect(value)}
-                  value={formData.measurementMethod}
-                  extractionMethod={formData.extractionMethod} // 抽出方法を渡す
-                />
-                <NumberComponent
-                  key={`waterAmount-${resetKey}`}
-                  dataTitle={NumberLabel.waterAmount}
-                  onChange={(value: number) =>
-                    handleInputChange("waterAmount", value)
-                  }
-                  value={formData.waterAmount}
-                />
-                <MeasuredTimeInputComponent
-                  key={`extractionTime-${resetKey}`}
-                  onChange={handleMeasuredTimeChange}
-                  value={formData.extractionTime}
-                />
-                <RangeComponent
-                  key={`acidity-${resetKey}`}
-                  dataTitle={RangeLabel.acidity}
-                  onChange={(value: number) =>
-                    handleRangeChange("acidity", value)
-                  }
-                  value={rangeValues.acidity}
-                />
-                <RangeComponent
-                  key={`bitterness-${resetKey}`}
-                  dataTitle={RangeLabel.bitterness}
-                  onChange={(value: number) =>
-                    handleRangeChange("bitterness", value)
-                  }
-                  value={rangeValues.bitterness}
-                />
-                <RangeComponent
-                  key={`body-${resetKey}`}
-                  dataTitle={RangeLabel.body}
-                  onChange={(value: number) => handleRangeChange("body", value)}
-                  value={rangeValues.body}
-                />
-                <RangeComponent
-                  key={`aroma-${resetKey}`}
-                  dataTitle={RangeLabel.aroma}
-                  onChange={(value: number) =>
-                    handleRangeChange("aroma", value)
-                  }
-                  value={rangeValues.aroma}
-                />
-                <RangeComponent
-                  key={`aftertaste-${resetKey}`}
-                  dataTitle={RangeLabel.aftertaste}
-                  onChange={(value: number) =>
-                    handleRangeChange("aftertaste", value)
-                  }
-                  value={rangeValues.aftertaste}
-                />
-                <RadarChart data={rangeValues} />
-                <OverallPreferenceRangeComponent
-                  key={`overall-${resetKey}`}
-                  onChange={(value: number) =>
-                    handleOverallPreferenceChange("overall", value)
-                  }
-                  value={rangeValues.overall}
-                />
-                <TextAreaComponent
-                  key={`textArea-${resetKey}`}
-                  onChange={handleTextAreaChange}
-                  value={formData.textArea}
-                />
-                <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={handleSubmit}
-                >
-                  <Text style={styles.submitButtonText}>保存</Text>
-                </TouchableOpacity>
-              </View>
+              )}
             </ScrollView>
             <UpperButton
               scrollViewRef={scrollViewRef}
