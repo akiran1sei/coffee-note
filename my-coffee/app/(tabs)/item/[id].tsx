@@ -1099,8 +1099,8 @@ export default function CoffeeItemScreen() {
                       coffeeRecord.coffeeAmount && coffeeRecord.waterAmount
                         ? `1:${
                             Math.round(
-                              (coffeeRecord.waterAmount /
-                                coffeeRecord.coffeeAmount) *
+                              (Number(coffeeRecord.waterAmount) /
+                                Number(coffeeRecord.coffeeAmount)) *
                                 10
                             ) / 10
                           }`

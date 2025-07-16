@@ -46,7 +46,7 @@ const initialFormData = {
   coffeeAmount: 0,
   measurementMethod: "",
   waterAmount: 0,
-  extractionTime: "",
+  extractionTime: "00",
   acidity: 0,
   bitterness: 0,
   overall: 0,
@@ -221,8 +221,8 @@ export default function CreateScreen() {
       const shopRequiredFields = [
         "shopName",
         "shopPrice",
-        "textArea", // メモは必須ではないので、ここでは除外
-        "imageUri", // 画像は必須ではないので、ここでは除外
+        // "textArea", // メモは必須ではないので、ここでは除外
+        // "imageUri", // 画像は必須ではないので、ここでは除外
       ];
       specificMissingFields = commonMissingFields.filter((field) =>
         shopRequiredFields.includes(field)
@@ -233,18 +233,12 @@ export default function CreateScreen() {
       const selfRequiredFields = [
         "beansName",
         "variety",
-        "productionArea",
         "roastingDegree",
         "extractionMethod",
         "extractionMaker",
         "grindSize",
-        "temperature",
-        "coffeeAmount",
         "measurementMethod",
-        "waterAmount",
         "extractionTime",
-        "textArea", // メモは必須ではないので、ここでは除外
-        "imageUri", // 画像は必須ではないので、ここでは除外
       ];
       specificMissingFields = commonMissingFields.filter((field) =>
         selfRequiredFields.includes(field)
@@ -292,16 +286,16 @@ export default function CreateScreen() {
         imageUri: formData.imageUri || "../../assets/images/no-image.png",
         name: formData.beansName, // SelfEditの場合に設定
         variety: formData.variety, // SelfEditの場合に設定
-        productionArea: formData.productionArea, // SelfEditの場合に設定
+        productionArea: formData.productionArea || "--", // SelfEditの場合に設定
         roastingDegree: formData.roastingDegree || "",
         extractionMethod: formData.extractionMethod || "",
         extractionMaker: formData.extractionMaker || "",
         grindSize: formData.grindSize || "",
-        temperature: formData.temperature,
-        coffeeAmount: formData.coffeeAmount,
+        temperature: formData.temperature || "--",
+        coffeeAmount: formData.coffeeAmount || "--",
         measurementMethod: formData.measurementMethod,
-        waterAmount: formData.waterAmount,
-        extractionTime: formData.extractionTime,
+        waterAmount: formData.waterAmount || "--",
+        extractionTime: formData.extractionTime || "00", // ここで初期値を設定
         acidity: formData.acidity,
         bitterness: formData.bitterness,
         overall: formData.overall,
@@ -311,7 +305,7 @@ export default function CreateScreen() {
         memo: formData.textArea,
         createdAt: new Date(), // 現在の日時を設定
         shopName: formData.shopName || "", // ShopEditの場合に設定
-        shopPrice: formData.shopPrice || 0, // ShopEditの場合に設定
+        shopPrice: formData.shopPrice || "--", // ShopEditの場合に設定
         self: formData.self, // 画面切り替えで設定される
         shopDate: formData.shopDate || "", // ShopEditの場合に設定
       };

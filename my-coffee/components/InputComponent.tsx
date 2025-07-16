@@ -40,8 +40,8 @@ export const InputComponent: React.FC<InputProps> = ({
 
 interface NumberProps {
   dataTitle: string;
-  onChange: (value: number) => void;
-  value: number;
+  onChange: (value: number | string) => void;
+  value: number | string;
 }
 export const NumberComponent: React.FC<NumberProps> = ({
   dataTitle,

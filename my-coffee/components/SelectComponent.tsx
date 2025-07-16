@@ -368,6 +368,7 @@ export const CoffeeProcessingSelect: React.FC<SelectProps> = ({
           value: "イタリアン (深)",
         },
         { label: "複数焙煎度", value: "複数焙煎度" },
+        { label: "不明", value: "不明" },
       ];
     } else if (dataTitle === "挽き目") {
       return [
@@ -378,6 +379,7 @@ export const CoffeeProcessingSelect: React.FC<SelectProps> = ({
         { label: "粗挽き", value: "粗挽き" },
         { label: "極粗挽き", value: "極粗挽き" },
         { label: "複数挽き", value: "複数挽き" },
+        { label: "不明", value: "不明" },
       ];
     }
     return [];

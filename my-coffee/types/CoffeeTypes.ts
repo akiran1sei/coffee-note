@@ -8,9 +8,9 @@ export interface CoffeeRecord {
   extractionMethod: string;
   extractionMaker: string;
   grindSize: string; // 挽き目
-  temperature: number; // 温度（℃）
-  coffeeAmount: number; // 粉量（g）
-  waterAmount: number; // 湯量（g）
+  temperature: number | string; // 温度（℃）
+  coffeeAmount: number | string; // 粉量（g）
+  waterAmount: number | string; // 湯量（g）
   measurementMethod: string; // 計測方法
   extractionTime: string; // 抽出時間
   acidity: number; // 酸味（1-10）
@@ -24,7 +24,7 @@ export interface CoffeeRecord {
   createdAt: Date; // 追加
   self: boolean; // 自分で淹れたか、店で飲んだか
   shopName: string; // 店名（店で飲んだ場合のみ）
-  shopPrice?: number; // 店の価格（店で飲んだ場合のみ）
+  shopPrice: number | string; // 店の価格（店で飲んだ場合のみ）
   shopDate: string; // 店で飲んだ日付（店で飲んだ場合のみ）
 
   // shopDate?: Date; // 店で飲んだ日付（店で飲んだ場合のみ）

@@ -28,10 +28,10 @@ interface CoffeeFormProps {
     extractionMethod: string;
     extractionMaker: string;
     grindSize: string;
-    temperature: number;
-    coffeeAmount: number;
+    temperature: number | string;
+    coffeeAmount: number | string;
     measurementMethod: string;
-    waterAmount: number;
+    waterAmount: number | string;
     extractionTime: string;
     acidity: number;
     bitterness: number;
@@ -41,7 +41,7 @@ interface CoffeeFormProps {
     aftertaste: number;
     textArea: string;
     shopName: string; // 店名
-    shopPrice: number; // 店の価格
+    shopPrice: number | string; // 店の価格
   };
   rangeValues: {
     acidity: number;
@@ -127,8 +127,10 @@ export default function ShopEditComponent({
       <NumberComponent
         key={`shopPrice-${resetKey}`}
         dataTitle={NumberLabel.shopPrice}
-        onChange={(value: number) => handleInputChange("shopPrice", value)}
-        value={formData.shopPrice}
+        onChange={(value: number | string) =>
+          handleInputChange("shopPrice", value)
+        }
+        value={formData.shopPrice === 0 ? "" : String(formData.shopPrice)}
       />
       <RangeComponent
         key={`acidity-${resetKey}`}

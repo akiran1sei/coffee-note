@@ -209,7 +209,10 @@ export default function ListScreen() {
                   label="Self/Shop"
                   value={record.self ? "自分" : "お店"}
                 />
-                <InfoRow label="産地" value={record.productionArea} />
+                <InfoRow
+                  label="産地"
+                  value={record.productionArea ? record.productionArea : "----"}
+                />
                 {record.self ? (
                   <>
                     <InfoRow label="種類" value={record.variety} />
@@ -223,7 +226,7 @@ export default function ListScreen() {
                     <InfoRow
                       label="店の価格"
                       value={
-                        record.shopPrice ? `${record.shopPrice}円` : "不明"
+                        record.shopPrice ? `${record.shopPrice}円` : "----"
                       }
                     />
                   </>
@@ -234,13 +237,33 @@ export default function ListScreen() {
                 {record.self ? (
                   <>
                     <InfoRow label="挽き目" value={record.grindSize} />
-                    <InfoRow label="注湯温度" value={record.temperature} />
-                    <InfoRow label="粉量" value={record.coffeeAmount} />
+                    <InfoRow
+                      label="注湯温度"
+                      value={
+                        record.temperature ? `${record.temperature}℃` : "----"
+                      }
+                    />
+                    <InfoRow
+                      label="粉量"
+                      value={
+                        record.coffeeAmount ? `${record.coffeeAmount}g` : "----"
+                      }
+                    />
                     <InfoRow
                       label={`水量(${record.measurementMethod})`}
-                      value={record.waterAmount}
+                      value={
+                        record.waterAmount ? `${record.waterAmount}g` : "----"
+                      }
                     />
-                    <InfoRow label="抽出時間" value={record.extractionTime} />
+
+                    <InfoRow
+                      label="抽出時間"
+                      value={
+                        record.extractionTime
+                          ? `${record.extractionTime}00分`
+                          : "----"
+                      }
+                    />
                   </>
                 ) : null}
               </View>

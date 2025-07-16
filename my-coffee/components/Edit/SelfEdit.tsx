@@ -159,14 +159,18 @@ export default function SelfEditComponent({
       <NumberComponent
         key={`temperature-${resetKey}`}
         dataTitle={NumberLabel.temperature}
-        onChange={(value: number) => handleInputChange("temperature", value)}
-        value={formData.temperature}
+        onChange={(value: number | string) =>
+          handleInputChange("temperature", value)
+        }
+        value={formData.temperature === 0 ? "" : String(formData.temperature)}
       />
       <NumberComponent
         key={`coffeeAmount-${resetKey}`}
         dataTitle={NumberLabel.coffeeAmount}
-        onChange={(value: number) => handleInputChange("coffeeAmount", value)}
-        value={formData.coffeeAmount}
+        onChange={(value: number | string) =>
+          handleInputChange("coffeeAmount", value)
+        }
+        value={formData.coffeeAmount === 0 ? "" : String(formData.coffeeAmount)}
       />
       <ConditionalMeasurementSelector
         dataTitle="計量タイプ"
@@ -177,8 +181,10 @@ export default function SelfEditComponent({
       <NumberComponent
         key={`waterAmount-${resetKey}`}
         dataTitle={NumberLabel.waterAmount}
-        onChange={(value: number) => handleInputChange("waterAmount", value)}
-        value={formData.waterAmount}
+        onChange={(value: number | string) =>
+          handleInputChange("waterAmount", value)
+        }
+        value={formData.waterAmount === 0 ? "" : String(formData.waterAmount)}
       />
       <MeasuredTimeInputComponent
         key={`extractionTime-${resetKey}`}
