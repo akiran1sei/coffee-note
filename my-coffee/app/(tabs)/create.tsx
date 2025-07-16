@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  version,
+} from "react";
 import {
   View,
   StyleSheet,
@@ -365,7 +371,9 @@ export default function CreateScreen() {
             </TouchableOpacity>
             <View>
               {/* createScreen: true なら Shop (お店), false なら Self (自分) */}
-              <Text>{createScreen ? "お店" : "自分"}</Text>
+              <Text style={styles.versionText}>
+                {createScreen ? "お店で購入した珈琲" : "自分で淹れた珈琲"}
+              </Text>
             </View>
             <ScrollView
               contentContainerStyle={GlobalStyles.scrollContainer}
@@ -444,7 +452,14 @@ const styles = StyleSheet.create({
     color: "#333",
     fontSize: 18,
   },
-
+  versionText: {
+    width: "100%",
+    height: "auto",
+    textAlign: "center",
+    fontFamily: "Caveat",
+    color: "#D2B48C",
+    fontSize: 32,
+  },
   submitButton: {
     backgroundColor: "#4A90E2",
     padding: 15,
