@@ -56,7 +56,8 @@ const initialFormData = {
   textArea: "",
   shopName: "",
   shopPrice: 0,
-
+  shopAddress: "", // 店の住所（店で飲んだ場合のみ）
+  shopUrl: "", // 店のURL（店で飲んだ場合のみ）
   self: true, // 初期は自分用の情報 (SelfEditComponentが表示される)
   shopDate: "", // 店で飲んだ日付（店で飲んだ場合のみ）
 };
@@ -80,9 +81,10 @@ export default function CreateScreen() {
   const [InputLabel, setInputLabel] = useState({
     beansName: "名称",
     productionArea: "産地",
-
     shopName: "店名",
     shopPrice: "店の価格（円）",
+    shopAddress: "店の住所（店で飲んだ場合のみ）",
+    shopUrl: "店のURL（店で飲んだ場合のみ）",
   });
   const [SelectLabel, setSelectLabel] = useState({
     roastingDegree: "焙煎度",
@@ -308,6 +310,8 @@ export default function CreateScreen() {
         shopPrice: formData.shopPrice || "--", // ShopEditの場合に設定
         self: formData.self, // 画面切り替えで設定される
         shopDate: formData.shopDate || "", // ShopEditの場合に設定
+        shopAddress: formData.shopAddress || "", // ShopEditの場合に設定
+        shopUrl: formData.shopUrl || "", // ShopEditの場合に設定
       };
 
       const recordId = await CoffeeStorageService.saveCoffeeRecord(

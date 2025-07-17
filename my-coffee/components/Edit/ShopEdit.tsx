@@ -1,16 +1,10 @@
 import React from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
-import {
-  HierarchicalCoffeeSelect,
-  CoffeeProcessingSelect,
-  CoffeeTypesSelect,
-  ConditionalMeasurementSelector,
-} from "../SelectComponent";
+
 import {
   InputComponent,
   NumberComponent,
   TextAreaComponent,
-  MeasuredTimeInputComponent,
 } from "../InputComponent";
 import RangeComponent from "../RangeComponent";
 import ImageUploadComponent from "../ImageUploadComponent";
@@ -42,6 +36,8 @@ interface CoffeeFormProps {
     textArea: string;
     shopName: string; // 店名
     shopPrice: number | string; // 店の価格
+    shopAddress: string; // 店の住所（店で飲んだ場合のみ）
+    shopUrl: string; // 店のURL（店で飲んだ場合のみ）
   };
   rangeValues: {
     acidity: number;
@@ -56,6 +52,8 @@ interface CoffeeFormProps {
     beansName: string;
     productionArea: string;
     shopName: string;
+    shopAddress: string; // 店の住所（店で飲んだ場合のみ）
+    shopUrl: string; // 店のURL（店で飲んだ場合のみ）
   };
 
   RangeLabel: {
@@ -86,15 +84,12 @@ export default function ShopEditComponent({
   rangeValues,
   imageData,
   InputLabel,
-
   RangeLabel,
   NumberLabel,
   handleInputChange,
-
   handleRangeChange,
   handleOverallPreferenceChange,
   handleTextAreaChange,
-
   handleImageChange,
   handleSubmit,
 }: CoffeeFormProps) {
@@ -117,7 +112,18 @@ export default function ShopEditComponent({
         onChange={(value: string) => handleInputChange("shopName", value)}
         value={formData.shopName}
       />
-
+      <InputComponent
+        key={`shopAddress-${resetKey}`}
+        dataTitle={InputLabel.shopAddress}
+        onChange={(value: string) => handleInputChange("shopAddress", value)}
+        value={formData.shopAddress}
+      />
+      <InputComponent
+        key={`shopUrl-${resetKey}`}
+        dataTitle={InputLabel.shopUrl}
+        onChange={(value: string) => handleInputChange("shopUrl", value)}
+        value={formData.shopUrl}
+      />
       <InputComponent
         key={`productionArea-${resetKey}`}
         dataTitle={InputLabel.productionArea}

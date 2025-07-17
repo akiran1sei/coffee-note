@@ -229,6 +229,14 @@ export default function ListScreen() {
                         record.shopPrice ? `${record.shopPrice}円` : "----"
                       }
                     />
+                    <InfoRow
+                      label="店の住所"
+                      value={record.shopAddress ? record.shopAddress : "----"}
+                    />
+                    <InfoRow
+                      label="店のURL"
+                      value={record.shopUrl ? record.shopUrl : "----"}
+                    />
                   </>
                 )}
               </View>

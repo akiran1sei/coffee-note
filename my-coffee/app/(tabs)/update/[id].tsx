@@ -52,6 +52,8 @@ const initialFormData = {
   shopPrice: 0,
   self: true,
   shopDate: "",
+  shopAddress: "",
+  shopUrl: "",
 };
 
 const initialRangeValues = {
@@ -81,6 +83,8 @@ export default function EditScreen() {
     productionArea: "産地",
     shopName: "店名",
     shopPrice: "店の価格（円）",
+    shopAddress: "店の住所",
+    shopUrl: "店のURL",
   });
   const [SelectLabel, setSelectLabel] = useState({
     roastingDegree: "焙煎度",
@@ -169,6 +173,8 @@ export default function EditScreen() {
               : record.shopPrice || 0,
           self: record.self,
           shopDate: record.shopDate || "",
+          shopAddress: record.shopAddress || "",
+          shopUrl: record.shopUrl || "",
         };
 
         const loadedRangeValues = {
@@ -247,6 +253,8 @@ export default function EditScreen() {
             : originalRecord.shopPrice || 0,
         self: originalRecord.self,
         shopDate: originalRecord.shopDate || "",
+        shopAddress: originalRecord.shopAddress || "",
+        shopUrl: originalRecord.shopUrl || "",
       };
 
       const resetRangeValues = {
@@ -452,6 +460,8 @@ export default function EditScreen() {
         shopPrice: formData.shopPrice || 0,
         self: formData.self,
         shopDate: formData.shopDate || "",
+        shopAddress: formData.shopAddress || "",
+        shopUrl: formData.shopUrl || "",
       };
 
       await CoffeeStorageService.updateCoffeeRecord(

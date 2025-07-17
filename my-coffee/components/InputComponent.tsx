@@ -241,6 +241,53 @@ export const MeasuredTimeInputComponent: React.FC<TimeInputProps> = ({
     </View>
   );
 };
+interface ShopTextProps {
+  dataTitle: string;
+  onChange: (value: string) => void;
+}
+export const ShopTextComponent: React.FC<ShopTextProps> = ({
+  dataTitle,
+  onChange,
+}) => {
+  if (dataTitle === "店の住所") {
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>{dataTitle}</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={onChange}
+          placeholder="店の住所"
+          placeholderTextColor="#aaa"
+        />
+      </View>
+    );
+  } else if (dataTitle === "店のURL") {
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>{dataTitle}</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={onChange}
+          placeholder="店のURL"
+          placeholderTextColor="#aaa"
+        />
+      </View>
+    );
+  } else if (dataTitle === "店のURL") {
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>{dataTitle}</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={onChange}
+          placeholder="店のURL"
+          placeholderTextColor="#aaa"
+        />
+      </View>
+    );
+  }
+};
+
 const styles = StyleSheet.create({
   inputContainer: {
     width: "90%",
