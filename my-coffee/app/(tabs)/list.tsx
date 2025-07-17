@@ -171,7 +171,7 @@ export default function ListScreen() {
   // ItemSeparatorComponent など他の要素との組み合わせで検討する
   const renderCoffeeRecord = ({ item: record }: { item: CoffeeRecord }) => {
     // 各アイテムのレンダリングロジックはほぼそのまま
-    console.log("Rendering record:", record.self);
+    console.log("Rendering record:", record.extractionTime);
     return (
       // key は FlatList が自動で付与するため、ここでは不要
       <View style={styles.wrapContainer}>

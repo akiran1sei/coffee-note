@@ -218,7 +218,7 @@ export const MeasuredTimeInputComponent: React.FC<TimeInputProps> = ({
           <Text style={styles.timeUnit}>分</Text>
         </View>
 
-        <Text style={styles.timeSeparator}>:</Text>
+        {(minutes || seconds) && <Text style={styles.timeSeparator}>:</Text>}
 
         <View style={styles.timeInputWrapper}>
           <TextInput

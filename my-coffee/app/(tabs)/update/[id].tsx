@@ -40,7 +40,7 @@ const initialFormData = {
   coffeeAmount: 0,
   measurementMethod: "",
   waterAmount: 0,
-  extractionTime: "00",
+  extractionTime: "",
   acidity: 0,
   bitterness: 0,
   overall: 0,
@@ -154,7 +154,7 @@ export default function EditScreen() {
             typeof record.waterAmount === "string"
               ? Number(record.waterAmount) || 0
               : record.waterAmount || 0,
-          extractionTime: record.extractionTime || "00",
+          extractionTime: record.extractionTime,
           acidity: record.acidity || 0,
           bitterness: record.bitterness || 0,
           overall: record.overall || 0,
@@ -232,7 +232,7 @@ export default function EditScreen() {
           typeof originalRecord.waterAmount === "string"
             ? Number(originalRecord.waterAmount) || 0
             : originalRecord.waterAmount || 0,
-        extractionTime: originalRecord.extractionTime || "00",
+        extractionTime: originalRecord.extractionTime,
         acidity: originalRecord.acidity || 0,
         bitterness: originalRecord.bitterness || 0,
         overall: originalRecord.overall || 0,
@@ -458,7 +458,6 @@ export default function EditScreen() {
         updatedRecord.id,
         updatedRecord
       );
-      console.log("更新成功:", updatedRecord.extractionTime);
 
       showWebAlert("更新成功", "コーヒーコードが更新されました。", () => {
         router.back();

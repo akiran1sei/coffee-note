@@ -46,7 +46,7 @@ const initialFormData = {
   coffeeAmount: 0,
   measurementMethod: "",
   waterAmount: 0,
-  extractionTime: "00",
+  extractionTime: "",
   acidity: 0,
   bitterness: 0,
   overall: 0,
@@ -295,7 +295,7 @@ export default function CreateScreen() {
         coffeeAmount: formData.coffeeAmount || "--",
         measurementMethod: formData.measurementMethod,
         waterAmount: formData.waterAmount || "--",
-        extractionTime: formData.extractionTime || "00", // ここで初期値を設定
+        extractionTime: formData.extractionTime, // ここで初期値を設定
         acidity: formData.acidity,
         bitterness: formData.bitterness,
         overall: formData.overall,

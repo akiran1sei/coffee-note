@@ -1252,7 +1252,9 @@ export default function CoffeeItemScreen() {
                   <View style={styles.wrapper}>
                     <Text style={styles.labelText}>産地</Text>
                     <Text style={styles.valueText}>
-                      {coffeeRecord.productionArea}
+                      {coffeeRecord.productionArea
+                        ? coffeeRecord.productionArea
+                        : "----"}
                     </Text>
                   </View>
                 </View>
@@ -1292,7 +1294,9 @@ export default function CoffeeItemScreen() {
                   <View style={styles.wrapper}>
                     <Text style={styles.labelText}>注湯温度</Text>
                     <Text style={styles.valueText}>
-                      {coffeeRecord.temperature}
+                      {coffeeRecord.temperature === Number(0)
+                        ? "----"
+                        : coffeeRecord.temperature}
                     </Text>
                   </View>
                 </View>
@@ -1300,7 +1304,9 @@ export default function CoffeeItemScreen() {
                   <View style={styles.wrapper}>
                     <Text style={styles.labelText}>粉量</Text>
                     <Text style={styles.valueText}>
-                      {coffeeRecord.coffeeAmount}
+                      {coffeeRecord.coffeeAmount === Number(0)
+                        ? "----"
+                        : coffeeRecord.coffeeAmount}
                     </Text>
                   </View>
                 </View>
@@ -1310,7 +1316,9 @@ export default function CoffeeItemScreen() {
                       {coffeeRecord.measurementMethod}
                     </Text>
                     <Text style={styles.valueText}>
-                      {coffeeRecord.waterAmount}
+                      {coffeeRecord.waterAmount === Number(0)
+                        ? "----"
+                        : coffeeRecord.waterAmount}
                     </Text>
                   </View>
                 </View>
@@ -1318,7 +1326,9 @@ export default function CoffeeItemScreen() {
                   <View style={styles.wrapper}>
                     <Text style={styles.labelText}>抽出時間</Text>
                     <Text style={styles.valueText}>
-                      {coffeeRecord.extractionTime}
+                      {coffeeRecord.extractionTime
+                        ? coffeeRecord.extractionTime
+                        : "----"}
                     </Text>
                   </View>
                 </View>
