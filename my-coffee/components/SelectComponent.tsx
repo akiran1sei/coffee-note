@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Text, TextInput, Platform } from "react-native"; // Platformをインポート
+import {
+  View,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+} from "react-native";
 import { Picker } from "@react-native-picker/picker";
 
 // 階層的選択のためのインターフェース
@@ -182,6 +188,146 @@ export const HierarchicalCoffeeSelect: React.FC<HierarchicalSelectProps> = ({
   );
 };
 
+// 選択肢の型を定義
+type MeasurementType = "注湯量" | "抽出量";
+
+interface ConditionalMeasurementProps {
+  onChange: (value: string) => void;
+  dataTitle: string;
+  value: string | undefined;
+  extractionMethod?: string; // 抽出方法を受け取るプロパティを追加
+}
+
+export const ConditionalMeasurementSelector: React.FC<
+  ConditionalMeasurementProps
+> = ({ dataTitle, onChange, value, extractionMethod }) => {
+  // 選択肢を表示する抽出方法を定義
+  const methodsWithChoice = [
+    "ペーパードリップ",
+    "ペーパーレスドリッパー",
+    "ネルドリップ",
+    "コーヒーメーカー(ドリップ式)",
+  ];
+
+  // 選択肢を表示するかどうかを判定
+  const shouldShowChoice = methodsWithChoice.includes(extractionMethod || "");
+
+  // value が undefined または空文字列の場合、デフォルト値を設定
+  const [selectedMeasurement, setSelectedMeasurement] = useState<
+    MeasurementType | ""
+  >(
+    shouldShowChoice ? (value as MeasurementType) || "" : "注湯量" // 選択肢がない場合は固定で注湯量
+  );
+
+  // 抽出方法が変更された場合の処理
+  useEffect(() => {
+    console.log("extractionMethod", extractionMethod);
+    if (shouldShowChoice) {
+      // 選択肢がある場合は、現在の値を維持するか空にする
+      setSelectedMeasurement((value as MeasurementType) || "");
+    } else if (extractionMethod === "エスプレッソ") {
+      // エスプレッソの場合は強制的に抽出量に設定
+      setSelectedMeasurement("抽出量");
+      onChange("抽出量");
+    } else {
+      // 選択肢がない場合は強制的に注湯量に設定
+      setSelectedMeasurement("注湯量");
+      onChange("注湯量");
+    }
+  }, [extractionMethod, shouldShowChoice]);
+
+  // 親から渡される value が変更された場合、内部状態も更新
+  useEffect(() => {
+    if (shouldShowChoice) {
+      setSelectedMeasurement((value as MeasurementType) || "");
+    } else if (extractionMethod === "エスプレッソ") {
+      setSelectedMeasurement("抽出量");
+    } else {
+      setSelectedMeasurement("注湯量");
+    }
+  }, [value, shouldShowChoice]);
+
+  // ボタンが押されたときのハンドラ
+  const handlePress = (type: MeasurementType) => {
+    setSelectedMeasurement(type);
+    onChange(type);
+  };
+
+  // 選択肢がない場合は固定表示
+  if (!shouldShowChoice && extractionMethod === "エスプレッソ") {
+    return (
+      <View style={styles.radioContainer}>
+        <Text style={styles.label}>{dataTitle}</Text>
+        <View style={styles.fixedContainer}>
+          <Text style={styles.fixedText}>抽出量（固定）</Text>
+        </View>
+        <Text style={styles.selectedValueText}>選択中のタイプ: 抽出量</Text>
+      </View>
+    );
+  } else if (!shouldShowChoice && extractionMethod !== "エスプレッソ") {
+    return (
+      <View style={styles.radioContainer}>
+        <Text style={styles.label}>{dataTitle}</Text>
+        <View style={styles.fixedContainer}>
+          <Text style={styles.fixedText}>注湯量（固定）</Text>
+        </View>
+        <Text style={styles.selectedValueText}>選択中のタイプ: 注湯量</Text>
+      </View>
+    );
+  }
+
+  // 選択肢がある場合は通常の選択UI
+  return (
+    <View style={styles.radioContainer}>
+      <Text style={styles.label}>{dataTitle}</Text>
+      <View style={styles.buttonGroup}>
+        {/* 注湯量ボタン */}
+        <TouchableOpacity
+          style={[
+            styles.button,
+            selectedMeasurement === "注湯量" && styles.selectedButton,
+          ]}
+          onPress={() => handlePress("注湯量")}
+        >
+          <Text
+            style={[
+              styles.buttonText,
+              selectedMeasurement === "注湯量" && styles.selectedButtonText,
+            ]}
+          >
+            注湯量
+          </Text>
+        </TouchableOpacity>
+
+        {/* 抽出量ボタン */}
+        <TouchableOpacity
+          style={[
+            styles.button,
+            styles.rightButton,
+            selectedMeasurement === "抽出量" && styles.selectedButton,
+          ]}
+          onPress={() => handlePress("抽出量")}
+        >
+          <Text
+            style={[
+              styles.buttonText,
+              selectedMeasurement === "抽出量" && styles.selectedButtonText,
+            ]}
+          >
+            抽出量
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <Text style={styles.selectedValueText}>
+        選択中のタイプ:{" "}
+        {selectedMeasurement === ""
+          ? "選択されていません"
+          : selectedMeasurement}
+      </Text>
+    </View>
+  );
+};
+
 interface SelectProps {
   dataTitle: string;
   onChange: (value: string) => void;
@@ -221,6 +367,8 @@ export const CoffeeProcessingSelect: React.FC<SelectProps> = ({
           label: "イタリアン (深)",
           value: "イタリアン (深)",
         },
+        { label: "複数焙煎度", value: "複数焙煎度" },
+        { label: "不明", value: "不明" },
       ];
     } else if (dataTitle === "挽き目") {
       return [
@@ -230,6 +378,8 @@ export const CoffeeProcessingSelect: React.FC<SelectProps> = ({
         { label: "中挽き", value: "中挽き" },
         { label: "粗挽き", value: "粗挽き" },
         { label: "極粗挽き", value: "極粗挽き" },
+        { label: "複数挽き", value: "複数挽き" },
+        { label: "不明", value: "不明" },
       ];
     }
     return [];
@@ -274,6 +424,8 @@ export const CoffeeTypesSelect: React.FC<SelectProps> = ({
     { label: "アラビカ種", value: "アラビカ種" },
     { label: "カネフォラ種", value: "カネフォラ種" },
     { label: "リベリカ種", value: "リベリカ種" },
+    { label: "複数種類", value: "複数種類" },
+    { label: "不明", value: "不明" },
   ];
 
   // selectedValueが変更されたときに、「その他」が選択されたかどうかを判定
@@ -322,6 +474,7 @@ export const CoffeeTypesSelect: React.FC<SelectProps> = ({
         <Picker
           selectedValue={selectedValue}
           onValueChange={handlePickerChange}
+          style={styles.picker}
         >
           <Picker.Item label="選択してください" value="" />
           {options.map((option) => (
@@ -359,7 +512,7 @@ const styles = StyleSheet.create({
   label: {
     width: "100%",
     backgroundColor: "#D2B48C",
-    color: "#000",
+    color: "#333",
     padding: 10,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
@@ -369,6 +522,7 @@ const styles = StyleSheet.create({
   pickerWrapper: {
     width: "100%",
     backgroundColor: "#FFF",
+
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
     borderWidth: 1,
@@ -380,7 +534,7 @@ const styles = StyleSheet.create({
   picker: {
     width: "100%",
     backgroundColor: "transparent", // ラッパーの背景色を使う
-    // borderWidth や borderColor はここでは設定しない
+    color: "#333",
     paddingVertical: 16,
     paddingHorizontal: 0,
     fontSize: 18,
@@ -401,6 +555,7 @@ const styles = StyleSheet.create({
   otherInput: {
     width: "100%",
     backgroundColor: "#FFF",
+    color: "#333",
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#D2B48C",
@@ -411,5 +566,66 @@ const styles = StyleSheet.create({
   selectedText: {
     marginTop: 20,
     fontSize: 16,
+  },
+  radioContainer: {
+    width: "90%",
+
+    marginHorizontal: "auto",
+    alignItems: "center",
+  },
+
+  buttonGroup: {
+    width: "100%",
+    flexDirection: "row",
+    borderRadius: 8,
+    borderColor: "#6F4E37",
+    borderWidth: 1,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  rightButton: {
+    borderLeftWidth: 1,
+    borderLeftColor: "#6F4E37",
+  },
+  selectedButton: {
+    backgroundColor: "#6F4E37",
+  },
+  buttonText: {
+    fontSize: 16,
+    color: "#6F4E37",
+    fontWeight: "bold",
+  },
+  selectedButtonText: {
+    color: "#fff",
+  },
+  selectedValueText: {
+    marginVertical: 10,
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#555",
+  },
+  // 固定表示用のスタイル
+  fixedContainer: {
+    width: "100%",
+    backgroundColor: "#f0f0f0",
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    borderWidth: 1,
+    borderColor: "#D2B48C",
+    marginTop: -1,
+    padding: 15,
+    alignItems: "center",
+  },
+  fixedText: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "bold",
   },
 });

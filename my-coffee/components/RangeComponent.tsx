@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react"; // useEffect をインポート
 import { View, StyleSheet, Text, TouchableOpacity } from "react-native";
 import Slider from "@react-native-community/slider";
 import { FontAwesome } from "@expo/vector-icons";
@@ -14,25 +14,27 @@ const RangeComponent: React.FC<RangeComponentProps> = ({
   onChange,
   value,
 }) => {
-  // ローカルステートを使って一時的な値を管理（スライダードラッグ中の値）
   const [localValue, setLocalValue] = useState(value);
-
-  // メモリマークの値（0から5まで、0.5刻み）
   const tickValues = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
 
-  // スライダーの値が変わった時（ドラッグ中）のハンドラー
+  // =========================================================================
+  // ここを修正します！
+  useEffect(() => {
+    // 親から新しい値が渡されたらローカルステートも更新
+    if (value !== localValue) {
+      setLocalValue(value);
+    }
+  }, [value, localValue]); // localValueも依存配列に含めるのがより安全です
+  // =========================================================================
+
   const handleSliderChange = (newValue: number) => {
-    // ローカルステートだけを更新（レンダリングを最小限に）
     setLocalValue(newValue);
   };
 
-  // スライダーの操作が完了した時のハンドラー
   const handleSlidingComplete = (newValue: number) => {
-    // 親コンポーネントに通知
     onChange(parseFloat(newValue.toFixed(1)));
   };
 
-  // ボタンを押した時のハンドラー
   const incrementValue = () => {
     if (value + 0.5 <= 5) {
       const newValue = parseFloat((value + 0.5).toFixed(1));
@@ -49,16 +51,13 @@ const RangeComponent: React.FC<RangeComponentProps> = ({
     }
   };
 
-  // 親から新しい値が渡されたらローカルステートも更新
-  if (value !== localValue) {
-    setLocalValue(value);
-  }
-
   return (
     <View style={styles.inputContainer}>
       <Text style={styles.label}>{dataTitle}</Text>
+      {/* dataTitleはTextで囲まれているのでOK */}
       <View style={styles.sliderContainer}>
         <Text style={styles.valueText}>{value.toFixed(1)}</Text>
+        {/* valueもTextで囲まれているのでOK */}
         <View style={styles.sliderAndButtons}>
           <TouchableOpacity
             onPress={decrementValue}
@@ -68,7 +67,6 @@ const RangeComponent: React.FC<RangeComponentProps> = ({
             <FontAwesome name="minus" size={20} color="#D2B48C" />
           </TouchableOpacity>
           <View style={styles.sliderWrapper}>
-            {/* メモリを上部に移動 */}
             <View style={styles.tickContainer}>
               {tickValues.map((tick) => (
                 <View
@@ -80,7 +78,7 @@ const RangeComponent: React.FC<RangeComponentProps> = ({
                   ]}
                 >
                   {tick % 1 === 0 && (
-                    <Text style={styles.tickLabel}>{tick}</Text>
+                    <Text style={styles.tickLabel}>{tick}</Text> // tickもTextで囲まれているのでOK
                   )}
                 </View>
               ))}
@@ -95,7 +93,7 @@ const RangeComponent: React.FC<RangeComponentProps> = ({
               onSlidingComplete={handleSlidingComplete}
               minimumTrackTintColor="#D2B48C"
               maximumTrackTintColor="#FFF"
-              thumbTintColor="#D2B48C"
+              thumbImage={require("../assets/images/slider-thumb.png")} // スライダーのサム画像を指定
             />
           </View>
           <TouchableOpacity
@@ -120,7 +118,7 @@ const styles = StyleSheet.create({
   label: {
     width: "100%",
     backgroundColor: "#D2B48C",
-    color: "#000",
+    color: "#333",
     padding: 10,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
@@ -137,7 +135,7 @@ const styles = StyleSheet.create({
     borderColor: "#D2B48C",
   },
   valueText: {
-    color: "#000",
+    color: "#333",
     marginVertical: 10,
     fontSize: 18,
     fontWeight: "bold",
@@ -149,14 +147,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   button: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
     borderRadius: 15,
     backgroundColor: "#FFF",
     justifyContent: "center",
     alignItems: "center",
     marginHorizontal: 10,
-    shadowColor: "#000000",
+    shadowColor: "#333000",
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 2,
@@ -170,7 +168,7 @@ const styles = StyleSheet.create({
   },
   slider: {
     width: "100%",
-    height: 40,
+    height: 50,
   },
   tickContainer: {
     width: "100%",
@@ -194,12 +192,10 @@ const styles = StyleSheet.create({
   },
   activeTick: {
     backgroundColor: "#333",
-
     width: 6,
   },
   tickLabel: {
     color: "#A67B5B",
-
     fontSize: 12,
     marginBottom: 5, // ラベルとメモリの間隔を追加
     fontWeight: "500",

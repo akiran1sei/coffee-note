@@ -32,7 +32,7 @@ export const InputComponent: React.FC<InputProps> = ({
         onChangeText={handleInputChange}
         value={value}
         placeholder="入力してください"
-        placeholderTextColor="#D3D3D3"
+        placeholderTextColor="#aaa"
       />
     </View>
   );
@@ -40,8 +40,8 @@ export const InputComponent: React.FC<InputProps> = ({
 
 interface NumberProps {
   dataTitle: string;
-  onChange: (value: number) => void;
-  value: number;
+  onChange: (value: number | string) => void;
+  value: number | string;
 }
 export const NumberComponent: React.FC<NumberProps> = ({
   dataTitle,
@@ -75,7 +75,22 @@ export const NumberComponent: React.FC<NumberProps> = ({
   const handleFocus = () => {
     setIsFocused(true);
   };
+  if (dataTitle === "湯量") {
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>{dataTitle}</Text>
 
+        <TextInput
+          style={[styles.numberInput, isFocused && styles.focusedInput]}
+          value={inputValue} // value プロパティを使用
+          onChangeText={handleInputChange}
+          keyboardType="number-pad"
+          onBlur={handleBlur}
+          onFocus={handleFocus}
+        />
+      </View>
+    );
+  }
   return (
     <View style={styles.inputContainer}>
       <Text style={styles.label}>{dataTitle}</Text>
@@ -117,8 +132,8 @@ export const TextAreaComponent: React.FC<TextAreaProps> = ({
         style={styles.textarea}
         onChangeText={handleInputChange}
         value={value} // value プロパティを使用
-        placeholder="入力してください"
-        placeholderTextColor="#D3D3D3"
+        placeholder="コーヒーの評価項目以外でのメモや気になることがあれば記入してください"
+        placeholderTextColor="#aaa"
         multiline={true}
         numberOfLines={4}
       />
@@ -197,13 +212,13 @@ export const MeasuredTimeInputComponent: React.FC<TimeInputProps> = ({
             onChangeText={handleMinutesChange}
             onSubmitEditing={handleMinutesSubmit}
             placeholder="00"
-            placeholderTextColor="#AAAAAA"
+            placeholderTextColor="#aaa"
             ref={minutesInput}
           />
           <Text style={styles.timeUnit}>分</Text>
         </View>
 
-        <Text style={styles.timeSeparator}>:</Text>
+        {(minutes || seconds) && <Text style={styles.timeSeparator}>:</Text>}
 
         <View style={styles.timeInputWrapper}>
           <TextInput
@@ -226,6 +241,53 @@ export const MeasuredTimeInputComponent: React.FC<TimeInputProps> = ({
     </View>
   );
 };
+interface ShopTextProps {
+  dataTitle: string;
+  onChange: (value: string) => void;
+}
+export const ShopTextComponent: React.FC<ShopTextProps> = ({
+  dataTitle,
+  onChange,
+}) => {
+  if (dataTitle === "店の住所") {
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>{dataTitle}</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={onChange}
+          placeholder="店の住所"
+          placeholderTextColor="#aaa"
+        />
+      </View>
+    );
+  } else if (dataTitle === "店のURL") {
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>{dataTitle}</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={onChange}
+          placeholder="店のURL"
+          placeholderTextColor="#aaa"
+        />
+      </View>
+    );
+  } else if (dataTitle === "店のURL") {
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>{dataTitle}</Text>
+        <TextInput
+          style={styles.input}
+          onChangeText={onChange}
+          placeholder="店のURL"
+          placeholderTextColor="#aaa"
+        />
+      </View>
+    );
+  }
+};
+
 const styles = StyleSheet.create({
   inputContainer: {
     width: "90%",
@@ -235,7 +297,7 @@ const styles = StyleSheet.create({
   label: {
     width: "100%",
     backgroundColor: "#D2B48C",
-    color: "#000",
+    color: "#333",
     padding: 10,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
@@ -245,6 +307,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 40,
     backgroundColor: "#FFF",
+    color: "#333",
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
     borderWidth: 1,
@@ -260,6 +323,7 @@ const styles = StyleSheet.create({
   input: {
     width: "100%",
     backgroundColor: "#FFF",
+    color: "#333",
     padding: 10,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
@@ -270,6 +334,7 @@ const styles = StyleSheet.create({
   textarea: {
     width: "100%",
     backgroundColor: "#FFF",
+    color: "#333",
     padding: 10,
     borderBottomLeftRadius: 10,
     borderBottomRightRadius: 10,
@@ -307,6 +372,8 @@ const styles = StyleSheet.create({
     height: 40,
     borderWidth: 1,
     borderColor: "#E0E0E0",
+    backgroundColor: "#FFF",
+    color: "#333",
     borderRadius: 5,
     padding: 10,
     textAlign: "center",
@@ -315,11 +382,13 @@ const styles = StyleSheet.create({
   timeUnit: {
     marginLeft: 5,
     fontSize: 18,
+    color: "#333",
   },
   timeSeparator: {
     marginHorizontal: 10,
     fontSize: 24,
     fontWeight: "bold",
+    color: "#333",
   },
   resetButton: {
     marginLeft: 15,

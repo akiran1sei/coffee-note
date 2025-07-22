@@ -12,7 +12,7 @@ import { CoffeeRecord } from "../../types/CoffeeTypes"; // パスは実際の構
 type SortCriteria =
   | "acidity"
   | "bitterness"
-  | "sweetness"
+  | "overall"
   | "body"
   | "aroma"
   | "aftertaste"
@@ -40,14 +40,14 @@ const SortComponent: React.FC<SortComponentProps> = ({ onSort, records }) => {
     { label: "酸味 降順", value: "acidity", order: "desc" },
     { label: "苦味 昇順", value: "bitterness", order: "asc" },
     { label: "苦味 降順", value: "bitterness", order: "desc" },
-    { label: "甘味 昇順", value: "sweetness", order: "asc" },
-    { label: "甘味 降順", value: "sweetness", order: "desc" },
+    { label: "全体 昇順", value: "overall", order: "asc" },
+    { label: "全体 降順", value: "overall", order: "desc" },
     { label: "コク 昇順", value: "body", order: "asc" },
     { label: "コク 降順", value: "body", order: "desc" },
     { label: "香り 昇順", value: "aroma", order: "asc" },
     { label: "香り 降順", value: "aroma", order: "desc" },
-    { label: "後味 昇順", value: "aftertaste", order: "asc" },
-    { label: "後味 降順", value: "aftertaste", order: "desc" },
+    { label: "キレ 昇順", value: "aftertaste", order: "asc" },
+    { label: "キレ 降順", value: "aftertaste", order: "desc" },
     { label: "作成日時 (古い順)", value: "createdAt", order: "asc" },
     { label: "作成日時 (新しい順)", value: "createdAt", order: "desc" },
   ];
@@ -72,8 +72,8 @@ const SortComponent: React.FC<SortComponentProps> = ({ onSort, records }) => {
         case "bitterness":
           comparison = (a.bitterness || 0) - (b.bitterness || 0);
           break;
-        case "sweetness":
-          comparison = (a.sweetness || 0) - (b.sweetness || 0);
+        case "overall":
+          comparison = (a.overall || 0) - (b.overall || 0);
           break;
         case "body":
           comparison = (a.body || 0) - (b.body || 0);
@@ -165,6 +165,7 @@ const styles = StyleSheet.create({
   sortButtonText: {
     textAlign: "center",
     fontWeight: "500",
+    color: "#777",
   },
   modalOverlay: {
     flex: 1,
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    backgroundColor: "white",
+    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 20,
     width: "80%",

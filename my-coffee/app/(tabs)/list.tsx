@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Text,
   View,
   Image,
   StyleSheet,
-  Platform,
   ImageSourcePropType,
   RefreshControl,
   TouchableOpacity,
@@ -12,6 +11,8 @@ import {
   ScrollView,
   FlatList,
   Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import { useRouter } from "expo-router";
 import HeaderComponent from "../../components/HeaderComponent";
@@ -23,6 +24,9 @@ import RadarChart from "../../components/RadarChart/RadarChart";
 import Checkbox from "expo-checkbox";
 import SearchComponent from "../../components/button/Search";
 import SortComponent from "@/components/button/Sort";
+import { GlobalStyles } from "../styles/GlobalStyles";
+import UpperButton from "@/components/button/Upper";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 // 画面サイズを取得
 const { width: screenWidth } = Dimensions.get("window");
 export default function ListScreen() {
@@ -40,7 +44,7 @@ export default function ListScreen() {
   // プルツーリフレッシュの状態
   const [refreshing, setRefreshing] = useState(false);
   // 不要な State を削除: const [coffeeRecords, setCoffeeRecords] = useState<CoffeeRecord[]>([]);
-
+  const [showScrollToTopButton, setShowScrollToTopButton] = useState(false);
   // データの取得と State 更新
   const fetchData = useCallback(async () => {
     try {
@@ -128,25 +132,19 @@ export default function ListScreen() {
   // 削除確認ダイアログを表示
   const confirmDelete = useCallback(
     (message: string, onConfirm: () => void) => {
-      if (Platform.OS === "web") {
-        if (window.confirm(message)) {
-          onConfirm();
-        }
-      } else {
-        Alert.alert(
-          "削除確認",
-          message,
-          [
-            { text: "キャンセル", style: "cancel" },
-            {
-              text: "削除",
-              style: "destructive",
-              onPress: onConfirm,
-            },
-          ],
-          { cancelable: false }
-        );
-      }
+      Alert.alert(
+        "削除確認",
+        message,
+        [
+          { text: "キャンセル", style: "cancel" },
+          {
+            text: "削除",
+            style: "destructive",
+            onPress: onConfirm,
+          },
+        ],
+        { cancelable: false }
+      );
     },
     [] // useCallback を使用して関数をメモ化
   );
@@ -154,26 +152,26 @@ export default function ListScreen() {
   // 画像URIを環境に応じて適切に処理する関数
   const getImageSource = useCallback(
     (uri?: string | null): ImageSourcePropType => {
-      if (!uri || (Platform.OS === "web" && !uri.startsWith("data:image"))) {
-        // URI がないか、Web 環境で Base64 形式でない場合はデフォルト画像
+      // URI がない場合はデフォルト画像
+      if (!uri) {
         return require("../../assets/images/no-image.png");
       }
-      if (Platform.OS !== "web" && !uri.startsWith("file://")) {
-        // モバイル環境で file:// が付いていなければ追加
+      // モバイル環境で file:// が付いていなければ追加
+      if (!uri.startsWith("file://")) {
         return { uri: `file://${uri}` };
       }
 
       return { uri }; // その他の場合はそのまま URI を使用
     },
     []
-  ); // useCallback を使用して関数をメモ化
-
+  );
   // レコードアイテムをレンダリングする関数
   // この関数自体は useCallback で囲む必要はないが、
   // FlatList の renderItem に渡す場合は、FlatList の最適化のために
   // ItemSeparatorComponent など他の要素との組み合わせで検討する
   const renderCoffeeRecord = ({ item: record }: { item: CoffeeRecord }) => {
     // 各アイテムのレンダリングロジックはほぼそのまま
+    console.log("Rendering record:", record.extractionTime);
     return (
       // key は FlatList が自動で付与するため、ここでは不要
       <View style={styles.wrapContainer}>
@@ -185,8 +183,7 @@ export default function ListScreen() {
 
         <TouchableOpacity
           onPress={() => {
-            const isWeb = Platform.OS === "web";
-            const pathname = isWeb ? "/item/web/[id]" : "/item/[id]";
+            const pathname = "/item/[id]";
 
             // router オブジェクトが変更されない限り useCallback は不要だが、念のため
             router.replace({ pathname: pathname, params: { id: record.id } });
@@ -208,45 +205,104 @@ export default function ListScreen() {
             {/* メイン情報 */}
             <View style={styles.recordMainInfo}>
               <View style={styles.infoColumn}>
-                <InfoRow label="種類" value={record.variety} />
-                <InfoRow label="産地" value={record.productionArea} />
-                <InfoRow label="焙煎度" value={record.roastingDegree} />
-                <InfoRow label="抽出器具" value={record.extractionMethod} />
-                <InfoRow label="抽出器具" value={record.extractionMaker} />
+                <InfoRow
+                  label="Self/Shop"
+                  value={record.self ? "自分" : "お店"}
+                />
+                <InfoRow
+                  label="産地"
+                  value={record.productionArea ? record.productionArea : "----"}
+                />
+                {record.self ? (
+                  <>
+                    <InfoRow label="種類" value={record.variety} />
+                    <InfoRow label="焙煎度" value={record.roastingDegree} />
+                    <InfoRow label="抽出器具" value={record.extractionMethod} />
+                    <InfoRow label="抽出器具" value={record.extractionMaker} />
+                  </>
+                ) : (
+                  <>
+                    <InfoRow label="店名" value={record.shopName} />
+                    <InfoRow
+                      label="店の価格"
+                      value={
+                        record.shopPrice ? `${record.shopPrice}円` : "----"
+                      }
+                    />
+                    <InfoRow
+                      label="店の住所"
+                      value={record.shopAddress ? record.shopAddress : "----"}
+                    />
+                    <InfoRow
+                      label="店のURL"
+                      value={record.shopUrl ? record.shopUrl : "----"}
+                    />
+                  </>
+                )}
               </View>
 
               <View style={styles.infoColumn}>
-                <InfoRow label="挽き目" value={record.grindSize} />
-                <InfoRow label="注湯温度" value={record.temperature} />
-                <InfoRow label="粉量" value={record.coffeeAmount} />
-                <InfoRow label="水量" value={record.waterAmount} />
-                <InfoRow label="抽出時間" value={record.extractionTime} />
+                {record.self ? (
+                  <>
+                    <InfoRow label="挽き目" value={record.grindSize} />
+                    <InfoRow
+                      label="注湯温度"
+                      value={
+                        record.temperature ? `${record.temperature}℃` : "----"
+                      }
+                    />
+                    <InfoRow
+                      label="粉量"
+                      value={
+                        record.coffeeAmount ? `${record.coffeeAmount}g` : "----"
+                      }
+                    />
+                    <InfoRow
+                      label={`水量(${record.measurementMethod})`}
+                      value={
+                        record.waterAmount ? `${record.waterAmount}g` : "----"
+                      }
+                    />
+
+                    <InfoRow
+                      label="抽出時間"
+                      value={
+                        record.extractionTime
+                          ? `${record.extractionTime}00分`
+                          : "----"
+                      }
+                    />
+                  </>
+                ) : null}
               </View>
             </View>
 
             {/* テイスティングノート */}
             <View style={styles.tastingSection}>
-              <Text style={styles.sectionTitle}>テイスティングノート</Text>
+              <Text style={GlobalStyles.sectionTitle}>
+                テイスティングノート
+              </Text>
               <View style={styles.tastingGrid}>
                 <TastingValue label="酸味" value={record.acidity} />
-                <TastingValue label="甘味" value={record.sweetness} />
-                <TastingValue label="苦味" value={record.bitterness} />
                 <TastingValue label="コク" value={record.body} />
                 <TastingValue label="香り" value={record.aroma} />
-                <TastingValue label="後味" value={record.aftertaste} />
+                <TastingValue label="苦味" value={record.bitterness} />
+                <TastingValue label="キレ" value={record.aftertaste} />
+                <TastingValue label="全体の好み" value={record.overall} />
               </View>
             </View>
 
             {/* レーダーチャート - パフォーマンスへの影響が大きい可能性 */}
             {/* 検討: アイテム数が多い場合、一覧では非表示にするか、軽量な表示にする */}
             <View style={styles.radarChartContainer}>
-              <Text style={styles.sectionTitle}>フレーバープロファイル</Text>
-              <View style={styles.recordRadarChart}>
+              <Text style={GlobalStyles.sectionTitle}>
+                フレーバープロファイル
+              </Text>
+              <View style={styles.recordRadarChart} pointerEvents="none">
                 <RadarChart
                   data={{
                     acidity: Number(record.acidity) || 0,
                     bitterness: Number(record.bitterness) || 0,
-                    sweetness: Number(record.sweetness) || 0,
                     body: Number(record.body) || 0,
                     aroma: Number(record.aroma) || 0,
                     aftertaste: Number(record.aftertaste) || 0,
@@ -258,7 +314,7 @@ export default function ListScreen() {
             {/* メモ */}
 
             <View style={styles.memoContainer}>
-              <Text style={styles.sectionTitle}>メモ</Text>
+              <Text style={GlobalStyles.sectionTitle}>メモ</Text>
               {record.memo && (
                 <Text style={styles.memoText}>{record.memo}</Text>
               )}
@@ -276,6 +332,20 @@ export default function ListScreen() {
       </View>
     );
   };
+  const scrollViewRef = useRef<ScrollView>(null);
+  //  スクロールイベントハンドラ
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const scrollY = event.nativeEvent.contentOffset.y;
+      // 例えば、200pxスクロールしたらボタンを表示する
+      if (scrollY > 200 && !showScrollToTopButton) {
+        setShowScrollToTopButton(true);
+      } else if (scrollY <= 200 && showScrollToTopButton) {
+        setShowScrollToTopButton(false);
+      }
+    },
+    [showScrollToTopButton]
+  );
 
   // handleSort 関数
   const handleSort = useCallback((sortedRecords: CoffeeRecord[]) => {
@@ -287,7 +357,7 @@ export default function ListScreen() {
 
   // 情報行を表示するサブコンポーネント (Memo化してパフォーマンス向上を試みる)
   const InfoRow = React.memo(
-    ({ label, value }: { label: string; value: string | number }) => (
+    ({ label, value }: { label: string; value: string | number | boolean }) => (
       <View style={styles.infoRow}>
         <Text style={styles.infoLabel}>{label}</Text>
         <Text style={styles.infoValue}>{value}</Text>
@@ -297,14 +367,28 @@ export default function ListScreen() {
 
   // テイスティング値を表示するサブコンポーネント (Memo化してパフォーマンス向上を試みる)
   const TastingValue = React.memo(
-    ({ label, value }: { label: string; value: string | number }) => (
-      <View style={styles.tastingItem}>
-        <Text style={styles.tastingLabel}>{label}</Text>
-        <View style={styles.tastingValueContainer}>
-          <Text style={styles.tastingValue}>{value}</Text>
-        </View>
-      </View>
-    )
+    ({ label, value }: { label: string; value: string | number }) => {
+      if (!(label === "全体の好み")) {
+        return (
+          <View style={styles.tastingItem}>
+            <Text style={styles.tastingLabel}>{label}</Text>
+            <View style={styles.tastingValueContainer}>
+              <Text style={styles.tastingValue}>{value}</Text>
+            </View>
+          </View>
+        );
+      } else {
+        return (
+          <View style={styles.tastingItem}>
+            <Text style={styles.tastingLabel}>{label}</Text>
+            <View style={styles.tastingOverallValueContainer}>
+              <Text style={styles.tastingOverallValue}>{value}</Text>
+            </View>
+          </View>
+        );
+      }
+      return null;
+    }
   );
 
   if (loading) {
@@ -313,84 +397,86 @@ export default function ListScreen() {
   } else {
     // ローディング完了後にメインコンテンツを表示
     return (
-      <View style={styles.container}>
-        <View style={styles.contents}>
-          <HeaderComponent />
-          <PageTitleComponent TextData={"Coffee List"} />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={[GlobalStyles.container, styles.listContainer]}>
+          <View style={GlobalStyles.contents}>
+            <HeaderComponent />
+            <PageTitleComponent TextData={"Coffee List"} />
 
-          <View style={[styles.absoluteBox, styles.mainContents]}>
-            <View style={styles.subMenuBox}>
-              {/* SearchComponent には allCoffeeRecords を渡す */}
-              <SearchComponent
-                initialData={allCoffeeRecords}
-                onSearch={handleSearch}
-              />
-              {/* SortComponent には allCoffeeRecords を渡して、ソート結果を handleSort で受け取る */}
-              <SortComponent
-                onSort={handleSort}
-                records={allCoffeeRecords} // ソートは常に元の全データに対して行う
-              />
-            </View>
-            {/* FlatList に置き換え */}
-            <ScrollView>
-              {/* 一括削除ボタン */}
-              {selectedRecords.length > 0 && (
-                <TouchableOpacity
-                  style={styles.batchDeleteButton}
-                  onPress={handleDeleteSelected}
-                >
-                  <Text style={styles.deleteButtonText}>
-                    {selectedRecords.length === 1
-                      ? "1件のレコードを削除"
-                      : `選択した ${selectedRecords.length} 件を削除`}
-                  </Text>
-                </TouchableOpacity>
+            <View style={[GlobalStyles.absoluteBox, GlobalStyles.mainContents]}>
+              <View style={styles.subMenuBox}>
+                {/* SearchComponent には allCoffeeRecords を渡す */}
+                <SearchComponent
+                  initialData={allCoffeeRecords}
+                  onSearch={handleSearch}
+                />
+                {/* SortComponent には allCoffeeRecords を渡して、ソート結果を handleSort で受け取る */}
+                <SortComponent
+                  onSort={handleSort}
+                  records={allCoffeeRecords} // ソートは常に元の全データに対して行う
+                />
+              </View>
+              {/* FlatList に置き換え */}
+              <ScrollView
+                ref={scrollViewRef}
+                onScroll={handleScroll} //  スクロールイベントを監視
+                scrollEventThrottle={16}
+              >
+                {/* 一括削除ボタン */}
+                {selectedRecords.length > 0 && (
+                  <TouchableOpacity
+                    style={styles.batchDeleteButton}
+                    onPress={handleDeleteSelected}
+                  >
+                    <Text style={styles.deleteButtonText}>
+                      {selectedRecords.length === 1
+                        ? "1件のレコードを削除"
+                        : `選択した ${selectedRecords.length} 件を削除`}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                <FlatList
+                  data={displayedCoffeeRecords}
+                  renderItem={renderCoffeeRecord}
+                  keyExtractor={(item) => item.id}
+                  horizontal={true}
+                  style={styles.horizontalList} // 専用のスタイルを適用
+                  contentContainerStyle={styles.flatListContentContainer}
+                  refreshControl={
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={handleRefresh}
+                    />
+                  }
+                  removeClippedSubviews={true}
+                  maxToRenderPerBatch={5}
+                  updateCellsBatchingPeriod={50}
+                  windowSize={5}
+                  showsHorizontalScrollIndicator={false}
+                  snapToAlignment="start" // スナップ効果を追加（オプション）
+                  decelerationRate="fast" // 速い減速率（オプション）
+                  snapToInterval={370} // カードの幅+マージン（オプション）
+                />
+              </ScrollView>
+              {displayedCoffeeRecords.length > 0 && (
+                <UpperButton
+                  scrollViewRef={scrollViewRef}
+                  isVisible={showScrollToTopButton}
+                />
               )}
-              <FlatList
-                data={displayedCoffeeRecords}
-                renderItem={renderCoffeeRecord}
-                keyExtractor={(item) => item.id}
-                horizontal={true}
-                style={styles.horizontalList} // 専用のスタイルを適用
-                contentContainerStyle={styles.flatListContentContainer}
-                refreshControl={
-                  <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={handleRefresh}
-                  />
-                }
-                removeClippedSubviews={true}
-                maxToRenderPerBatch={5}
-                updateCellsBatchingPeriod={50}
-                windowSize={5}
-                showsHorizontalScrollIndicator={false}
-                snapToAlignment="start" // スナップ効果を追加（オプション）
-                decelerationRate="fast" // 速い減速率（オプション）
-                snapToInterval={370} // カードの幅+マージン（オプション）
-              />
-            </ScrollView>
+            </View>
           </View>
         </View>
-      </View>
+      </GestureHandlerRootView>
     );
   }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  listContainer: {
     backgroundColor: "#F5F5F5",
   },
-  contents: {
-    flex: 1,
-  },
-  absoluteBox: {
-    flex: 1,
-    position: "absolute",
-    left: 0,
-    right: 0,
-    backgroundColor: "#FFFFFF",
-  },
+
   subMenuBox: {
     marginVertical: 10,
     flexDirection: "column",
@@ -399,14 +485,6 @@ const styles = StyleSheet.create({
     height: "100%",
     maxHeight: 120, // 一定の高さを設定
     // 必要に応じて paddingHorizontal などを調整
-  },
-  mainContents: {
-    flex: 1,
-    width: "100%",
-    maxWidth: screenWidth > 768 ? 700 : "100%", // 例: タブレット以上で最大幅を設定
-    marginHorizontal: "auto",
-    top: 210, // HeaderComponent + PageTitleComponent の高さ分 + マージン
-    bottom: 0,
   },
 
   // 横スクロールリスト専用スタイル
@@ -440,7 +518,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 10,
     marginBottom: 10,
-    shadowColor: "#000",
+    shadowColor: "#333",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -465,15 +543,6 @@ const styles = StyleSheet.create({
     paddingBottom: 5, // 余白を減らす
     borderBottomWidth: 1,
     borderBottomColor: "#E0E0E0",
-  },
-
-  // セクションタイトルをコンパクトに
-  sectionTitle: {
-    fontSize: 16, // 小さくする
-    fontWeight: "600",
-    color: "#5D4037",
-    marginBottom: 5, // 余白を減らす
-    textAlign: "center",
   },
 
   // レーダーチャートのコンテナ
@@ -551,7 +620,7 @@ const styles = StyleSheet.create({
   tastingGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
+    justifyContent: "center",
   },
   tastingItem: {
     width: "30%", // 3列表示
@@ -571,10 +640,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 5, // ラベルとの間に少し余白
   },
+  tastingOverallValueContainer: {
+    width: 40,
+    height: 40,
+    backgroundColor: "#D2B48C",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 5, // ラベルとの間に少し余白
+  },
   tastingValue: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#5D4037",
+  },
+  tastingOverallValue: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#f0f0f0",
   },
   checkbox: {
     marginBottom: 5,
@@ -603,7 +686,7 @@ const styles = StyleSheet.create({
     alignItems: "center", // テキスト中央揃え
   },
   deleteButtonText: {
-    color: "white",
+    color: "#fff",
     textAlign: "center",
     fontWeight: "bold",
     fontSize: 16,
