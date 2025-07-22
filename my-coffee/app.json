@@ -50,10 +50,12 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d3e46d64-3394-4b8a-946f-11965405fee4"
+        // "projectId": "d3e46d64-3394-4b8a-946f-11965405fee4" //nakamori.work@gmail.com
+        "projectId": "52a20f50-a71c-45d3-8a07-276036beb534" //nakamori.1224@gmail.com
       }
     },
-    "owner": "nakamori",
+    // "owner": "nakamori", //nakamori.work@gmail.com
+    "owner": "akiran1sei", //nakamori.1224@gmail.com
     "assetBundlePatterns": ["assets/images/**/*"]
   }
 }
