@@ -1,3 +1,12 @@
+# Android
+android/build/
+android/app/build/
+android/.gradle/
+android/gradle/
+android/local.properties
+android/gradlew
+android/gradlew.bat
+
 # Node.js
 node_modules/
 package-lock.json
@@ -6,11 +15,11 @@ yarn-error.log*
 
 # Expo
 .expo/
+.expo-shared/
 .eas-build/
 .eas-credentials/
 web-build/
 expo-env.d.ts
-android/build/
 ios/build/
 android/app/build/outputs/apk/
 ios/Pods/
@@ -26,7 +35,7 @@ build/
 *.key
 *.mobileprovision
 
-# debug
+# Debug
 npm-debug.*
 yarn-debug.*
 yarn-error.*
@@ -36,7 +45,6 @@ yarn-error.*
 *.pem
 
 # Environment variables
-
 .env
 .env.local
 .env.development
@@ -54,7 +62,7 @@ Thumbs.db
 # Logs
 *.log
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 
 # Editor specific files
@@ -63,10 +71,19 @@ Thumbs.db
 *.swp
 *.swo
 
+# Cache directories
+.cache/
+*.cache
 
-# 特定のフォルダ (例として残しましたが必要なければ削除してください)
-app-example
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
 
+# Firebase
 firebase_keys/service-account.json
-# または、ディレクトリ全体を除外する場合
 firebase_keys/
+
+# Custom exclusions
+app-example
