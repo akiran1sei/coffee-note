@@ -53,7 +53,7 @@
         "projectId": "d3e46d64-3394-4b8a-946f-11965405fee4"
       }
     },
-    "owner": "nakamori",
+     "owner": "google-application-works",
     "assetBundlePatterns": ["assets/images/**/*"]
   }
 }
