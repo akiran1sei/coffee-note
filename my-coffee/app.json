@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.googleapplicationworks.coffeenote",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.akiran1sei.coffee_note",
@@ -39,7 +43,9 @@
       [
         "expo-font",
         {
-          "fonts": ["./assets/fonts/Caveat-VariableFont_wght.ttf"]
+          "fonts": [
+            "./assets/fonts/Caveat-VariableFont_wght.ttf"
+          ]
         }
       ],
       "expo-asset"
@@ -50,13 +56,12 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "d3e46d64-3394-4b8a-946f-11965405fee4" //nakamori.work@gmail.com
+        "projectId": "d3e46d64-3394-4b8a-946f-11965405fee4"
       }
     },
-
-
-    "owner": "google-application-works", //google-application-works
-
-    "assetBundlePatterns": ["assets/images/**/*"]
+    "owner": "google-application-works",
+    "assetBundlePatterns": [
+      "assets/images/**/*"
+    ]
   }
 }
