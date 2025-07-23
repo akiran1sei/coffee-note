@@ -54,7 +54,9 @@
       }
     },
 
+
     "owner": "google-application-works", //google-application-works
+
     "assetBundlePatterns": ["assets/images/**/*"]
   }
 }
